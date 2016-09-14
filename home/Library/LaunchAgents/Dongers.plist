@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>Dongers</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>php</string>
+		<string>$HOME/Dropbox/Configuration/Alfred/Alfred.alfredpreferences/workflows/user.workflow.287DE1F6-A05A-4E03-8774-B5C68C557F3E/parser/parser.php</string>
+		<string>&gt;!</string>
+		<string>$HOME/.donger.cache</string>
+	</array>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StartCalendarInterval</key>
+	<array>
+		<dict>
+			<key>Hour</key>
+			<integer>10</integer>
+			<key>Minute</key>
+			<integer>0</integer>
+		</dict>
+	</array>
+</dict>
+</plist>
+
+<!-- @@@@LingonWhatStart:php /Users/Jamie/Dropbox/Configuration/Alfred/Alfred.alfredpreferences/workflows/user.workflow.287DE1F6-A05A-4E03-8774-B5C68C557F3E/parser/parser.php >! $HOME/.donger.cache@@@@LingonWhatEnd -->
