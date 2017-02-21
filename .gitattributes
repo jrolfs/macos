@@ -1,0 +1,4 @@
+home/.openvpn/ca.crt filter=git-crypt diff=git-crypt
+home/.openvpn/client.crt filter=git-crypt diff=git-crypt
+home/.openvpn/client.key filter=git-crypt diff=git-crypt
+home/.openvpn/home.ovpn filter=git-crypt diff=git-crypt
