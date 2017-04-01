@@ -2,17 +2,28 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>EnableGlobbing</key>
+	<true/>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/sbin</string>
+	</dict>
 	<key>Label</key>
 	<string>Dongers</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>php</string>
-		<string>$HOME/Dropbox/Configuration/Alfred/Alfred.alfredpreferences/workflows/user.workflow.287DE1F6-A05A-4E03-8774-B5C68C557F3E/parser/parser.php</string>
+		<string>/usr/bin/php</string>
+		<string>~/Dropbox/Configuration/Alfred/Alfred.alfredpreferences/workflows/user.workflow.287DE1F6-A05A-4E03-8774-B5C68C557F3E/parser/parser.php</string>
 		<string>&gt;!</string>
-		<string>$HOME/.donger.cache</string>
+		<string>~/.donger.cache</string>
 	</array>
 	<key>RunAtLoad</key>
-	<false/>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/tmp/dongers-cache-update.err</string>
+	<key>StandardOutPath</key>
+	<string>/tmp/dongers-cache-update.out</string>
 	<key>StartCalendarInterval</key>
 	<array>
 		<dict>
@@ -24,5 +35,3 @@
 	</array>
 </dict>
 </plist>
-
-<!-- @@@@LingonWhatStart:php /Users/Jamie/Dropbox/Configuration/Alfred/Alfred.alfredpreferences/workflows/user.workflow.287DE1F6-A05A-4E03-8774-B5C68C557F3E/parser/parser.php >! $HOME/.donger.cache@@@@LingonWhatEnd -->
