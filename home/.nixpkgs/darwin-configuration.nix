@@ -2,7 +2,9 @@
 
 {
   environment.systemPackages =
-    [ pkgs.figlet
+    [ pkgs.autoconf
+      pkgs.automake
+      pkgs.figlet
       pkgs.fzf
       pkgs.git
       pkgs.git-crypt
