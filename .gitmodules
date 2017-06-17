@@ -1,0 +1,3 @@
+[submodule "home/.nix-defexpr/darwin"]
+	path = home/.nix-defexpr/darwin
+	url = https://github.com/LnL7/nix-darwin
