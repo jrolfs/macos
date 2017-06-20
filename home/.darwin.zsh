@@ -12,10 +12,11 @@ if [ -f $nix_darwin_init ]; then
 
   export NIX_SSL_CERT_FILE="$(grep -o '".*\.crt"' $nix_darwin_init | tr -d '"')"
 
-  path+=(
+  path=(
     /run/current-system/sw/bin
     /nix/var/nix/profiles/default/bin
     $HOME/.nix-profile/bin
+    $path
   )
 fi
 
