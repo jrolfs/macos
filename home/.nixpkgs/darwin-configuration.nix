@@ -2,10 +2,17 @@
 
 {
   environment.systemPackages =
-    [ pkgs.autoconf
+    [ pkgs.ack
+      pkgs.autoconf
       pkgs.automake
+      pkgs.cmake
+      pkgs.dtach
+      pkgs.fasd
+      pkgs.fortune
       pkgs.figlet
+      pkgs.ffmpeg
       pkgs.fzf
+      pkgs.gdbm
       pkgs.git
       pkgs.git-crypt
       pkgs.gnupg
@@ -13,10 +20,16 @@
       pkgs.irssi
       pkgs.jq
       pkgs.lame
+      pkgs.luajit
       pkgs.mosh
-      pkgs.nix
+      pkgs.neovim
       pkgs.perl
+      pkgs.pinentry
+      pkgs.reattach-to-user-namespace
+      pkgs.silver-searcher
+      pkgs.terminal-notifier
       pkgs.tmux
+      pkgs.unrar
       pkgs.zsh
 
       pkgs.nix
