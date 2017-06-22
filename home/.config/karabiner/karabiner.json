@@ -11,6 +11,33 @@
                     {
                         "manipulators": [
                             {
+                                "description": "Standalone ⌃ to ⎋",
+                                "from": {
+                                    "key_code": "right_control",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "right_control"
+                                    }
+                                ],
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "escape"
+                                    }
+                                ],
+                                "type": "basic",
+                                "parameters": {
+                                    "basic": {
+                                        "to_if_alone_timeout_milliseconds": 500
+                                    }
+                                }
+                            },
+                            {
                                 "description": "Vim ←",
                                 "from": {
                                     "key_code": "h",
