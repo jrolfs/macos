@@ -11,12 +11,15 @@
                     {
                         "manipulators": [
                             {
-                                "description": "vim h←",
+                                "description": "Vim ←",
                                 "from": {
                                     "key_code": "h",
                                     "modifiers": {
                                         "mandatory": [
                                             "fn"
+                                        ],
+                                        "optional": [
+                                            "any"
                                         ]
                                     }
                                 },
@@ -28,12 +31,15 @@
                                 "type": "basic"
                             },
                             {
-                                "description": "Vim j↓",
+                                "description": "Vim ↓",
                                 "from": {
                                     "key_code": "j",
                                     "modifiers": {
                                         "mandatory": [
                                             "fn"
+                                        ],
+                                        "optional": [
+                                            "any"
                                         ]
                                     }
                                 },
@@ -45,12 +51,15 @@
                                 "type": "basic"
                             },
                             {
-                                "description": "Vim k↑",
+                                "description": "Vim ↑",
                                 "from": {
                                     "key_code": "k",
                                     "modifiers": {
                                         "mandatory": [
                                             "fn"
+                                        ],
+                                        "optional": [
+                                            "any"
                                         ]
                                     }
                                 },
@@ -62,12 +71,15 @@
                                 "type": "basic"
                             },
                             {
-                                "description": "Vim l→",
+                                "description": "Vim →",
                                 "from": {
                                     "key_code": "l",
                                     "modifiers": {
                                         "mandatory": [
                                             "fn"
+                                        ],
+                                        "optional": [
+                                            "any"
                                         ]
                                     }
                                 },
