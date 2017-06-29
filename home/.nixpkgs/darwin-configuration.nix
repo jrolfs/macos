@@ -27,6 +27,7 @@
       pkgs.perl
       pkgs.pinentry
       pkgs.python27Packages.neovim
+      pkgs.python27Packages.powerline
       pkgs.python36Packages.neovim
       pkgs.reattach-to-user-namespace
       pkgs.silver-searcher
