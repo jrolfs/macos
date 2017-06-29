@@ -26,6 +26,8 @@
       pkgs.neovim
       pkgs.perl
       pkgs.pinentry
+      pkgs.python27Packages.neovim
+      pkgs.python36Packages.neovim
       pkgs.reattach-to-user-namespace
       pkgs.silver-searcher
       pkgs.terminal-notifier
