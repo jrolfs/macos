@@ -8,6 +8,7 @@
       pkgs.cmake
       pkgs.dtach
       pkgs.fasd
+      pkgs.fontforge
       pkgs.fortune
       pkgs.figlet
       pkgs.ffmpeg
