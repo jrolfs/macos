@@ -29,6 +29,8 @@
       pkgs.python27Packages.neovim
       pkgs.python27Packages.powerline
       pkgs.python36Packages.neovim
+      pkgs.python27Packages.pylint
+      pkgs.python36Packages.pylint
       pkgs.reattach-to-user-namespace
       pkgs.silver-searcher
       pkgs.terminal-notifier
