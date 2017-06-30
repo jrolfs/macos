@@ -36,6 +36,7 @@
       pkgs.terminal-notifier
       pkgs.tmux
       pkgs.unrar
+      pkgs.vim-vint
       pkgs.zsh
 
       pkgs.nix
