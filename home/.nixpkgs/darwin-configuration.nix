@@ -45,4 +45,6 @@
   programs.zsh.enable = true;
 
   services.activate-system.enable = true;
+
+  nixpkgs.config.allowUnfree = true;
 }
