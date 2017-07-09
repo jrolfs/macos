@@ -7,6 +7,9 @@
     "profiles": [
         {
             "complex_modifications": {
+                "parameters": {
+                    "basic.to_if_alone_timeout_milliseconds": 1000
+                },
                 "rules": [
                     {
                         "manipulators": [
@@ -20,6 +23,11 @@
                                         ]
                                     }
                                 },
+                                "parameters": {
+                                    "basic": {
+                                        "to_if_alone_timeout_milliseconds": 500
+                                    }
+                                },
                                 "to": [
                                     {
                                         "key_code": "right_control"
@@ -30,12 +38,7 @@
                                         "key_code": "escape"
                                     }
                                 ],
-                                "type": "basic",
-                                "parameters": {
-                                    "basic": {
-                                        "to_if_alone_timeout_milliseconds": 500
-                                    }
-                                }
+                                "type": "basic"
                             },
                             {
                                 "description": "Vim ←",
