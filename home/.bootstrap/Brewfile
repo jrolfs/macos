@@ -4,7 +4,6 @@ tap 'homebrew/core'
 tap 'homebrew/services'
 
 brew 'boost'
-brew 'boot-clj'
 brew 'gdbm'
 brew 'mackup'
 brew 'openssl'
