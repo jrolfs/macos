@@ -59,6 +59,7 @@
       pkgs.terminal-notifier
       pkgs.tmux
       pkgs.unrar
+      pkgs.vagrant
       pkgs.vim-vint
       pkgs.zsh
 
