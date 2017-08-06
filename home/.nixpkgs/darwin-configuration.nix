@@ -70,4 +70,12 @@
   services.activate-system.enable = true;
 
   nixpkgs.config.allowUnfree = true;
+
+  # Use darwin-nix instead of channel
+  nix.nixPath =
+    [
+      "darwin=$HOME/.nix-defexpr/darwin"
+      "darwin-config=$HOME/.nixpkgs/darwin-configuration.nix"
+      "/nix/var/nix/profiles/per-user/$USER/channels"
+    ];
 }
