@@ -49,6 +49,7 @@
       pkgs.neovim
       pkgs.perl
       pkgs.pinentry
+      pkgs.postgresql
       pkgs.python27Packages.neovim
       pkgs.python27Packages.powerline
       pkgs.python36Packages.neovim
