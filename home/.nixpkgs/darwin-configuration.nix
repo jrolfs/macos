@@ -55,6 +55,7 @@
       pkgs.python36Packages.neovim
       pkgs.python27Packages.pylint
       pkgs.python36Packages.pylint
+      pkgs.rclone
       pkgs.reattach-to-user-namespace
       pkgs.silver-searcher
       pkgs.terminal-notifier
@@ -73,10 +74,11 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  # Use darwin-nix instead of channel
+  # Use local nixpkgs and darwin-nix instead of channel
   nix.nixPath =
     [
       "darwin=$HOME/.nix-defexpr/darwin"
+      "nixpkgs=$HOME/.nix-defexpr/nixpkgs"
       "darwin-config=$HOME/.nixpkgs/darwin-configuration.nix"
       "/nix/var/nix/profiles/per-user/$USER/channels"
     ];
