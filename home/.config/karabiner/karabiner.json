@@ -56,6 +56,26 @@
                                 "type": "basic"
                             },
                             {
+                                "description": "Tilde",
+                                "from": {
+                                    "key_code": "escape",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "grave_accent_and_tilde",
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
                                 "description": "Standalone ⌃ to ⎋",
                                 "from": {
                                     "key_code": "right_control",
