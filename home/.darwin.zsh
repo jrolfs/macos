@@ -36,3 +36,7 @@ function reset-host {
   echo "Flushing DNS cache..."
   sudo killall -HUP mDNSResponder
 }
+
+function pbsend {
+  ssh $1 "cat | pbcopy"
+}
