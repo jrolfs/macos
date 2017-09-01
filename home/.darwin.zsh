@@ -24,7 +24,7 @@ fi
 # Functions
 
 function reset-host {
-  host=$(hostname)
+  host=$(hostname -s)
 
   echo "Setting HostName to ${host}"
   sudo scutil --set HostName $host
