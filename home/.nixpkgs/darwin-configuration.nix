@@ -1,6 +1,9 @@
 { config, lib, pkgs, ... }:
 
 {
+  #
+  # macOS Settings
+
   system.defaults.NSGlobalDomain.AppleKeyboardUIMode = 3;
   system.defaults.NSGlobalDomain.ApplePressAndHoldEnabled = false;
   system.defaults.NSGlobalDomain.InitialKeyRepeat = 10;
@@ -25,56 +28,88 @@
   system.defaults.trackpad.TrackpadRightClick = true;
 
   environment.systemPackages =
-    [ pkgs.ack
+    [
+      # Terminal utilities
+      pkgs.ack
+      pkgs.dtach
+      pkgs.fasd
+      pkgs.fzf
+      pkgs.jq
+      pkgs.silver-searcher
+
+      # Build
       pkgs.autoconf
       pkgs.automake
       pkgs.cmake
-      pkgs.dtach
-      pkgs.fasd
+
+      # Font
       pkgs.fontforge
+
+      # Fun
       pkgs.fortune
       pkgs.figlet
+
+      # Codecs & file support
       pkgs.ffmpeg
-      pkgs.fzf
+      pkgs.lame
+      pkgs.unrar
+
+      # Databases
       pkgs.gdbm
+      pkgs.postgresql
+
+      # Git
       pkgs.git
       pkgs.git-crypt
+
+      # Security
       pkgs.gnupg
-      pkgs.go
-      pkgs.irssi
-      pkgs.jq
-      pkgs.lame
-      pkgs.luajit
-      pkgs.mosh
-      pkgs.neovim
-      pkgs.perl
       pkgs.pinentry
-      pkgs.postgresql
+
+      # Languages
+      pkgs.go
+      pkgs.luajit
+      pkgs.perl
+
+      # Development tools
+      pkgs.vagrant
+
+      # Messaging
+      pkgs.irssi
+
+      # Editors
+      pkgs.neovim
+      pkgs.vim-vint
       pkgs.python27Packages.neovim
       pkgs.python27Packages.powerline
       pkgs.python36Packages.neovim
       pkgs.python27Packages.pylint
       pkgs.python36Packages.pylint
-      pkgs.rclone
-      pkgs.reattach-to-user-namespace
-      pkgs.silver-searcher
-      pkgs.terminal-notifier
-      pkgs.tmux
-      pkgs.unrar
-      pkgs.vagrant
-      pkgs.vim-vint
-      pkgs.zsh
 
+      # Network utilities
+      pkgs.mosh
+      pkgs.rclone
+
+      # Shell
+      pkgs.zsh
+      pkgs.tmux
+      pkgs.reattach-to-user-namespace
+      pkgs.terminal-notifier
+
+      # Nix
       pkgs.nix
       pkgs.nix-repl ];
 
+  # Output zshrc
   programs.zsh.enable = true;
 
+  # Hook into launchd
   services.activate-system.enable = true;
 
+  # Allow "unfree" packages
   nixpkgs.config.allowUnfree = true;
 
-  # Use local nixpkgs and darwin-nix instead of channel
+  # Use local 'nixpkgs' and 'darwin-nix' instead of channel
   nix.nixPath =
     [
       "darwin=$HOME/.nix-defexpr/darwin"
