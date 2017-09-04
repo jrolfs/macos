@@ -6,7 +6,7 @@ nix_darwin_init=/etc/static/zshrc
 if [ -f $nix_darwin_init ]; then
   export NIX_CONF_DIR="/etc/nix"
   export NIX_OTHER_STORES="/run/nix/remote-stores/*/nix"
-  export NIX_PATH="darwin=$HOME/.nix-defexpr/darwin:darwin-config=$HOME/.nixpkgs/darwin-configuration.nix:nixpkgs=$HOME/.nix-defexpr/channels/nixpkgs:$HOME/.nix-defexpr/channels"
+  export NIX_PATH="darwin=$HOME/.nix-defexpr/darwin:darwin-config=$HOME/.nixpkgs/darwin-configuration.nix:nixpkgs=$HOME/.nix-defexpr/nixpkgs:$HOME/.nix-defexpr/channels"
   export NIX_USER_PROFILE_DIR="/nix/var/nix/profiles/per-user/$USER"
   export NIX_PROFILES="/nix/var/nix/profiles/default /run/current-system/sw $HOME/.nix-profile"
 
