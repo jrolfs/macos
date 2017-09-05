@@ -1,7 +1,8 @@
 { config, lib, pkgs, ... }:
 
+with lib;
+
 {
-  #
   # macOS Settings
 
   system.defaults.NSGlobalDomain.AppleKeyboardUIMode = 3;
@@ -100,9 +101,6 @@
       pkgs.nix
       pkgs.nix-repl ];
 
-  # Output zshrc
-  programs.zsh.enable = true;
-
   # Hook into launchd
   services.activate-system.enable = true;
 
@@ -117,4 +115,35 @@
       "darwin-config=$HOME/.nixpkgs/darwin-configuration.nix"
       "/nix/var/nix/profiles/per-user/$USER/channels"
     ];
+
+  # Zsh
+  programs.zsh.enable = true;
+
+  environment.etc."zshrc".text =
+    let cfg = config.programs.zsh; in mkForce
+      ''
+        # /etc/static/zshrc
+        #
+        # - Read-only for ❄ Nix configuration
+        # - This file is read for interactive shells
+        # - Please *do not edit* this file
+
+        # Only execute this file once per shell
+        if [ -n "$NIX_ZSHRC_SOURCED" ]; then return; fi; NIX_ZSHRC_SOURCED=1
+
+        bindkey -e
+
+        # Add Nix bin directories to $PATH
+        path=(${config.environment.systemPath} $path)
+
+        # Environment
+        ${config.system.build.setEnvironment}
+        ${config.system.build.setAliases}
+        ${config.environment.extraInit}
+
+        # Add completions to Zsh function path
+        for profile in ''${(z)NIX_PROFILES}; do
+          fpath+=($profile/share/zsh/site-functions $profile/share/zsh/$ZSH_VERSION/functions)
+        done
+      '';
 }
