@@ -8,7 +8,7 @@ with lib;
   system.defaults.NSGlobalDomain.AppleKeyboardUIMode = 3;
   system.defaults.NSGlobalDomain.ApplePressAndHoldEnabled = false;
   system.defaults.NSGlobalDomain.InitialKeyRepeat = 10;
-  system.defaults.NSGlobalDomain.KeyRepeat = 1;
+  system.defaults.NSGlobalDomain.KeyRepeat = 5;
   system.defaults.NSGlobalDomain.NSAutomaticDashSubstitutionEnabled = false;
   system.defaults.NSGlobalDomain.NSAutomaticQuoteSubstitutionEnabled = false;
   system.defaults.NSGlobalDomain.NSAutomaticSpellingCorrectionEnabled = true;
