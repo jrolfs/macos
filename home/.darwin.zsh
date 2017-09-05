@@ -7,6 +7,13 @@ if [ -f $nix_darwin_init ]; then
   source $nix_darwin_init
 fi
 
+
+#
+# Aliases
+
+# Tower
+alias twr=gittower
+
 #
 # Functions
 
