@@ -74,6 +74,7 @@ with lib;
       pkgs.perl
 
       # Development tools
+      pkgs.httpie
       pkgs.vagrant
 
       # Messaging
