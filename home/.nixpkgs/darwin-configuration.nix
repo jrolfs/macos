@@ -36,6 +36,7 @@ with lib;
       pkgs.fasd
       pkgs.fzf
       pkgs.jq
+      pkgs.ripgrep
       pkgs.silver-searcher
 
       # Build
