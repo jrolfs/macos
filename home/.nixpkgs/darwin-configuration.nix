@@ -53,6 +53,7 @@ with lib;
 
       # Codecs & file support
       pkgs.ffmpeg
+      pkgs.imagemagick
       pkgs.lame
       pkgs.unrar
 
