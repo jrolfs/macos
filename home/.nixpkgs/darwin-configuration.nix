@@ -27,6 +27,7 @@ with lib;
 
   system.defaults.trackpad.Clicking = true;
   system.defaults.trackpad.TrackpadRightClick = true;
+  system.defaults.trackpad.TrackpadThreeFingerDrag = true;
 
   environment.systemPackages =
     [
