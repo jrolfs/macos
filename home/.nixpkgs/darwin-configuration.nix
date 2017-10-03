@@ -67,7 +67,7 @@ with lib;
 
       # Security
       pkgs.gnupg
-      pkgs.pinentry
+      (pkgs.pinentry.override { gtk2 = null; gcr = null; qt4 = null; })
 
       # Languages
       pkgs.go
