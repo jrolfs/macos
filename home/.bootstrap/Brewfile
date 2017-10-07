@@ -68,6 +68,7 @@ cask 'transmission'
 cask 'tunnelblick'
 cask 'vlc'
 cask 'vimr'
+cask 'virtualbox'
 cask 'visual-studio-code'
 cask 'yubikey-neo-manager'
 
