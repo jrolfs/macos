@@ -8,7 +8,6 @@ brew 'boost'
 brew 'gdbm'
 brew 'mackup'
 brew 'openssl'
-brew 'vitorgalvao/tiny-scripts/cask-repair'
 
 cask '1password'
 cask 'aerial'
