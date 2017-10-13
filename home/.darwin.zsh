@@ -31,10 +31,6 @@ function reset-host {
   sudo killall -HUP mDNSResponder
 }
 
-function pbsend {
-  ssh $1 "cat | pbcopy"
-}
-
 function set-gui-title {
     echo -ne "\033]$1;$2\007"
 }
