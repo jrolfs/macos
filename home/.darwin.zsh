@@ -34,3 +34,11 @@ function reset-host {
 function pbsend {
   ssh $1 "cat | pbcopy"
 }
+
+function set-gui-title {
+    echo -ne "\033]$1;$2\007"
+}
+
+function set-title { set-gui-title 0 $@; }
+function set-title-tab { set-gui-title 1 $@; }
+function set-title-window () { set-gui-title 2 $@; }
