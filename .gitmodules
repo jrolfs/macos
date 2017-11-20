@@ -1,3 +1,6 @@
 [submodule "home/.nix-defexpr/nixpkgs"]
 	path = home/.nix-defexpr/nixpkgs
 	url = git@github.com:NixOS/nixpkgs.git
+[submodule "nix-darwin"]
+	path = nix-darwin
+	url = git@github.com:jrolfs/nix-darwin.git
