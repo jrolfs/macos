@@ -33,6 +33,7 @@ with lib;
     [
       # Terminal utilities
       pkgs.ack
+      pkgs.curl
       pkgs.dtach
       pkgs.fasd
       pkgs.fzf
