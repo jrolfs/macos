@@ -41,6 +41,7 @@ with lib;
       pkgs.jq
       pkgs.ripgrep
       pkgs.silver-searcher
+      pkgs.urlview
 
       # Build
       pkgs.autoconf
