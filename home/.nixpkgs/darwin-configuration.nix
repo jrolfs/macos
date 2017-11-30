@@ -75,7 +75,6 @@ with lib;
 
       # Languages
       pkgs.go
-      pkgs.luajit
       pkgs.perl
 
       # Development tools
