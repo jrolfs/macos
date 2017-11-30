@@ -37,6 +37,7 @@ with lib;
       pkgs.dtach
       pkgs.fasd
       pkgs.fzf
+      pkgs.htop
       pkgs.jq
       pkgs.ripgrep
       pkgs.silver-searcher
