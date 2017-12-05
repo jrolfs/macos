@@ -39,7 +39,6 @@ with lib;
       pkgs.fzf
       pkgs.htop
       pkgs.jq
-      pkgs.ripgrep
       pkgs.silver-searcher
       pkgs.urlview
 
