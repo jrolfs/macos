@@ -82,6 +82,7 @@ with lib;
       pkgs.vagrant
 
       # Messaging
+      pkgs.weechat
 
       # Editors
       pkgs.neovim
