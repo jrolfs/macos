@@ -82,7 +82,6 @@ with lib;
       pkgs.vagrant
 
       # Messaging
-      pkgs.irssi
 
       # Editors
       pkgs.neovim
