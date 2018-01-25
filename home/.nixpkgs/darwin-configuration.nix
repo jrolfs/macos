@@ -79,6 +79,7 @@ with lib;
       pkgs.perl
 
       # Development tools
+      pkgs.ctags
       pkgs.httpie
       pkgs.vagrant
 
