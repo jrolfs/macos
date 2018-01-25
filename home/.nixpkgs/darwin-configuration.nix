@@ -29,6 +29,8 @@ with lib;
   system.defaults.trackpad.TrackpadRightClick = true;
   system.defaults.trackpad.TrackpadThreeFingerDrag = true;
 
+  # Packages
+
   environment.systemPackages =
     [
       # Terminal utilities
