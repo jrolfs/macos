@@ -81,6 +81,7 @@ with lib;
 
       # Development tools
       pkgs.ctags
+      pkgs.html-tidy
       pkgs.httpie
       pkgs.vagrant
 
