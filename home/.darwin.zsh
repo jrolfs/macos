@@ -9,13 +9,15 @@ fi
 
 
 #
-# Aliases
-
-# Tower
-alias twr=gittower
-
-#
 # Functions
+
+function nix-search {
+  nix-env -qa '.*$1.*'
+}
+
+function nix-rip {
+  rg -g "**/*$1*/**/default.nix" --files --hidden ~/.nix-defexpr/nixpkgs/pkgs
+}
 
 function reset-host {
   host=$(hostname -s)
