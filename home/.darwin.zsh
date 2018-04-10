@@ -12,7 +12,7 @@ fi
 # Functions
 
 function nix-search {
-  nix-env -qa '.*$1.*'
+  nix-env -qa ".*$1.*"
 }
 
 function nix-rip {
