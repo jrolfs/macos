@@ -111,11 +111,14 @@ with lib;
       pkgs.nix
       pkgs.nix-repl ];
 
-  # Hook into launchd
-  services.activate-system.enable = true;
+  # Nix settings
 
-  # Allow "unfree" packages
+  nix.gc.automatic = true;
+
   nixpkgs.config.allowUnfree = true;
+
+  services.activate-system.enable = true;
+  services.nix-daemon.enable = true;
 
   # Use local 'nixpkgs' and 'darwin-nix' instead of channel
   nix.nixPath =
