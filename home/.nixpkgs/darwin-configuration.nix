@@ -150,8 +150,8 @@ with lib;
         path=(${config.environment.systemPath} $path)
 
         # Environment
-        ${config.system.build.setEnvironment}
-        ${config.system.build.setAliases}
+        ${config.system.build.setEnvironment.text}
+        ${config.system.build.setAliases.text}
         ${config.environment.extraInit}
 
         # Add completions to Zsh function path
