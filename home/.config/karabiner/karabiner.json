@@ -150,7 +150,7 @@
                                 "type": "basic"
                             },
                             {
-                                "description": "Standalone ⇧ to ↩",
+                                "description": "Standalone ⇧  to ↩",
                                 "from": {
                                     "key_code": "right_shift",
                                     "modifiers": {
