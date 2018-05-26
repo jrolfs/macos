@@ -131,7 +131,6 @@ with lib;
       "/nix/var/nix/profiles/per-user/$USER/channels"
     ];
 
-  # Zsh
   programs.zsh.enable = true;
 
   environment.etc."zshrc".text =
