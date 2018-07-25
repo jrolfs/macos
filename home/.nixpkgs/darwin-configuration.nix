@@ -66,6 +66,7 @@ with lib;
       # Databases
       pkgs.gdbm
       pkgs.postgresql
+      pkgs.redis
 
       # Git
       pkgs.git
