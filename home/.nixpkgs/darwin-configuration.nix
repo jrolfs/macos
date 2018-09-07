@@ -96,7 +96,6 @@ with lib;
       pkgs.python27Packages.neovim
       pkgs.python27Packages.powerline
       pkgs.python36Packages.neovim
-      pkgs.python27Packages.pylint
       pkgs.python36Packages.pylint
       pkgs.python36Packages.websocket_client
 
@@ -112,7 +111,7 @@ with lib;
 
       # Nix
       pkgs.nix
-      pkgs.nix-repl ];
+];
 
   # Nix settings
 
