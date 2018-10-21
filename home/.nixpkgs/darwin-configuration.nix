@@ -106,7 +106,6 @@ in
       pkgs.vim-vint
 
       pkgs.python27Packages.neovim
-      pkgs.python27Packages.powerline
       pkgs.python36Packages.neovim
       pkgs.python36Packages.pylint
       pkgs.python36Packages.websocket_client
