@@ -1,7 +1,17 @@
 { config, lib, pkgs, ... }:
 
-with lib;
-
+let
+  overlays = self: super: rec {
+    chunkwm = super.recurseIntoAttrs (super.callPackage (super.fetchFromGitHub {
+      owner = "kubek2k";
+      repo = "chunkwm.nix";
+      sha256 = "11fwr29q18x4349wdg1pd7wqd1wvxsib6mjz7c93slf40h88vd53";
+      rev = "0.1";
+    }) {
+      inherit (super.darwin.apple_sdk.frameworks) Carbon Cocoa ApplicationServices;
+    });
+  };
+in
 {
   # macOS Settings
 
@@ -106,21 +116,30 @@ with lib;
       # Shell
       pkgs.zsh
       pkgs.tmux
-      pkgs.reattach-to-user-namespace
       pkgs.terminal-notifier
+
+      # User Interface
+      pkgs.skhd
+      pkgs.chunkwm.core
+      pkgs.chunkwm.ffm
+      pkgs.chunkwm.tiling
 
       # Nix
       pkgs.nix
-];
-
-  # Nix settings
+    ];
 
   nix.gc.automatic = true;
 
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.overlays = [ overlays ];
 
   services.activate-system.enable = true;
   services.nix-daemon.enable = true;
+
+  services.chunkwm.enable = true;
+  services.chunkwm.package = pkgs.chunkwm.core;
+  services.chunkwm.plugins.list = [ "ffm" "tiling" ];
+  services.chunkwm.plugins.dir = "/run/current-system/sw/bin/chunkwm-plugins/";
 
   # Use local 'nixpkgs' and 'darwin-nix' instead of channel
   nix.nixPath =
@@ -134,10 +153,10 @@ with lib;
   programs.zsh.enable = true;
 
   environment.etc."zshrc".text =
-    let cfg = config.programs.zsh; in mkForce
+    let cfg = config.programs.zsh; in pkgs.lib.mkForce
       ''
         # /etc/static/zshrc
-        #
+
         # - Read-only for ❄ Nix configuration
         # - This file is read for interactive shells
         # - Please *do not edit* this file
