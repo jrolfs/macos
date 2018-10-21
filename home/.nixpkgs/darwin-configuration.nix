@@ -71,6 +71,7 @@ in
       pkgs.ffmpeg
       pkgs.imagemagick
       pkgs.lame
+      pkgs.libpng
       pkgs.unrar
 
       # Databases
@@ -92,6 +93,7 @@ in
 
       # Development tools
       pkgs.ctags
+      pkgs.emacs
       pkgs.html-tidy
       pkgs.httpie
       pkgs.vagrant
