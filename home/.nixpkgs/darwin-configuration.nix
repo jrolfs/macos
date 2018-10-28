@@ -46,6 +46,7 @@ in
       pkgs.jq
       pkgs.ripgrep
       pkgs.silver-searcher
+      pkgs.skim
       pkgs.urlview
 
       # Build
