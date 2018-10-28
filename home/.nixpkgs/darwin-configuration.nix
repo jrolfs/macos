@@ -41,6 +41,7 @@ in
       pkgs.dtach
       pkgs.fasd
       pkgs.fzf
+      pkgs.fd
       pkgs.htop
       pkgs.jq
       pkgs.ripgrep
