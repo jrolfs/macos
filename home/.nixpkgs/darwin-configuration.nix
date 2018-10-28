@@ -133,7 +133,7 @@ in
 
   services.chunkwm.enable = true;
   services.chunkwm.package = pkgs.chunkwm.core;
-  services.chunkwm.plugins.list = [ "ffm" "tiling" ];
+  services.chunkwm.plugins.list = [ "border" "ffm" "tiling" ];
   services.chunkwm.plugins.dir = "/run/current-system/sw/bin/chunkwm-plugins/";
 
   # Use local 'nixpkgs' and 'darwin-nix' instead of channel
