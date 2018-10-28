@@ -7,4 +7,4 @@ self: super: rec {
   }) {
     inherit (super.darwin.apple_sdk.frameworks) Carbon Cocoa ApplicationServices;
   });
-};
+}
