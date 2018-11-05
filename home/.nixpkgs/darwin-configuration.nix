@@ -132,8 +132,9 @@ in
 
   services.activate-system.enable = true;
   services.nix-daemon.enable = true;
-
   services.chunkwm.enable = true;
+  services.skhd.enable = true;
+
   services.chunkwm.package = pkgs.chunkwm.core;
   services.chunkwm.plugins.list = [ "border" "ffm" "tiling" ];
   services.chunkwm.plugins.dir = "/run/current-system/sw/bin/chunkwm-plugins/";
