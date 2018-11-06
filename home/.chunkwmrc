@@ -1,8 +1,6 @@
 #!/bin/bash
 
-chunkc set global_desktop_mode           bsp
-chunkc set 1_desktop_mode                monocle
-chunkc set 3_desktop_mode                monocle
+chunkc set global_desktop_mode           float
 
 chunkc set global_desktop_offset_top     20
 chunkc set global_desktop_offset_bottom  20
