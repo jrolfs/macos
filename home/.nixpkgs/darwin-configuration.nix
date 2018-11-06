@@ -118,8 +118,8 @@ in
       # User Interface
       pkgs.skhd
       pkgs.chunkwm.core
-      pkgs.chunkwm.ffm
       pkgs.chunkwm.tiling
+      pkgs.chunkwm.border
 
       # Nix
       pkgs.nix
@@ -136,7 +136,7 @@ in
   services.skhd.enable = true;
 
   services.chunkwm.package = pkgs.chunkwm.core;
-  services.chunkwm.plugins.list = [ "border" "ffm" "tiling" ];
+  services.chunkwm.plugins.list = [ "border" "tiling" ];
   services.chunkwm.plugins.dir = "/run/current-system/sw/bin/chunkwm-plugins/";
 
   # Use local 'nixpkgs' and 'darwin-nix' instead of channel
