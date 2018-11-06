@@ -1,11 +1,17 @@
 # Modes
-alt  - esc ; arrange
-ctrl - esc ; focus
-cmd  - esc ; resize
 
-arrange < esc ; default
-focus < esc ; default
-resize < esc ; default
+:: default : chunkc border::color 0xffc594c5
+:: arrange @ : chunkc border::color 0xffec5f67
+:: focus @ : chunkc border::color 0xff6699cc
+:: resize @ : chunkc border::color 0xff62b3b2
+
+alt  - escape ; arrange
+ctrl - escape ; focus
+cmd  - escape ; resize
+
+arrange < escape ; default
+focus   < escape ; default
+resize  < escape ; default
 
 # Global kitty
 # alt - tab : /Applications/Kitty.app/Contents/MacOS/kitty --single-instance -d ~
