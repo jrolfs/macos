@@ -44,6 +44,7 @@ in
       pkgs.fd
       pkgs.htop
       pkgs.jq
+      pkgs.m-cli
       pkgs.ripgrep
       pkgs.silver-searcher
       pkgs.skim
