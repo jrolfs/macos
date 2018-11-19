@@ -1,14 +1,4 @@
 #
-# nix-darwin
-
-nix_darwin_init=/etc/static/zshrc
-
-if [ -f $nix_darwin_init ]; then
-  source $nix_darwin_init
-fi
-
-
-#
 # Functions
 
 function reset-host {
