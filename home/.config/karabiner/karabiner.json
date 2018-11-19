@@ -15,6 +15,65 @@
                     {
                         "manipulators": [
                             {
+                                "type": "basic",
+                                "description": "Toggle kitty to hidden",
+                                "from": {
+                                    "key_code": "tab",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ],
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "open -a 'kitty.app'"
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "kitty_toggle",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "basic",
+                                "description": "Toggle kitty to visible",
+                                "from": {
+                                    "key_code": "tab",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ],
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "osascript -e 'tell application \"Finder\"' -e 'set visible of process \"Twitter\" to false' -e 'end tell'"
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "kitty_toggle",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "conditions": [
+                                    {
+                                        "type": "variable_if",
+                                        "name": "kitty_toggle",
+                                        "value": 1
+                                    }
+                                ]
+                            },
+                            {
                                 "description": "Audio ⏯",
                                 "from": {
                                     "key_code": "w",
