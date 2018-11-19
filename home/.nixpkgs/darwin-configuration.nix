@@ -40,8 +40,8 @@ in
       pkgs.curl
       pkgs.dtach
       pkgs.fasd
-      pkgs.fzf
       pkgs.fd
+      pkgs.fzf
       pkgs.htop
       pkgs.jq
       pkgs.m-cli
