@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 
 let overlays = import ./overlays.nix;
-    zshrc = import ./zshrc.nix;
 
 in
 {
@@ -150,6 +149,4 @@ in
     ];
 
   programs.zsh.enable = true;
-
-  environment.etc.zshrc.text = zshrc config lib;
 }
