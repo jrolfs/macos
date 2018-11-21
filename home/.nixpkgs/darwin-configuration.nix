@@ -60,6 +60,7 @@ let overlays = import ./overlays.nix; in
       pkgs.silver-searcher
       pkgs.skim
       pkgs.urlview
+      pkgs.yq
 
       # Build
       pkgs.autoconf
