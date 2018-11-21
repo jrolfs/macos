@@ -1,34 +1,46 @@
 { config, lib, pkgs, ... }:
 
-let overlays = import ./overlays.nix;
-
-in
+let overlays = import ./overlays.nix; in
 {
   # macOS Settings
 
-  system.defaults.NSGlobalDomain.AppleKeyboardUIMode = 3;
-  system.defaults.NSGlobalDomain.ApplePressAndHoldEnabled = false;
-  system.defaults.NSGlobalDomain.InitialKeyRepeat = 15;
-  system.defaults.NSGlobalDomain.KeyRepeat = 2;
-  system.defaults.NSGlobalDomain.NSAutomaticDashSubstitutionEnabled = false;
-  system.defaults.NSGlobalDomain.NSAutomaticQuoteSubstitutionEnabled = false;
-  system.defaults.NSGlobalDomain.NSAutomaticSpellingCorrectionEnabled = true;
-  system.defaults.NSGlobalDomain.NSNavPanelExpandedStateForSaveMode = true;
-  system.defaults.NSGlobalDomain.NSNavPanelExpandedStateForSaveMode2 = true;
-
-  system.defaults.dock.autohide = true;
-  system.defaults.dock.orientation = "bottom";
-  system.defaults.dock.showhidden = true;
-  system.defaults.dock.minimize-to-application = true;
-  system.defaults.dock.mru-spaces = false;
-
-  system.defaults.finder.AppleShowAllExtensions = true;
-  system.defaults.finder.QuitMenuItem = true;
-  system.defaults.finder.FXEnableExtensionChangeWarning = false;
-
-  system.defaults.trackpad.Clicking = true;
-  system.defaults.trackpad.TrackpadRightClick = true;
-  system.defaults.trackpad.TrackpadThreeFingerDrag = true;
+  system.defaults = {
+    dock = {
+      autohide = true;
+      orientation = "bottom";
+      showhidden = true;
+      minimize-to-application = true;
+      mineffect = "scale";
+      launchanim = true;
+      show-process-indicators = true;
+      tilesize = 48;
+      static-only = false;
+      mru-spaces = false;
+    };
+    finder = {
+      AppleShowAllExtensions = true;
+      FXEnableExtensionChangeWarning = false;
+      QuitMenuItem = true;
+    };
+    trackpad = {
+      Clicking = true;
+      TrackpadRightClick = true;
+      TrackpadThreeFingerDrag = true;
+    };
+    NSGlobalDomain = {
+      AppleKeyboardUIMode = 3;
+      ApplePressAndHoldEnabled = false;
+      InitialKeyRepeat = 15;
+      KeyRepeat = 2;
+      NSAutomaticCapitalizationEnabled = false;
+      NSAutomaticDashSubstitutionEnabled = false;
+      NSAutomaticPeriodSubstitutionEnabled = false;
+      NSAutomaticQuoteSubstitutionEnabled = false;
+      NSAutomaticSpellingCorrectionEnabled = true;
+      NSNavPanelExpandedStateForSaveMode = true;
+      NSNavPanelExpandedStateForSaveMode2 = true;
+    };
+  };
 
   # Packages
 
