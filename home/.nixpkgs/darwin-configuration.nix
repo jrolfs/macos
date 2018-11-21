@@ -144,8 +144,8 @@ let overlays = import ./overlays.nix; in
 
   services.activate-system.enable = true;
   services.nix-daemon.enable = true;
-  services.chunkwm.enable = true;
-  services.skhd.enable = true;
+  services.chunkwm.enable = false;
+  services.skhd.enable = false;
 
   services.chunkwm.package = pkgs.chunkwm.core;
   services.chunkwm.plugins.list = [ "border" "tiling" ];
