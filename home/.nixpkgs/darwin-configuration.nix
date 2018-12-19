@@ -77,6 +77,7 @@ let overlays = import ./overlays.nix; in
 
       # Codecs & file support
       pkgs.ffmpeg
+      pkgs.gifsicle
       pkgs.imagemagick
       pkgs.lame
       pkgs.libpng
