@@ -141,10 +141,11 @@ let overlays = import ./overlays.nix; in
   nix.gc.automatic = true;
 
   nixpkgs.config.allowUnfree = true;
+
   nixpkgs.overlays = [ overlays ];
 
   services.activate-system.enable = true;
-  services.nix-daemon.enable = true;
+  services.nix-daemon.enable = false;
   services.chunkwm.enable = false;
   services.skhd.enable = false;
 
