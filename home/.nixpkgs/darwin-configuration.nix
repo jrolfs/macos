@@ -122,6 +122,7 @@ let overlays = import ./overlays.nix; in
       pkgs.python36Packages.websocket_client
 
       # Network utilities
+      pkgs.dnsmasq
       pkgs.mosh
       pkgs.rclone
 
