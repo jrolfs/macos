@@ -133,9 +133,6 @@ let overlays = import ./overlays.nix; in
 
       # User Interface
       pkgs.skhd
-      pkgs.chunkwm.core
-      pkgs.chunkwm.tiling
-      pkgs.chunkwm.border
 
       # Nix
       pkgs.nix
@@ -150,10 +147,6 @@ let overlays = import ./overlays.nix; in
   services.nix-daemon.enable = true;
   services.chunkwm.enable = false;
   services.skhd.enable = false;
-
-  services.chunkwm.package = pkgs.chunkwm.core;
-  services.chunkwm.plugins.list = [ "border" "tiling" ];
-  services.chunkwm.plugins.dir = "/run/current-system/sw/bin/chunkwm-plugins/";
 
   # Use local 'nixpkgs' and 'darwin-nix' instead of channel
   nix.nixPath =
