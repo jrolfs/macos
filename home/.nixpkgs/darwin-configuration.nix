@@ -48,6 +48,7 @@ let overlays = import ./overlays.nix; in
     [
       # Terminal utilities
       pkgs.ack
+      pkgs.asciinema
       pkgs.curl
       pkgs.dtach
       pkgs.fasd
