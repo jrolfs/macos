@@ -87,6 +87,7 @@ let overlays = import ./overlays.nix; in
       pkgs.gdbm
       pkgs.postgresql
       pkgs.redis
+      pkgs.sqlite
 
       # Git
       pkgs.git
