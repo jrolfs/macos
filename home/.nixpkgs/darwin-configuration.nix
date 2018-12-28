@@ -119,7 +119,6 @@ let overlays = import ./overlays.nix; in
       pkgs.python36Packages.configparser
       pkgs.python36Packages.fonttools
       pkgs.python36Packages.neovim
-      pkgs.python36Packages.pylint
       pkgs.python36Packages.websocket_client
 
       # Network utilities
