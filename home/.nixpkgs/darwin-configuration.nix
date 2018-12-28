@@ -145,8 +145,9 @@ let overlays = import ./overlays.nix; in
   nixpkgs.overlays = [ overlays ];
 
   services.activate-system.enable = true;
-  services.nix-daemon.enable = true;
   services.chunkwm.enable = false;
+  services.nix-daemon.enable = true;
+  services.nix-daemon.enableSocketListener = true;
   services.skhd.enable = false;
 
   # Use local 'nixpkgs' and 'darwin-nix' instead of channel
