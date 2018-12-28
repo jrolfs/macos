@@ -116,10 +116,10 @@ let overlays = import ./overlays.nix; in
       pkgs.vim-vint
 
       pkgs.python27Packages.neovim
-      pkgs.python36Packages.configparser
-      pkgs.python36Packages.fonttools
-      pkgs.python36Packages.neovim
-      pkgs.python36Packages.websocket_client
+      pkgs.python37Packages.configparser
+      pkgs.python37Packages.fonttools
+      pkgs.python37Packages.neovim
+      pkgs.python37Packages.websocket_client
 
       # Network utilities
       pkgs.dnsmasq
