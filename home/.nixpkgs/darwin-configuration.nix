@@ -70,6 +70,7 @@ let overlays = import ./overlays.nix; in
 
       # Font
       pkgs.fontforge
+      pkgs.tesseract
 
       # Fun
       pkgs.fortune
