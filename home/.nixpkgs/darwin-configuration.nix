@@ -104,10 +104,12 @@ let overlays = import ./overlays.nix; in
       pkgs.perl
 
       # Development tools
+      pkgs.cargo
       pkgs.ctags
       pkgs.emacs
       pkgs.html-tidy
       pkgs.httpie
+      pkgs.rustc
       pkgs.vagrant
 
       # Messaging
