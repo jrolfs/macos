@@ -110,6 +110,7 @@ let overlays = import ./overlays.nix; in
       pkgs.html-tidy
       pkgs.httpie
       pkgs.rustc
+      pkgs.scala
       pkgs.vagrant
 
       # Messaging
