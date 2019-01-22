@@ -95,8 +95,8 @@ let overlays = import ./overlays.nix; in
       pkgs.git-crypt
 
       # Security
-      pkgs.gnupg
       (pkgs.pinentry.override { gtk2 = null; gcr = null; qt = null; })
+      pkgs.gnupg
 
       # Languages
       pkgs.go
