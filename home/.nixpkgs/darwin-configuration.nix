@@ -113,6 +113,7 @@ let overlays = import ./overlays.nix; in
       pkgs.html-tidy
       pkgs.httpie
       pkgs.maven
+      pkgs.sbt
       pkgs.vagrant
 
       # Messaging
