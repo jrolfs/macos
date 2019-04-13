@@ -112,6 +112,7 @@ let overlays = import ./overlays.nix; in
       pkgs.emacs
       pkgs.html-tidy
       pkgs.httpie
+      pkgs.maven
       pkgs.vagrant
 
       # Messaging
