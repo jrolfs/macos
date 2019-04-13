@@ -150,7 +150,10 @@ let overlays = import ./overlays.nix; in
 
   nix.gc.automatic = true;
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    allowUnsupportedSystem = true;
+  };
 
   nixpkgs.overlays = [ overlays ];
 
