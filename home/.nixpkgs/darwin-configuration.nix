@@ -103,6 +103,8 @@ let overlays = import ./overlays.nix; in
       # Languages
       pkgs.go
       pkgs.perl
+      pkgs.rustc
+      pkgs.scala
 
       # Development tools
       pkgs.cargo
@@ -110,8 +112,6 @@ let overlays = import ./overlays.nix; in
       pkgs.emacs
       pkgs.html-tidy
       pkgs.httpie
-      pkgs.rustc
-      pkgs.scala
       pkgs.vagrant
 
       # Messaging
