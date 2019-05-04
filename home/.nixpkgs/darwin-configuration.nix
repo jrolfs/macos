@@ -153,7 +153,7 @@ let overlays = import ./overlays.nix; in
 
   nixpkgs.config = {
     allowUnfree = true;
-    allowUnsupportedSystem = true;
+    allowUnsupportedSystem = false;
   };
 
   nixpkgs.overlays = [ overlays ];
