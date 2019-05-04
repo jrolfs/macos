@@ -60,6 +60,7 @@ let overlays = import ./overlays.nix; in
       pkgs.ripgrep
       pkgs.silver-searcher
       pkgs.skim
+      pkgs.thefuck
       pkgs.tree
       pkgs.urlview
       pkgs.yq
