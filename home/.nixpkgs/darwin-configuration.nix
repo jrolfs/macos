@@ -135,6 +135,7 @@ let overlays = import ./overlays.nix; in
       pkgs.dnsmasq
       pkgs.mitmproxy
       pkgs.mosh
+      pkgs.ngrok
       pkgs.rclone
 
       # Shell
