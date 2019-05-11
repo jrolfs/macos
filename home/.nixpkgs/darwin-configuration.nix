@@ -171,9 +171,8 @@ let overlays = import ./overlays.nix; in
   nix.nixPath =
     [
       "darwin=$HOME/.nix-defexpr/darwin"
-      "nixpkgs=$HOME/.nix-defexpr/nixpkgs"
-      "darwin-config=$HOME/.nixpkgs/darwin-configuration.nix"
       "/nix/var/nix/profiles/per-user/$USER/channels"
+      "darwin-config=$HOME/.nixpkgs/darwin-configuration.nix"
     ];
 
   programs.zsh.enable = true;
