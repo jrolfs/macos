@@ -163,6 +163,10 @@ let overlays = import ./overlays.nix; in
   services.chunkwm.enable = false;
   services.nix-daemon.enable = true;
   services.nix-daemon.enableSocketListener = true;
+  services.postgresql = {
+    enable = true;
+    enableTCPIP = true;
+  };
   services.skhd.enable = false;
 
   networking.hostName = "Odrade";
