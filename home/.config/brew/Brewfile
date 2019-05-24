@@ -8,6 +8,12 @@ brew 'mackup'
 brew 'mas'
 brew 'openssl'
 
+mas "Fantastical", id: 975937182
+mas "Pages", id: 409201541
+mas "Spark", id: 1176895641
+mas "Things", id: 904280696
+mas "Tweetbot", id: 1384080005
+
 cask '1password'
 cask 'aerial'
 cask 'alfred'
