@@ -99,6 +99,7 @@ let overlays = import ./overlays.nix; in
       # Security
       (pkgs.pinentry.override { gtk2 = null; gcr = null; qt = null; })
       pkgs.gnupg
+      pkgs.keybase
       pkgs.yubikey-manager
 
       # Languages
