@@ -120,6 +120,7 @@ let overlays = import ./overlays.nix; in
 
       # Messaging
       pkgs.weechat
+      pkgs.weechatScripts.wee-slack
 
       # Editors
       pkgs.neovim
