@@ -145,9 +145,6 @@ let overlays = import ./overlays.nix; in
       pkgs.tmux
       pkgs.terminal-notifier
 
-      # User Interface
-      pkgs.skhd
-
       # Nix
       pkgs.nix
     ];
