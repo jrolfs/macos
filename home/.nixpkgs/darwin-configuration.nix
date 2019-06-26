@@ -149,8 +149,6 @@ let overlays = import ./overlays.nix; in
       pkgs.nix
     ];
 
-  nix.gc.automatic = true;
-
   nixpkgs.config = {
     allowUnfree = true;
     allowUnsupportedSystem = false;
