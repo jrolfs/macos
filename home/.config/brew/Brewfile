@@ -52,6 +52,7 @@ cask 'sublime-text'
 cask 'tor-browser-alpha'
 cask 'vimr'
 cask 'visual-studio-code'
+cask 'yakyak'
 
 cask 'font-alice'
 cask 'font-arapey'
