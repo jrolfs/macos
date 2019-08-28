@@ -185,8 +185,6 @@ let overlays = import ./overlays.nix; in
   };
   services.skhd.enable = false;
 
-  networking.hostName = "Odrade";
-
   # Use local 'nixpkgs' and 'darwin-nix' instead of channel
   nix.nixPath =
     [
