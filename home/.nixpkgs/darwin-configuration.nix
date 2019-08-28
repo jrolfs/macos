@@ -116,7 +116,7 @@ let overlays = import ./overlays.nix; in
       pkgs.git-crypt
 
       # Security
-      (pkgs.pinentry.override { gtk2 = null; gcr = null; qt = null; })
+      (pkgs.pinentry.override { gtk2 = null; gcr = null; qt4 = null; qt5 = null; })
       pkgs.gnupg
       pkgs.keybase
       pkgs.yubikey-manager
