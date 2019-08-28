@@ -9,6 +9,7 @@ brew 'mas'
 brew 'openssl'
 
 mas "Fantastical", id: 975937182
+mas "Things3", id: 904280696
 mas "Pages", id: 409201541
 mas "Things", id: 904280696
 mas "Tweetbot", id: 1384080005
