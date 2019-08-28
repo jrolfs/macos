@@ -76,6 +76,7 @@ let overlays = import ./overlays.nix; in
       pkgs.jq
       pkgs.m-cli
       pkgs.ripgrep
+      pkgs.sd
       pkgs.silver-searcher
       pkgs.skim
       pkgs.thefuck
