@@ -184,13 +184,13 @@ let overlays = import ./overlays.nix; in
   };
   services.skhd.enable = false;
 
-  # Use local 'nixpkgs' and 'darwin-nix' instead of channel
   nix.nixPath =
     [
-      "darwin=$HOME/.nix-defexpr/darwin"
-      "nixpkgs=$HOME/.nix-defexpr/nixpkgs"
-      "/nix/var/nix/profiles/per-user/$USER/channels"
-      "darwin-config=$HOME/.nixpkgs/darwin-configuration.nix"
+      {
+        darwin = "$HOME/.nix-defexpr/darwin";
+        nixpkgs = "$HOME/.nix-defexpr/nixpkgs";
+        darwin-config = "$HOME/.nixpkgs/darwin-configuration.nix";
+      }
     ];
 
   programs.zsh.enable = true;
