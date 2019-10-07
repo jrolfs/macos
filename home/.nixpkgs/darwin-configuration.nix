@@ -132,7 +132,7 @@ let overlays = import ./overlays.nix; in
       pkgs.emacs
       pkgs.html-tidy
       pkgs.httpie
-      pkgs.http-prompt
+      # pkgs.http-prompt
       pkgs.maven
       pkgs.sbt
       pkgs.vagrant
