@@ -123,7 +123,6 @@ let overlays = import ./overlays.nix; in
 
       # Languages
       pkgs.go
-      pkgs.perl
       pkgs.rustc
       pkgs.scala
 
