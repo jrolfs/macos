@@ -179,7 +179,7 @@ let overlays = import ./overlays.nix; in
   services.chunkwm.enable = false;
   services.nix-daemon.enable = false;
   services.postgresql = {
-    enable = true;
+    enable = false;
     enableTCPIP = true;
   };
   services.skhd.enable = false;
