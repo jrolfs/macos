@@ -162,6 +162,7 @@ let overlays = import ./overlays.nix; in
       # Shell
       pkgs.zsh
       pkgs.tmux
+      pkgs.tmuxp
       pkgs.terminal-notifier
 
       # Nix
