@@ -75,6 +75,7 @@ let overlays = import ./overlays.nix; in
       pkgs.htop
       pkgs.jq
       pkgs.m-cli
+      pkgs.rename
       pkgs.ripgrep
       pkgs.sd
       pkgs.silver-searcher
