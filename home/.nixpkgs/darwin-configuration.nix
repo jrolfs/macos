@@ -137,6 +137,7 @@ let overlays = import ./overlays.nix; in
       pkgs.maven
       pkgs.sbt
       pkgs.vagrant
+      pkgs.watchman
 
       # Messaging
       pkgs.weechat
