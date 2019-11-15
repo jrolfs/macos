@@ -147,6 +147,8 @@ let overlays = import ./overlays.nix; in
       pkgs.neovim
       pkgs.vim-vint
 
+      pkgs.neovim-remote
+
       pkgs.python27Packages.pynvim
       pkgs.python37Packages.pynvim
 
