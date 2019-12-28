@@ -64,12 +64,14 @@ let overlays = import ./overlays.nix; in
 
   environment.systemPackages =
     [
+
       # Terminal utilities
       pkgs.ack
       pkgs.asciinema
       pkgs.curl
       pkgs.dtach
       pkgs.fasd
+      pkgs.fast-cli
       pkgs.fd
       pkgs.fzf
       pkgs.htop
