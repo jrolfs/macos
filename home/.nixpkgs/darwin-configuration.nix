@@ -158,6 +158,8 @@ let overlays = import ./overlays.nix; in
       pkgs.python37Packages.fonttools
       pkgs.python37Packages.websocket_client
 
+      pkgs.gitAndTools.diff-so-fancy
+
       # Network utilities
       pkgs.dnsmasq
       pkgs.mitmproxy
