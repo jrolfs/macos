@@ -71,7 +71,7 @@ let overlays = import ./overlays.nix; in
       pkgs.curl
       pkgs.dtach
       pkgs.fasd
-      pkgs.fast-cli
+      # pkgs.fast-cli
       pkgs.fd
       pkgs.fzf
       pkgs.htop
