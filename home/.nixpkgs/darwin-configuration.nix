@@ -137,7 +137,6 @@ let overlays = import ./overlays.nix; in
       pkgs.httpie
       pkgs.maven
       pkgs.sbt
-      pkgs.vagrant
       pkgs.watchman
 
       # Messaging
