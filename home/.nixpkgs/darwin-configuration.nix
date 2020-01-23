@@ -155,6 +155,7 @@ let overlays = import ./overlays.nix; in
 
       pkgs.python37Packages.configparser
       pkgs.python37Packages.fonttools
+      pkgs.python37Packages.grip
       pkgs.python37Packages.websocket_client
 
       pkgs.gitAndTools.diff-so-fancy
