@@ -82,6 +82,7 @@ let overlays = import ./overlays.nix; in
       pkgs.sd
       pkgs.silver-searcher
       pkgs.skim
+      pkgs.speedtest-cli
       pkgs.thefuck
       pkgs.tree
       pkgs.urlview
