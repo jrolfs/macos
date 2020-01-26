@@ -118,6 +118,8 @@ let overlays = import ./overlays.nix; in
       # Git
       pkgs.git
       pkgs.git-crypt
+      pkgs.gitAndTools.diff-so-fancy
+      pkgs.gitAndTools.hub
 
       # Security
       (pkgs.pinentry.override { enabledFlavors = [ "curses" "tty" ]; })
@@ -157,8 +159,6 @@ let overlays = import ./overlays.nix; in
       pkgs.python37Packages.fonttools
       pkgs.python37Packages.grip
       pkgs.python37Packages.websocket_client
-
-      pkgs.gitAndTools.diff-so-fancy
 
       # Network utilities
       pkgs.dnsmasq
