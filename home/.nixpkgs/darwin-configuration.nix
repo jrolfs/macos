@@ -121,8 +121,8 @@ let overlays = import ./overlays.nix; in
       pkgs.git
       pkgs.git-crypt
       pkgs.gitAndTools.diff-so-fancy
-      pkgs.gitAndTools.hub
       pkgs.gitAndTools.gh
+      pkgs.gitAndTools.hub
 
       # Security
       (pkgs.pinentry.override { enabledFlavors = [ "curses" "tty" ]; })
