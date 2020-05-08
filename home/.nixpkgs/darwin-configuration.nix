@@ -71,6 +71,7 @@ let overlays = import ./overlays.nix; in
       pkgs.bat
       pkgs.curl
       pkgs.dtach
+      pkgs.exa
       pkgs.fasd
       pkgs.fast-cli
       pkgs.fd
