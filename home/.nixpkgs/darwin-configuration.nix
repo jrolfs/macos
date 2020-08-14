@@ -145,6 +145,9 @@ let overlays = import ./overlays.nix; in
       pkgs.sbt
       pkgs.watchman
 
+      # SDKs
+      pkgs.google-cloud-sdk
+
       # Messaging
       pkgs.weechat
       pkgs.weechatScripts.wee-slack
