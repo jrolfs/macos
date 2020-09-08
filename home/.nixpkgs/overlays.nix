@@ -1,6 +1,13 @@
 self: super:
 
 rec {
+  neovim-unwrapped = super.neovim-unwrapped.overrideAttrs (oldAttrs: {
+    version = "master";
+    src = builtins.fetchGit {
+      url = https://github.com/neovim/neovim.git;
+    };
+  });
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''
