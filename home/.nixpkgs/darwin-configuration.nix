@@ -84,6 +84,7 @@ let overlays = import ./overlays.nix; in
       pkgs.sd
       pkgs.skim
       pkgs.speedtest-cli
+      pkgs.starship
       pkgs.tree
       pkgs.urlview
       pkgs.yq
