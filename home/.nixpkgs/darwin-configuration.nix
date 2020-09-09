@@ -75,17 +75,14 @@ let overlays = import ./overlays.nix; in
       pkgs.fasd
       pkgs.fast-cli
       pkgs.fd
-      pkgs.fzf
       pkgs.htop
       pkgs.jq
       pkgs.m-cli
       pkgs.rename
       pkgs.ripgrep
       pkgs.sd
-      pkgs.silver-searcher
       pkgs.skim
       pkgs.speedtest-cli
-      pkgs.thefuck
       pkgs.tree
       pkgs.urlview
       pkgs.yq
