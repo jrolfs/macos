@@ -84,7 +84,7 @@ let overlays = import ./overlays.nix; in
       pkgs.starship
       pkgs.tree
       pkgs.urlview
-      pkgs.yq
+      # pkgs.yq
 
       # Build
       pkgs.autoconf
