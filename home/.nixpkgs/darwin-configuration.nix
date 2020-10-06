@@ -67,13 +67,11 @@ let overlays = import ./overlays.nix; in
 
       # Terminal utilities
       pkgs.ack
-      pkgs.asciinema
       pkgs.bat
       pkgs.curl
       pkgs.dtach
       pkgs.exa
       pkgs.fasd
-      pkgs.fast-cli
       pkgs.fd
       pkgs.htop
       pkgs.jq
@@ -83,7 +81,6 @@ let overlays = import ./overlays.nix; in
       pkgs.ripgrep
       pkgs.sd
       pkgs.skim
-      pkgs.speedtest-cli
       pkgs.starship
       pkgs.tree
       pkgs.urlview
