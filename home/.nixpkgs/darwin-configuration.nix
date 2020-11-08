@@ -175,6 +175,7 @@ let overlays = import ./overlays.nix; in
     ];
 
   nixpkgs.config = {
+    allowBroken = true;
     allowUnfree = true;
     allowUnsupportedSystem = true;
   };
