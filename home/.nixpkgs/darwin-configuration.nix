@@ -133,12 +133,9 @@ let overlays = import ./overlays.nix; in
 
       # Development tools
       pkgs.cargo
-      pkgs.ctags
-      pkgs.emacs
       pkgs.html-tidy
       pkgs.httpie
       pkgs.maven
-      pkgs.sbt
       pkgs.watchman
 
       # SDKs
@@ -163,8 +160,6 @@ let overlays = import ./overlays.nix; in
       pkgs.python37Packages.websocket_client
 
       # Network utilities
-      pkgs.dnsmasq
-      pkgs.mitmproxy
       pkgs.mosh
       pkgs.ngrok
       pkgs.rclone
