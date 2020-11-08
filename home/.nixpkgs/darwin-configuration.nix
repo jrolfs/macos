@@ -68,6 +68,7 @@ let overlays = import ./overlays.nix; in
       # Terminal utilities
       pkgs.ack
       pkgs.bat
+      pkgs.coreutils-prefixed
       pkgs.curl
       pkgs.dtach
       pkgs.exa
