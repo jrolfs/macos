@@ -166,10 +166,11 @@ let overlays = import ./overlays.nix; in
       pkgs.rclone
 
       # Shell
-      pkgs.zsh
+      pkgs.direnv
+      pkgs.terminal-notifier
       pkgs.tmux
       pkgs.tmuxp
-      pkgs.terminal-notifier
+      pkgs.zsh
 
       # Nix
       pkgs.nix
