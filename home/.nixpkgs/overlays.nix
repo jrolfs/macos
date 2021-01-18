@@ -6,6 +6,8 @@ rec {
     src = builtins.fetchGit {
       url = https://github.com/neovim/neovim.git;
     };
+
+    buildInputs = oldAttrs.buildInputs ++ [ super.pkgs.tree-sitter ];
   });
 
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
