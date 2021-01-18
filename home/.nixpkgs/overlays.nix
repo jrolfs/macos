@@ -5,7 +5,6 @@ rec {
     version = "master";
     src = builtins.fetchGit {
       url = https://github.com/neovim/neovim.git;
-      rev = "4d9e5764d243920122794e103a07814783b57d28";
     };
   });
 
