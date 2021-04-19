@@ -78,23 +78,17 @@ let overlays = import ./overlays.nix; in
       pkgs.jq
       pkgs.m-cli
       pkgs.mcfly
-      pkgs.rename
       pkgs.ripgrep
       pkgs.sd
       pkgs.skim
       pkgs.starship
       pkgs.tree
-      pkgs.urlview
       # pkgs.yq
 
       # Build
       pkgs.autoconf
       pkgs.automake
       pkgs.cmake
-
-      # Font
-      pkgs.fontforge
-      pkgs.tesseract
 
       # Fun
       pkgs.fortune
@@ -107,12 +101,6 @@ let overlays = import ./overlays.nix; in
       pkgs.lame
       pkgs.libpng
       pkgs.unrar
-
-      # Databases
-      pkgs.gdbm
-      pkgs.postgresql
-      pkgs.redis
-      pkgs.sqlite
 
       # Git
       pkgs.git
