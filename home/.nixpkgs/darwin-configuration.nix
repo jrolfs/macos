@@ -83,7 +83,7 @@ let overlays = import ./overlays.nix; in
       pkgs.skim
       pkgs.starship
       pkgs.tree
-      # pkgs.yq
+      pkgs.yq
 
       # Build
       pkgs.autoconf
