@@ -67,6 +67,7 @@ let overlays = import ./overlays.nix; in
 
       # Terminal utilities
       pkgs.bat
+      pkgs.bottom
       pkgs.dtach
       pkgs.exa
       pkgs.fasd
@@ -80,7 +81,6 @@ let overlays = import ./overlays.nix; in
       pkgs.starship
       pkgs.tealdeer
       pkgs.yq
-      pkgs.ytop
 
       # Build
       pkgs.autoconf
