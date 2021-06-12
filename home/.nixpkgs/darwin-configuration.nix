@@ -80,6 +80,7 @@ let overlays = import ./overlays.nix; in
       pkgs.starship
       pkgs.tealdeer
       pkgs.yq
+      pkgs.ytop
 
       # Build
       pkgs.autoconf
