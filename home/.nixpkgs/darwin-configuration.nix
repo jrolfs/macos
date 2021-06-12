@@ -66,15 +66,11 @@ let overlays = import ./overlays.nix; in
     [
 
       # Terminal utilities
-      pkgs.ack
       pkgs.bat
-      pkgs.coreutils-prefixed
-      pkgs.curl
       pkgs.dtach
       pkgs.exa
       pkgs.fasd
       pkgs.fd
-      pkgs.htop
       pkgs.jq
       pkgs.m-cli
       pkgs.mcfly
@@ -82,7 +78,6 @@ let overlays = import ./overlays.nix; in
       pkgs.sd
       pkgs.skim
       pkgs.starship
-      pkgs.tree
       pkgs.yq
 
       # Build
