@@ -78,6 +78,7 @@ let overlays = import ./overlays.nix; in
       pkgs.sd
       pkgs.skim
       pkgs.starship
+      pkgs.tealdeer
       pkgs.yq
 
       # Build
