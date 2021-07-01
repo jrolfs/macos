@@ -128,10 +128,6 @@ let overlays = import ./overlays.nix; in
       # SDKs
       pkgs.google-cloud-sdk
 
-      # Messaging
-      pkgs.weechat
-      pkgs.weechatScripts.wee-slack
-
       # Editors
       pkgs.neovim
       pkgs.vim-vint
