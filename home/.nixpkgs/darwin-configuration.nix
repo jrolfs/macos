@@ -171,6 +171,8 @@ let overlays = import ./overlays.nix; in
   };
   services.skhd.enable = false;
 
+  users.nix.configureBuildUsers = true;
+
   nix.nixPath =
     [
       {
