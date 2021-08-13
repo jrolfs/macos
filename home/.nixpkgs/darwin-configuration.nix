@@ -102,6 +102,7 @@ let overlays = import ./overlays.nix; in
       # Git
       pkgs.git
       pkgs.git-crypt
+      pkgs.git-lfs
       pkgs.gitAndTools.delta
       pkgs.gitAndTools.diff-so-fancy
       pkgs.gitAndTools.gh
