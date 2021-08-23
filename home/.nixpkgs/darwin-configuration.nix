@@ -133,12 +133,8 @@ let overlays = import ./overlays.nix; in
       pkgs.neovim
       pkgs.vim-vint
 
-      pkgs.python37Packages.pynvim
-
-      pkgs.python37Packages.configparser
-      pkgs.python37Packages.fonttools
-      pkgs.python37Packages.grip
-      pkgs.python37Packages.websocket_client
+      pkgs.python39Packages.pynvim
+      pkgs.python39Packages.grip
 
       # Network utilities
       pkgs.mosh
