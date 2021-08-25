@@ -9,15 +9,12 @@ brew 'mas'
 brew 'openssl'
 
 mas "Fantastical", id: 975937182
-mas "Things3", id: 904280696
 mas "Pages", id: 409201541
 mas "Things", id: 904280696
 mas "Tweetbot", id: 1384080005
 
 cask '1password'
 cask '1password-cli'
-cask 'abstract'
-cask 'aerial'
 cask 'alfred'
 cask 'arq'
 cask 'charles'
@@ -37,17 +34,10 @@ cask 'karabiner-elements'
 cask 'keka'
 cask 'keybase'
 cask 'kitty'
-cask 'liteicon'
 cask 'little-snitch'
-cask 'macdown'
 cask 'moom'
 cask 'nordvpn'
-cask 'numi'
-cask 'plex-media-player'
-cask 'postman'
 cask 'resilio-sync'
-cask 'shimo'
-cask 'sketch'
 cask 'skitch'
 cask 'skype'
 cask 'slack'
@@ -55,9 +45,7 @@ cask 'spotify'
 cask 'stay'
 cask 'sublime-merge'
 cask 'tor-browser-alpha'
-cask 'vimr'
 cask 'visual-studio-code'
-cask 'yakyak'
 cask 'zoomus'
 
 cask 'font-alice'
