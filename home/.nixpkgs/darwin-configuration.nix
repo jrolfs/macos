@@ -137,7 +137,7 @@ let overlays = import ./overlays.nix; in
       pkgs.python39Packages.grip
 
       # Network utilities
-      pkgs.mosh
+      #pkgs.mosh
       pkgs.ngrok
       pkgs.rclone
 
