@@ -1,17 +1,40 @@
+#
+# Taps
+
 tap 'homebrew/core'
 tap 'homebrew/bundle'
 
 tap 'homebrew/cask-versions'
 tap 'homebrew/cask-fonts'
 
+# Hover
+
+tap 'hoverinc/tap'
+
+
+#
+# Formulae
+
 brew 'mackup'
 brew 'mas'
 brew 'openssl'
+
+# Hover
+
+brew 'hoverinc/tap/hoverctl'
+
+
+#
+# App Store
 
 mas "Fantastical", id: 975937182
 mas "Pages", id: 409201541
 mas "Things", id: 904280696
 mas "Tweetbot", id: 1384080005
+
+
+#
+# Casks
 
 cask '1password'
 cask '1password-cli'
@@ -50,5 +73,7 @@ cask 'sublime-merge'
 cask 'tor-browser-alpha'
 cask 'visual-studio-code'
 cask 'zoom'
+
+# Fonts
 
 cask 'font-ibm-plex'
