@@ -20,16 +20,18 @@
 
      # Hover
      "codefresh-io/cli"
-     "hoverinc/tap"
   ];
+
+  homebrew.extraConfig = ''
+    # Hover
+    tap "hoverinc/tap", "git@github.com:hoverinc/homebrew-tap.git"
+    brew "hoverinc/tap/hoverctl"
+  '';
 
   homebrew.brews = [
     "mackup"
     "mas"
     "openssl"
-
-    # Hover
-    "hoverinc/tap/hoverctl"
   ];
 
   homebrew.masApps = {
