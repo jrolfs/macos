@@ -1,7 +1,13 @@
 { config, lib, pkgs, ... }:
 
-let overlays = import ./overlays.nix; in
+let
+  overlays = import ./overlays.nix;
+in
 {
+  imports = [
+    ./homebrew.nix
+  ];
+
   # macOS Settings
 
   system.defaults = {
