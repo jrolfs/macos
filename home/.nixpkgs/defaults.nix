@@ -28,6 +28,10 @@
       TrackpadThreeFingerDrag = true;
     };
 
+    LaunchServices = {
+      LSQuarantine = false;
+    };
+
     NSGlobalDomain = {
       "com.apple.mouse.tapBehavior" = 1;
       "com.apple.springing.delay" = "0.0";
