@@ -10,6 +10,7 @@
       mru-spaces = false;
       orientation = "bottom";
       show-process-indicators = true;
+      show-recents = false;
       showhidden = true;
       static-only = false;
       tilesize = 48;
