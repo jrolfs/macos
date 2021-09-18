@@ -84,5 +84,6 @@
 
     # Fonts
     "font-ibm-plex"
+    "font-fira-code-nerd-font"
   ];
 }
