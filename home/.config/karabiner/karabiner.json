@@ -209,28 +209,6 @@
                                 "type": "basic"
                             },
                             {
-                                "description": "Standalone ⇧  to ↩",
-                                "from": {
-                                    "key_code": "right_shift",
-                                    "modifiers": {
-                                        "optional": [
-                                            "any"
-                                        ]
-                                    }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "right_shift"
-                                    }
-                                ],
-                                "to_if_alone": [
-                                    {
-                                        "key_code": "return_or_enter"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
                                 "description": "Vim ←",
                                 "from": {
                                     "key_code": "h",
