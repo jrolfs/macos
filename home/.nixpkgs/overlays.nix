@@ -12,6 +12,10 @@ rec {
   #   buildInputs = oldAttrs.buildInputs ++ [ super.pkgs.tree-sitter ];
   # });
 
+  nixUnstable = super.nixUnstable.override {
+    patches = [ patches/unset-is-macho.patch ];
+  };
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''
