@@ -97,7 +97,7 @@ in
       pkgs.zsh
 
       # Nix
-      pkgs.nix
+      pkgs.nixUnstable
     ];
 
   nixpkgs.config = {
@@ -117,6 +117,10 @@ in
   services.skhd.enable = false;
 
   users.nix.configureBuildUsers = true;
+
+	nix.package = pkgs.nixFlakes;
+	nix.extraOptions = lib.optionalString (config.nix.package == pkgs.nixFlakes)
+		"experimental-features = nix-command flakes";
 
   nix.nixPath =
     [
