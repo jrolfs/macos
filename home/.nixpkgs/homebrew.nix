@@ -39,6 +39,7 @@
     "Pages" = 409201541;
     "Things" = 904280696;
     "Tweetbot" = 1384080005;
+    "Xcode" = 497799835;
   };
 
   homebrew.casks = [
