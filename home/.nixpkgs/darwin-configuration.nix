@@ -98,6 +98,7 @@ in
 
       # Nix
       pkgs.nixUnstable
+      pkgs.nixpkgs-fmt
     ];
 
   nixpkgs.config = {
