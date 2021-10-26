@@ -35,6 +35,7 @@
   ];
 
   homebrew.masApps = {
+    "CARROT Weather" = 993487541;
     "Fantastical" = 975937182;
     "Pages" = 409201541;
     "Things" = 904280696;
@@ -71,6 +72,7 @@
     "nordvpn"
     "pop"
     "resilio-sync"
+    "safari-technology-preview"
     "skitch"
     "skype"
     "slack"
