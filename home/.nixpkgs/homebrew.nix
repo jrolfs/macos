@@ -52,6 +52,7 @@
     "cleanmymac"
     "daisydisk"
     "dash"
+    "discord"
     "docker"
     "dropshare"
     "figma"
