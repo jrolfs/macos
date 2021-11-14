@@ -75,16 +75,11 @@ in
       pkgs.keybase
       pkgs.yubikey-manager
 
-      # Languages
-      pkgs.go
-      pkgs.rustc
-      pkgs.scala
-
+      #
       # Development tools
-      pkgs.cargo
+
       pkgs.html-tidy
       pkgs.httpie
-      pkgs.maven
       pkgs.watchman
 
       # SDKs
