@@ -14,7 +14,9 @@ in
   environment.systemPackages =
     [
 
-      # Terminal utilities
+      #
+      # Utilities
+
       pkgs.bat
       pkgs.bottom
       pkgs.dtach
@@ -31,16 +33,22 @@ in
       pkgs.tealdeer
       pkgs.yq
 
+      #
       # Build
+
       pkgs.autoconf
       pkgs.automake
       pkgs.cmake
 
+      #
       # Fun
+
       pkgs.fortune
       pkgs.figlet
 
+      #
       # Codecs & file support
+
       pkgs.ffmpeg
       pkgs.gifsicle
       pkgs.imagemagick
@@ -48,7 +56,9 @@ in
       pkgs.libpng
       pkgs.unrar
 
+      #
       # Git
+
       pkgs.git
       pkgs.git-crypt
       pkgs.git-lfs
@@ -57,7 +67,9 @@ in
       pkgs.gitAndTools.gh
       pkgs.gitAndTools.hub
 
+      #
       # Security
+
       (pkgs.pinentry.override { enabledFlavors = [ "curses" "tty" ]; })
       pkgs.gnupg
       pkgs.keybase
@@ -78,20 +90,27 @@ in
       # SDKs
       pkgs.google-cloud-sdk
 
+      #
       # Editors
+
       pkgs.neovim
       pkgs.vim-vint
 
       pkgs.python39Packages.pynvim
       pkgs.python39Packages.grip
 
+      #
       # Network utilities
+
       #pkgs.mosh
       pkgs.ngrok
       pkgs.rclone
 
+      #
       # Shell
+
       pkgs.direnv
+      pkgs.fish
       pkgs.terminal-notifier
       pkgs.tmux
       pkgs.zsh
