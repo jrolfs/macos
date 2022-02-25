@@ -73,6 +73,7 @@
     "little-snitch"
     "moom"
     "nordvpn"
+    "obsidian"
     "pop"
     "resilio-sync"
     "safari-technology-preview"
