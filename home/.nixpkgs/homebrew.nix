@@ -49,6 +49,7 @@
     "1password-cli"
     "alfred"
     "arq"
+    "blender"
     "charles"
     "cleanmymac"
     "daisydisk"
