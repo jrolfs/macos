@@ -2,9 +2,6 @@
 
 let
   overlays = import ./overlays.nix;
-  starship = pkgs.callPackage ./pkgs/starship.nix {
-    inherit (pkgs.darwin.apple_sdk.frameworks) Security;
-  };
 in
 {
   imports = [
@@ -32,7 +29,7 @@ in
       pkgs.ripgrep
       pkgs.sd
       pkgs.skim
-      starship # https://github.com/NixOS/nixpkgs/issues/160876#issuecomment-1046370485
+      pkgs.starship
       pkgs.tealdeer
       pkgs.yq
 
