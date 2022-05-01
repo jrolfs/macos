@@ -73,6 +73,7 @@ in
       (pkgs.pinentry.override { enabledFlavors = [ "curses" "tty" ]; })
       pkgs.gnupg
       pkgs.keybase
+      pkgs.openssh
       pkgs.yubikey-manager
 
       #
