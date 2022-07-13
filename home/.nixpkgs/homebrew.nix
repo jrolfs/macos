@@ -89,7 +89,6 @@
     "tor-browser-alpha"
     "tuple"
     "visual-studio-code"
-    "zerotier-one"
 
     # Fonts
     "font-ibm-plex"
