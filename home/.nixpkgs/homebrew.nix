@@ -52,6 +52,7 @@
     "blender"
     "charles"
     "cleanmymac"
+    "cloudflare-warp"
     "daisydisk"
     "dash"
     "discord"
