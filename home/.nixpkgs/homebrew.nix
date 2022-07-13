@@ -92,6 +92,8 @@
 
     # Fonts
     "font-ibm-plex"
+    "font-iosevka"
+    "font-iosevka-slab"
     "font-fira-code-nerd-font"
   ];
 }
