@@ -86,6 +86,7 @@
     "stay"
     "sublime-merge"
     "superhuman"
+    "tailscale"
     "tor-browser-alpha"
     "tuple"
     "visual-studio-code"
