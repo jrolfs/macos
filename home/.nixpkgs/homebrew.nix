@@ -25,7 +25,7 @@
   homebrew.extraConfig = ''
     # Hover
     tap "hoverinc/tap", "git@github.com:hoverinc/homebrew-tap.git"
-    brew "hoverinc/tap/hoverctl"
+    "hoverinc/tap/hoverctl"
   '';
 
   homebrew.brews = [
