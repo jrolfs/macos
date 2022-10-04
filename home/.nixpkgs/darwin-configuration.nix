@@ -79,6 +79,7 @@ in
       #
       # Development tools
 
+      pkgs.heroku
       pkgs.html-tidy
       pkgs.httpie
       pkgs.watchman
