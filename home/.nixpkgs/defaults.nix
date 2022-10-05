@@ -34,7 +34,7 @@
 
     NSGlobalDomain = {
       "com.apple.mouse.tapBehavior" = 1;
-      "com.apple.springing.delay" = "0.0";
+      "com.apple.springing.delay" = 0.0;
       "com.apple.springing.enabled" = true;
       "com.apple.swipescrolldirection" = true;
       "com.apple.trackpad.enableSecondaryClick" = true;
@@ -59,7 +59,7 @@
       NSTableViewDefaultSizeMode = 2;
       NSTextShowsControlCharacters = false;
       NSUseAnimatedFocusRing = true;
-      NSWindowResizeTime = "0.01";
+      NSWindowResizeTime = 0.01;
       PMPrintingExpandedStateForPrint = true;
       PMPrintingExpandedStateForPrint2 = true;
       _HIHideMenuBar = true;

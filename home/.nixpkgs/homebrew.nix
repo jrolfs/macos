@@ -3,12 +3,12 @@
 {
   homebrew.brewPrefix = "/opt/homebrew/bin";
 
-  homebrew.autoUpdate = true;
-  homebrew.cleanup = "zap";
+  homebrew.onActivation.autoUpdate = true;
+  homebrew.onActivation.cleanup = "zap";
   homebrew.enable = true;
 
   homebrew.global.brewfile = true;
-  homebrew.global.noLock = true;
+  homebrew.global.lockfiles = false;
 
   homebrew.taps = [
     "homebrew/bundle"

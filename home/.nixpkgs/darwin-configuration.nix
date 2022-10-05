@@ -148,11 +148,8 @@ in
   #    serviceConfig.ThrottleInterval = 300;
   #  };
 
-  users.nix.configureBuildUsers = true;
-
-	nix.package = pkgs.nixFlakes;
-	nix.extraOptions = lib.optionalString (config.nix.package == pkgs.nixFlakes)
-		"experimental-features = nix-command flakes";
+  nix.configureBuildUsers = true;
+	nix.extraOptions = "experimental-features = nix-command flakes";
 
   nix.nixPath =
     [
