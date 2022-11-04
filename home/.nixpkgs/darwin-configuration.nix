@@ -31,6 +31,7 @@ in
       pkgs.skim
       pkgs.starship
       pkgs.tealdeer
+      pkgs.yabai
       pkgs.yq
 
       #
