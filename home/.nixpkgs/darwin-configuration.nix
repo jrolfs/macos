@@ -113,7 +113,6 @@ in
       pkgs.zsh
 
       # Nix
-      pkgs.nixUnstable
       pkgs.nixpkgs-fmt
     ];
 
