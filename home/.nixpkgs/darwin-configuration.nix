@@ -103,6 +103,7 @@ in
       #pkgs.mosh
       pkgs.ngrok
       pkgs.rclone
+      pkgs.wakeonlan
 
       #
       # Shell
