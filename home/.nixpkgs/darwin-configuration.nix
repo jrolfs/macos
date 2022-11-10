@@ -100,7 +100,6 @@ in
       #
       # Network utilities
 
-      #pkgs.mosh
       pkgs.ngrok
       pkgs.rclone
       pkgs.wakeonlan
