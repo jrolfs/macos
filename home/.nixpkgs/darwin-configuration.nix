@@ -92,7 +92,6 @@ in
       # Editors
 
       pkgs.neovim
-      pkgs.vim-vint
 
       pkgs.python310Packages.pynvim
       pkgs.python310Packages.grip
