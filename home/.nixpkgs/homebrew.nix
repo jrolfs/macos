@@ -32,6 +32,7 @@
     "mackup"
     "mas"
     "openssl"
+    "hoverinc/tap/hoverctl"
   ];
 
   homebrew.masApps = {
