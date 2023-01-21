@@ -97,5 +97,7 @@
     "font-iosevka"
     "font-iosevka-slab"
     "font-fira-code-nerd-font"
+    "font-jetbrains-mono"
+    "font-jetbrains-mono-nerd-font"
   ];
 }
