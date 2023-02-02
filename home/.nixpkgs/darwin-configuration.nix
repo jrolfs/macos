@@ -17,6 +17,7 @@ in
       #
       # Utilities
 
+      pkgs.atuin
       pkgs.bat
       pkgs.bottom
       pkgs.dtach
