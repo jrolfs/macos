@@ -65,6 +65,7 @@
     "firefox-nightly"
     "google-chrome"
     "google-chrome-canary"
+    "grammarly"
     "grammarly-desktop"
     "hocus-focus"
     "insomnia"
