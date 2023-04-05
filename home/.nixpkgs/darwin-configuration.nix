@@ -115,6 +115,7 @@ in
       pkgs.zsh
 
       # Nix
+      pkgs.devbox
       pkgs.nixpkgs-fmt
     ];
 
