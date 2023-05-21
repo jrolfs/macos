@@ -94,6 +94,7 @@ in
 
       pkgs.neovim
       pkgs.tree-sitter
+      pkgs.neovide
 
       pkgs.python310Packages.pynvim
       pkgs.python310Packages.grip
