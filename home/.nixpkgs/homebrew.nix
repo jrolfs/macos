@@ -48,7 +48,6 @@
 
     "1password"
     "1password-cli"
-    "alfred"
     "arq"
     "blender"
     "charles"
@@ -79,6 +78,7 @@
     "nordvpn"
     "obsidian"
     "pop"
+    "raycast"
     "resilio-sync"
     "safari-technology-preview"
     "skitch"
