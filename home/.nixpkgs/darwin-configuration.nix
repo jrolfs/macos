@@ -136,6 +136,8 @@ in
   };
   services.skhd.enable = false;
 
+  security.pam.enableSudoTouchIdAuth = true;
+
   #  launchd.agents.apply-icons = {
   #    # FIXME: `$XDG_DATA_HOME` isn't interpolating here, need to figure
   #    # out how to reference `$XDG_DATA_HOME` or at least `$HOME` from Nix
