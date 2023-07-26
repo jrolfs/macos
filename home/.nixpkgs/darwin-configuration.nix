@@ -169,11 +169,4 @@ in
     enable = true;
     enableCompletion = false;
   };
-
-  system.activationScripts.postActivation.text = ''
-    printf "Disabling Spotlight indexing... "
-    mdutil -a -i off -d / &> /dev/null
-    mdutil -E / &> /dev/null
-    echo "ok"
-  '';
 }
