@@ -92,6 +92,7 @@
     "tor-browser-alpha"
     "tuple"
     "visual-studio-code"
+    "zoom"
 
     # Fonts
     "font-ibm-plex"
