@@ -87,7 +87,10 @@ in
       pkgs.watchman
 
       # SDKs
-      pkgs.google-cloud-sdk
+
+      # Currently disabled as using the cask for compatibility
+      # with the auth plugin and general compatibility with work
+      # pkgs.google-cloud-sdk
 
       #
       # Editors

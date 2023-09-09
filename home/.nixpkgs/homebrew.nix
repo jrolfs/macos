@@ -65,6 +65,7 @@
     "firefox-nightly"
     "google-chrome"
     "google-chrome-canary"
+    "google-cloud-sdk"
     "grammarly"
     "grammarly-desktop"
     "hocus-focus"
