@@ -12,7 +12,6 @@
 
   homebrew.taps = [
     "homebrew/bundle"
-    "homebrew/core"
 
     "homebrew/cask"
     "homebrew/cask-fonts"
