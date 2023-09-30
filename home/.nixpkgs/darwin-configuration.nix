@@ -21,7 +21,7 @@ in
       pkgs.bat
       pkgs.bottom
       pkgs.dtach
-      pkgs.exa
+      pkgs.eza
       pkgs.fasd
       pkgs.fd
       pkgs.jq
