@@ -171,5 +171,10 @@ in
   programs.zsh = {
     enable = true;
     enableCompletion = false;
+    interactiveShellInit = ''
+
+      HISTFILE=$HOME/.zhistory
+
+    '';
   };
 }
