@@ -27,6 +27,7 @@ in
       pkgs.jq
       pkgs.m-cli
       pkgs.mcfly
+      pkgs.rename
       pkgs.ripgrep
       pkgs.sd
       pkgs.skim
