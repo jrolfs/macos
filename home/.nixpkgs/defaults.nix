@@ -29,7 +29,6 @@
     };
 
     LaunchServices = {
-      LSQuarantine = false;
     };
 
     NSGlobalDomain = {
