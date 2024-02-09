@@ -81,7 +81,6 @@ in
       #
       # Development tools
 
-      pkgs.flyctl
       pkgs.httpie
       pkgs.watchman
 
