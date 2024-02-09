@@ -81,8 +81,7 @@ in
       #
       # Development tools
 
-      pkgs.heroku
-      pkgs.html-tidy
+      pkgs.flyctl
       pkgs.httpie
       pkgs.watchman
 
