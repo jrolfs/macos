@@ -48,6 +48,7 @@
     "1password"
     "1password-cli"
     "arq"
+    "beeper"
     "blender"
     "charles"
     "cleanmymac"
