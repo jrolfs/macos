@@ -1,5 +1,23 @@
 { config, lib, ... }:
 
+let
+  # Don't install casks specified in this environment variable. This is to
+  # deal with applications managed by organization device management, etc.
+  envApps = builtins.getEnv "NIX_MACOS_EXCLUDE_CASKS";
+  excludeApps = if envApps != "" then
+                  let
+                    parsedApps = builtins.split "," envApps;
+                  in
+                  lib.trace ''
+
+
+                  ----------------------------------------
+                  ⚠︎ Excluding casks: ${toString parsedApps}
+                  ----------------------------------------
+                  '' parsedApps
+                else [];
+in
+
 {
   homebrew.brewPrefix = "/opt/homebrew/bin";
 
@@ -20,21 +38,19 @@
      "codefresh-io/cli"
   ];
 
+  # Example:
+  # tap "hoverinc/tap", "git@github.com:hoverinc/homebrew-tap.git"
   homebrew.extraConfig = ''
-    # Hover
-    tap "hoverinc/tap", "git@github.com:hoverinc/homebrew-tap.git"
-    "hoverinc/tap/hoverctl"
   '';
 
   homebrew.brews = [
     "mackup"
     "mas"
     "openssl"
-    "hoverinc/tap/hoverctl"
   ];
 
   homebrew.masApps = {
-    "CARROT Weather" = 993487541;
+    # "CARROT Weather" = 993487541;
     "Fantastical" = 975937182;
     "Keystroke Pro" = 1572206224;
     "Pages" = 409201541;
@@ -43,7 +59,7 @@
     # "Xcode" = 497799835;
   };
 
-  homebrew.casks = [
+  homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [
 
     "1password"
     "1password-cli"
@@ -67,7 +83,6 @@
     "google-cloud-sdk"
     "grammarly"
     "grammarly-desktop"
-    "hocus-focus"
     "insomnia"
     "kaleidoscope"
     "karabiner-elements"
