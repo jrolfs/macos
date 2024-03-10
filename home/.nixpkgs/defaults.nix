@@ -61,7 +61,6 @@
       NSWindowResizeTime = 0.01;
       PMPrintingExpandedStateForPrint = true;
       PMPrintingExpandedStateForPrint2 = true;
-      _HIHideMenuBar = true;
     };
   };
 }
