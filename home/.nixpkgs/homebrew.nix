@@ -109,6 +109,8 @@ in
     "tuple"
     "visual-studio-code"
     "zoom"
+    "zed"
+    "homebrew/cask-versions/zed-preview"
 
     # Fonts
     "font-ibm-plex"
