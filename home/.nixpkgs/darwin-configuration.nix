@@ -84,6 +84,12 @@ in
       pkgs.httpie
       pkgs.watchman
 
+      #
+      # Infrastructure
+
+      pkgs.kubectl
+      pkgs.kubectx
+
       # SDKs
 
       # Currently disabled as using the cask for compatibility
