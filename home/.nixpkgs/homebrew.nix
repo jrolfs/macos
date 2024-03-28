@@ -85,6 +85,7 @@ in
     "grammarly"
     "grammarly-desktop"
     "insomnia"
+    "jakehilborn/jakehilborn/displayplacer"
     "kaleidoscope"
     "karabiner-elements"
     "keka"
