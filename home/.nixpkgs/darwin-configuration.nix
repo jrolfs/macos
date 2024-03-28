@@ -73,7 +73,7 @@ in
       #
       # Security
 
-      pkgs.pinentry
+      (pkgs.pinentry.override { enabledFlavors = [ "curses" "tty" ]; })
       pkgs.pinentry_mac
       pkgs.gnupg
       pkgs.keybase
