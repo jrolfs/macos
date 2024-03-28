@@ -79,6 +79,7 @@ in
     "firefox-developer-edition"
     "firefox-nightly"
     "google-chrome"
+    "google-chrome-beta"
     "google-chrome-canary"
     "google-cloud-sdk"
     "grammarly"
