@@ -47,6 +47,8 @@ in
     "mackup"
     "mas"
     "openssl"
+
+    "jakehilborn/jakehilborn/displayplacer"
   ];
 
   homebrew.masApps = {
