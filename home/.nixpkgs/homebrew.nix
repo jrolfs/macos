@@ -110,9 +110,9 @@ in
     "tor-browser-alpha"
     "tuple"
     "visual-studio-code"
-    "zoom"
     "zed"
-    "homebrew/cask-versions/zed-preview"
+    "zed-preview"
+    "zoom"
 
     # Fonts
     "font-ibm-plex"
