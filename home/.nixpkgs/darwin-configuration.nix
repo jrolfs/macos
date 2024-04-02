@@ -7,6 +7,7 @@ in
   imports = [
     ./defaults.nix
     ./homebrew.nix
+    ./icons.nix
   ];
 
   # Packages
