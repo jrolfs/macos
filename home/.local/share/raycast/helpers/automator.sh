@@ -1,0 +1,1 @@
+export AUTOMATOR_WORKFLOWS="${XDG_DATA_HOME}/automator"
