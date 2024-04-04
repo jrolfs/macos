@@ -1,4 +1,10 @@
+
 #
+# Aliases
+
+alias mkbk="mackup backup -f && mackup uninstall -f"
+alias mkrs="mackup restore -f && mackup uninstall -f"
+
 #
 # Functions
 
