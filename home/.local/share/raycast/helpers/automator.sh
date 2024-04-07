@@ -1,3 +1,5 @@
+source "$(dirname $0)/automator.sh"
+
 function setup() {
   export AUTOMATOR_LOGS=/tmp/raycast/automator
   export AUTOMATOR_WORKFLOWS="${XDG_DATA_HOME}/automator"
@@ -6,8 +8,10 @@ function setup() {
 
   local logs="${AUTOMATOR_LOGS}/$1.log"
 
-  echo "====================================== $(date) ======================================" >> $logs
+  # exec 2>>$logs
+  exec 2> >(add_timestamp >>"$logs")
+}
 
-  # exec 1>>$logs 2>&1
-  exec 2>>$logs
+function run_automator() {
+  automator "$AUTOMATOR_WORKFLOWS/$1.workflow"
 }
