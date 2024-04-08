@@ -47,8 +47,6 @@ in
     "mackup"
     "mas"
     "openssl"
-
-    "jakehilborn/jakehilborn/displayplacer"
   ];
 
   homebrew.masApps = {
@@ -87,7 +85,6 @@ in
     "grammarly"
     "grammarly-desktop"
     "insomnia"
-    "jakehilborn/jakehilborn/displayplacer"
     "kaleidoscope"
     "karabiner-elements"
     "keka"
