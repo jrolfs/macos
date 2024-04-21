@@ -31,12 +31,14 @@
                                 "to": [
                                     {
                                         "shell_command": "open -a 'kitty.app'"
-                                    },
+                                    }
+                                ],
+                                "conditions": [
                                     {
-                                        "set_variable": {
-                                            "name": "kitty_toggle",
-                                            "value": 1
-                                        }
+                                        "type": "frontmost_application_unless",
+                                        "bundle_identifiers": [
+                                            "^net\\.kovidgoyal\\.kitty$"
+                                        ]
                                     }
                                 ]
                             },
@@ -57,19 +59,14 @@
                                 "to": [
                                     {
                                         "shell_command": "osascript -e 'tell application \"Finder\"' -e 'set visible of process \"kitty\" to false' -e 'end tell'"
-                                    },
-                                    {
-                                        "set_variable": {
-                                            "name": "kitty_toggle",
-                                            "value": 0
-                                        }
                                     }
                                 ],
                                 "conditions": [
                                     {
-                                        "type": "variable_if",
-                                        "name": "kitty_toggle",
-                                        "value": 1
+                                        "type": "frontmost_application_if",
+                                        "bundle_identifiers": [
+                                            "^net\\.kovidgoyal\\.kitty$"
+                                        ]
                                     }
                                 ]
                             },
