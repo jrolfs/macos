@@ -209,6 +209,37 @@
                                 "type": "basic"
                             },
                             {
+                                "description": "Right ⌥ to ^⌥ + a",
+                                "from": {
+                                    "key_code": "right_option",
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
+                                },
+                              "to": [
+                                  {
+                                      "key_code": "left_shift",
+                                      "modifiers": [
+                                          "left_control",
+                                          "left_option",
+                                          "left_command"
+                                      ]
+                                  }
+                              ],
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "a",
+                                        "modifiers": [
+                                            "left_control",
+                                            "left_option"
+                                        ]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
                                 "description": "Vim ←",
                                 "from": {
                                     "key_code": "h",
