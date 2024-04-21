@@ -16,7 +16,7 @@
                         "manipulators": [
                             {
                                 "type": "basic",
-                                "description": "Toggle kitty to hidden",
+                                "description": "Toggle kitty to visible",
                                 "from": {
                                     "key_code": "tab",
                                     "modifiers": {
@@ -42,7 +42,7 @@
                             },
                             {
                                 "type": "basic",
-                                "description": "Toggle kitty to visible",
+                                "description": "Toggle kitty to hidden",
                                 "from": {
                                     "key_code": "tab",
                                     "modifiers": {
@@ -56,7 +56,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "osascript -e 'tell application \"Finder\"' -e 'set visible of process \"Twitter\" to false' -e 'end tell'"
+                                        "shell_command": "osascript -e 'tell application \"Finder\"' -e 'set visible of process \"kitty\" to false' -e 'end tell'"
                                     },
                                     {
                                         "set_variable": {
