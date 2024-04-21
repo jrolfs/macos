@@ -83,6 +83,7 @@ in
     "google-cloud-sdk"
     "grammarly"
     "grammarly-desktop"
+    "hammerspoon"
     "insomnia"
     "kaleidoscope"
     "karabiner-elements"
