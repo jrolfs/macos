@@ -35,10 +35,10 @@ in
 {
   environment.systemPackages = with pkgs; [ script ];
 
-  launchd.daemons.icon-customizer = {
-    serviceConfig.UserName = "root";
-    serviceConfig.GroupName = "wheel";
-    serviceConfig.ProgramArguments = [ "${script}/bin/icon-customizer" ];
-    serviceConfig.WatchPaths = ["/Applications"];
-  };
+  # launchd.daemons.icon-customizer = {
+  #   serviceConfig.UserName = "root";
+  #   serviceConfig.GroupName = "wheel";
+  #   serviceConfig.ProgramArguments = [ "${script}/bin/icon-customizer" ];
+  #   serviceConfig.WatchPaths = ["/Applications"];
+  # };
 }
