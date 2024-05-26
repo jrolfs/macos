@@ -14,6 +14,9 @@
         "rules": [
           {
             "manipulators": [
+
+
+
               {
                 "type": "basic",
                 "description": "Toggle kitty to visible",
@@ -70,6 +73,9 @@
                   }
                 ]
               },
+
+
+
               {
                 "description": "Standalone ⌃ to ⎋",
                 "from": {
@@ -123,6 +129,9 @@
                 ],
                 "type": "basic"
               }
+
+
+
             ]
           }
         ]
