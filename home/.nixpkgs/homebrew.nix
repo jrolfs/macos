@@ -34,8 +34,7 @@ in
     "homebrew/cask-fonts"
     "homebrew/cask-versions"
 
-     # Hover
-     "codefresh-io/cli"
+     "jorgelbg/tap"
   ];
 
   # Example:
@@ -91,6 +90,7 @@ in
     "little-snitch"
     "moom"
     "obsidian"
+    "pinentry-touchid"
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
