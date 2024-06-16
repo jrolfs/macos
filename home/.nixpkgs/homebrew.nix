@@ -105,7 +105,6 @@ in
     "tuple"
     "visual-studio-code"
     "zed"
-    "zed-preview"
     "zoom"
 
     # Fonts
