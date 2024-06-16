@@ -12,7 +12,7 @@ let
 
 
                   ----------------------------------------
-                  ⚠︎ Excluding casks: ${toString parsedApps}
+                  ⚠︎ Excluding apps: ${toString parsedApps}
                   ----------------------------------------
                   '' parsedApps
                 else [];
@@ -48,7 +48,7 @@ in
     "openssl"
   ];
 
-  homebrew.masApps = {
+  homebrew.masApps = lib.filterAttrs (name: _ : !lib.elem name excludeApps) {
     "CARROT Weather" = 993487541;
     "Fantastical" = 975937182;
     "Keystroke Pro" = 1572206224;
