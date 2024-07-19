@@ -5,6 +5,8 @@
 alias mkbk="mackup backup -f && mackup uninstall -f"
 alias mkrs="mackup restore -f && mackup uninstall -f"
 
+alias icn="(cd $HOMESHICK_KINGDOM/macos/icons && sudo ./apply.sh)"
+
 #
 # Functions
 
