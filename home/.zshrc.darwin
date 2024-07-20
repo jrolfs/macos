@@ -1,14 +1,17 @@
 
 #
-# Aliases
+#
+# Aliases ----------------------------------------------------------------------
 
 alias mkbk="mackup backup -f && mackup uninstall -f"
 alias mkrs="mackup restore -f && mackup uninstall -f"
 
 alias icn="(cd $HOMESHICK_KINGDOM/macos/icons && sudo ./apply.sh)"
 
+
 #
-# Functions
+#
+# Functions --------------------------------------------------------------------
 
 function reset-host {
   host=$(hostname -s)
@@ -23,3 +26,8 @@ function reset-host {
   echo "Flushing DNS cache..."
   sudo killall -HUP mDNSResponder
 }
+
+#
+# GitHub CLI → Raycast
+
+source "$XDG_CONFIG_HOME/zsh/github-to-raycast.zsh"
