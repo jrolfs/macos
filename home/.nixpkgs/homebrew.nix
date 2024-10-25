@@ -90,7 +90,7 @@ in
     "little-snitch"
     "moom"
     "obsidian"
-    "pinentry-touchid"
+    # "pinentry-touchid"
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
