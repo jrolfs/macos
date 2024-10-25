@@ -137,6 +137,9 @@ in
 
   nixpkgs.overlays = [ overlays ];
 
+  system.stateVersion = 5;
+  ids.gids.nixbld = 30000;
+
   services.activate-system.enable = true;
   services.nix-daemon.enable = true;
   services.postgresql = {
