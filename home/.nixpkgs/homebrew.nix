@@ -26,7 +26,7 @@ in
   homebrew.enable = true;
 
   homebrew.global.brewfile = true;
-  homebrew.global.lockfiles = false;
+  homebrew.global.lockfiles = true;
 
   homebrew.taps = [
     "homebrew/bundle"
