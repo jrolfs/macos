@@ -64,6 +64,7 @@ in
     "arq"
     "beeper"
     "charles"
+    "cursor"
     "cleanmymac"
     "cloudflare-warp"
     "daisydisk"
