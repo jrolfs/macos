@@ -90,7 +90,6 @@ in
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
-    "skitch"
     "skype"
     "slack"
     "spotify"
