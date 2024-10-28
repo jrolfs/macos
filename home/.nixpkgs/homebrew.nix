@@ -40,7 +40,6 @@ in
   '';
 
   homebrew.brews = [
-    "mackup"
     "mas"
     "openssl"
   ];
