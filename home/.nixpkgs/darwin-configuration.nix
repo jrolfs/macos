@@ -14,6 +14,7 @@ in
 {
   imports = [
     ./defaults.nix
+    ./fileicon.nix
     ./homebrew.nix
     ./icons.nix
   ];
