@@ -49,7 +49,7 @@ end
 hs.hotkey.bind(hyper, "C", copyFinderPath)
 
 -- Apps to auto-hide when they lose focus
-local autoHide = { "kitty" }
+local autoHide = { "kitty", "YouTube" }
 
 local function shouldAutoHide(appName)
   if not appName then return false end
