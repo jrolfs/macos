@@ -111,9 +111,10 @@ in
       #
       # Editors
 
-      pkgs.neovim
-      pkgs.tree-sitter
       pkgs.neovide
+      pkgs.neovim
+      pkgs.nil
+      pkgs.tree-sitter
 
       pkgs.python310Packages.pynvim
       pkgs.python310Packages.grip
