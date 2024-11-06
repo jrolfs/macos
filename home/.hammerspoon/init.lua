@@ -3,8 +3,9 @@ local _ = require("modules.utilities")
 _.bindHyper("c", require("modules.finder").copyPath)
 
 require('modules.autohide').start({
+  "Dash",
+  "YouTube",
   "kitty",
-  "YouTube"
 })
 
 _.bindHyper("h", function()
