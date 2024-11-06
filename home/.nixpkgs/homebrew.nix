@@ -74,7 +74,6 @@ in
     "google-chrome"
     "google-chrome@beta"
     "google-chrome@canary"
-    "google-cloud-sdk"
     "grammarly-desktop"
     "hammerspoon"
     "insomnia"
