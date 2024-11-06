@@ -1,27 +1,4 @@
--- Common alert settings
-local function alert(message, duration)
-  local alpha = 0.8
-  local styling = {
-    strokeWidth = 0,
-    fillColor = { hex = "#32302F", alpha = alpha },
-    strokeColor = { hex = "#32302F", alpha = alpha },
-    textColor = { hex = "#bdae93" },
-    fadeInDuration = 0.15,
-    fadeOutDuration = 0.15,
-    radius = 10,
-    padding = 20,
-    atScreenEdge = 0,
-    textFont = "IBM Plex Sans",
-    textSize = 24,
-    -- Hammerspoon uses NS* constants for font weight
-    -- Common values: "thin", "regular", "medium", "bold", "heavy"
-  }
-
-  -- Default duration of 1 second if not specified
-  duration = duration or 1
-
-  hs.alert.show(message, styling, duration)
-end
+local _ = require('modules.utilities')
 
 local hyper = { "ctrl", "alt", "cmd", "shift" }
 
@@ -40,9 +17,9 @@ local function copyFinderPath()
   local ok, finderPath = hs.osascript.applescript(script)
   if ok then
     hs.pasteboard.setContents(finderPath)
-    alert("Path copied to clipboard")
+    _.alert("Path copied to clipboard")
   else
-    alert("Error copying path")
+    _.alert("Error copying path")
   end
 end
 
@@ -83,7 +60,7 @@ local autoHideWatcher = hs.application.watcher.new(function(_, eventType, appObj
     if appObject and shouldAutoHide(appObject:name()) then
       local success = hideApp(appObject:name())
       if not success then
-        alert("Failed to hide " .. appObject:name())
+        _.alert("Failed to hide " .. appObject:name())
       end
     end
   end
@@ -97,4 +74,4 @@ hs.hotkey.bind(hyper, "h", function()
   hs.reload()
 end)
 
-alert("🔨   Loaded Hammerspoon configuration")
+_.alert("🔨   Loaded Hammerspoon configuration")
