@@ -19,6 +19,8 @@ local function shouldAutoHide(appName)
 end
 
 local function hideApp(appName)
+  local frontmost = hs.application.frontmostApplication()
+
   local script = string.format([[
         tell application "System Events"
             set visible of process "%s" to false
@@ -26,6 +28,12 @@ local function hideApp(appName)
     ]], appName)
 
   local ok, _ = hs.osascript.applescript(script)
+
+  -- Ensure focus returns to the app we switched to
+  if frontmost then
+    frontmost:activate()
+  end
+
   return ok
 end
 
@@ -34,27 +42,26 @@ local function createWatcher()
   return hs.application.watcher.new(function(_, eventType, appObject)
     if eventType == hs.application.watcher.deactivated then
       if appObject and shouldAutoHide(appObject:name()) then
-        local success = hideApp(appObject:name())
-        if not success then
-          _.alert("Failed to hide " .. appObject:name())
-        end
+        -- Small delay to ensure the focus transition has completed
+        hs.timer.doAfter(0.1, function()
+          local success = hideApp(appObject:name())
+          if not success then
+            _.alert("Failed to hide " .. appObject:name())
+          end
+        end)
       end
     end
   end)
 end
 
--- Public
-
+-- Public functions remain the same
 function M.start(apps)
-  -- Stop existing watcher if any
   if autoHideWatcher then
     autoHideWatcher:stop()
   end
 
-  -- Update apps list
   appsToHide = apps or {}
 
-  -- Create and start new watcher
   autoHideWatcher = createWatcher()
   autoHideWatcher:start()
 end
