@@ -24,4 +24,10 @@ function M.alert(message, duration)
   hs.alert.show(message, styling, duration)
 end
 
+local hyper = { "ctrl", "alt", "cmd", "shift" }
+
+function M.bindHyper(key, fn)
+  hs.hotkey.bind(hyper, key, fn)
+end
+
 return M

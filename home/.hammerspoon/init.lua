@@ -1,6 +1,5 @@
 local _ = require('modules.utilities')
 
-local hyper = { "ctrl", "alt", "cmd", "shift" }
 
 -- Function to copy the current Finder directory path to clipboard
 local function copyFinderPath()
@@ -23,7 +22,7 @@ local function copyFinderPath()
   end
 end
 
-hs.hotkey.bind(hyper, "C", copyFinderPath)
+_.bindHyper("C", copyFinderPath)
 
 -- Apps to auto-hide when they lose focus
 local autoHide = { "kitty", "YouTube" }
@@ -70,7 +69,7 @@ end)
 autoHideWatcher:start()
 
 -- Reload Hammerspoon configuration
-hs.hotkey.bind(hyper, "h", function()
+_.bindHyper("h", function()
   hs.reload()
 end)
 
