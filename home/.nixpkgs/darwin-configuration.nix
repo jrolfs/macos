@@ -17,6 +17,8 @@ in
     ./fileicon.nix
     ./homebrew.nix
     ./icons.nix
+
+    ./applications/codium.nix
   ];
 
   # Packages
@@ -141,7 +143,12 @@ in
       # Nix
       pkgs.devbox
       pkgs.nixpkgs-fmt
+
     ];
+
+
+  system.defaults.LaunchServices.LSQuarantine = false;
+  system.activationScripts.applications.enable = true;
 
   nixpkgs.config = {
     allowBroken = true;
