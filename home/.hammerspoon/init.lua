@@ -12,4 +12,9 @@ _.bindHyper("h", function()
   hs.reload()
 end)
 
+local littleSnitch = require("modules.little-snitch")
+
+_.bindHyper("l", littleSnitch.enableLittleSnitch)
+_.bindHyper("o", littleSnitch.disableLittleSnitch)
+
 _.alert("🔨   Loaded Hammerspoon configuration")
