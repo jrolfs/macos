@@ -18,7 +18,7 @@ in
     ./homebrew.nix
     ./icons.nix
 
-    ./applications/codium.nix
+    # ./applications/codium.nix
   ];
 
   # Packages
