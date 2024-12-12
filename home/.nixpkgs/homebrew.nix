@@ -95,6 +95,7 @@ in
     "superhuman"
     "tailscale"
     "tuple"
+    "unite"
     "visual-studio-code"
     "zed"
     "zoom"
