@@ -94,6 +94,7 @@ in
     "stay"
     "superhuman"
     "tailscale"
+    "telegram"
     "tuple"
     "unite"
     "visual-studio-code"
