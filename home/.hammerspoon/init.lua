@@ -4,6 +4,9 @@ _.bindHyper("c", require("modules.finder").copyPath)
 
 require('modules.autohide').start({
   "Dash",
+  "Find My",
+  "Music",
+  "Sirius",
   "YouTube",
   "kitty",
 })
