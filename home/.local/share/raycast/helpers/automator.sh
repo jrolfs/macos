@@ -1,4 +1,4 @@
-source "$(dirname $0)/automator.sh"
+source "$(dirname $0)/logging.sh"
 
 function setup() {
   export AUTOMATOR_LOGS=/tmp/raycast/automator
