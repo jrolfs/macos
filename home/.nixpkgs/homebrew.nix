@@ -98,6 +98,7 @@ in
     "tuple"
     "unite"
     "visual-studio-code"
+    "whatsapp"
     "zed"
     "zoom"
 
