@@ -13,6 +13,8 @@ let
 in
 {
   imports = [
+
+    ./daemons.nix
     ./defaults.nix
     ./fileicon.nix
     ./homebrew.nix
