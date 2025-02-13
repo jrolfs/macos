@@ -4,11 +4,22 @@ local M = {}
 
 local autoHideWatcher = nil
 local appsToHide = {}
+local lastHideTime = {}
+
+local DEBOUNCE_INTERVAL = 1 -- Adjust this value (in seconds) as needed
 
 local function shouldAutoHide(appName)
   if not appName then return false end
 
   local lowerAppName = string.lower(appName)
+
+  -- Check if we've hidden this app recently
+  local currentTime = hs.timer.secondsSinceEpoch()
+  local lastTime = lastHideTime[lowerAppName]
+
+  if lastTime and (currentTime - lastTime) < DEBOUNCE_INTERVAL then
+    return false
+  end
 
   for _, name in ipairs(appsToHide) do
     if string.lower(name) == lowerAppName then
@@ -29,6 +40,11 @@ local function hideApp(appName)
 
   local ok, _ = hs.osascript.applescript(script)
 
+  -- Record the hide time if successful
+  if ok then
+    lastHideTime[string.lower(appName)] = hs.timer.secondsSinceEpoch()
+  end
+
   -- Ensure focus returns to the app we switched to
   if frontmost then
     frontmost:activate()
@@ -37,7 +53,6 @@ local function hideApp(appName)
   return ok
 end
 
--- Create the watcher
 local function createWatcher()
   return hs.application.watcher.new(function(_, eventType, appObject)
     if eventType == hs.application.watcher.deactivated then
@@ -54,13 +69,13 @@ local function createWatcher()
   end)
 end
 
--- Public functions remain the same
 function M.start(apps)
   if autoHideWatcher then
     autoHideWatcher:stop()
   end
 
   appsToHide = apps or {}
+  lastHideTime = {} -- Reset the hide times when starting
 
   autoHideWatcher = createWatcher()
   autoHideWatcher:start()
@@ -71,6 +86,7 @@ function M.stop()
     autoHideWatcher:stop()
     autoHideWatcher = nil
   end
+  lastHideTime = {} -- Clear the hide times when stopping
 end
 
 function M.updateApps(apps)
