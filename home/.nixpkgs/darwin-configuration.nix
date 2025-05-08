@@ -103,6 +103,7 @@ in
       #
       # Infrastructure
 
+      pkgs.coder
       pkgs.kubectl
       pkgs.kubectx
       (pkgs.google-cloud-sdk.withExtraComponents [
