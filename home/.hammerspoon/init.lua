@@ -7,6 +7,7 @@ require('modules.autohide').start({
   "Find My",
   "Music",
   "Sirius",
+  "Spotify",
   "YouTube",
   "kitty",
 })
