@@ -77,7 +77,6 @@ in
     "google-chrome@canary"
     "grammarly-desktop"
     "hammerspoon"
-    "insomnia"
     "karabiner-elements"
     "keka"
     "kitty"
@@ -100,6 +99,7 @@ in
     "unite"
     "visual-studio-code"
     "whatsapp"
+    "yaak"
     "zed"
     "zoom"
 
