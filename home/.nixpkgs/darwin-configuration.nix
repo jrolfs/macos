@@ -124,8 +124,8 @@ in
       pkgs.nil
       pkgs.tree-sitter
 
-      pkgs.python310Packages.pynvim
-      pkgs.python310Packages.grip
+      pkgs.python311Packages.pynvim
+      pkgs.python311Packages.grip
 
       #
       # Network utilities
@@ -164,15 +164,13 @@ in
   system.stateVersion = 5;
   ids.gids.nixbld = nixbldGid;
 
-  services.activate-system.enable = true;
-  services.nix-daemon.enable = true;
   services.postgresql = {
     enable = false;
     enableTCPIP = true;
   };
   services.skhd.enable = false;
 
-  security.pam.enableSudoTouchIdAuth = true;
+  security.pam.services.sudo_local.touchIdAuth = true;
 
   #  launchd.agents.apply-icons = {
   #    # FIXME: `$XDG_DATA_HOME` isn't interpolating here, need to figure
@@ -189,7 +187,6 @@ in
   #    serviceConfig.ThrottleInterval = 300;
   #  };
 
-  nix.configureBuildUsers = true;
 	nix.extraOptions = "experimental-features = nix-command flakes";
 
   nix.nixPath =
