@@ -62,6 +62,7 @@ in
     "charles"
     "cleanmymac"
     "cloudflare-warp"
+    "comfyui"
     "cursor"
     "daisydisk"
     "dash"
