@@ -48,8 +48,6 @@ in
     "CARROT Weather" = 993487541;
     "Fantastical" = 975937182;
     "Keystroke Pro" = 1572206224;
-    "Pages" = 409201541;
-    "Things" = 904280696;
     "Xcode" = 497799835;
   };
 
