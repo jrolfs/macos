@@ -1,5 +1,9 @@
 local _ = require("modules.utilities")
 
+_.bindHyper("h", function()
+  hs.reload()
+end)
+
 _.bindHyper("c", require("modules.finder").copyPath)
 
 require('modules.autohide').start({
@@ -12,9 +16,7 @@ require('modules.autohide').start({
   "kitty",
 })
 
-_.bindHyper("h", function()
-  hs.reload()
-end)
+require('modules.raycast-focus').start();
 
 local littleSnitch = require("modules.little-snitch")
 
