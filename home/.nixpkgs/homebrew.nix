@@ -48,7 +48,7 @@ in
     "CARROT Weather" = 993487541;
     "Fantastical" = 975937182;
     "Keystroke Pro" = 1572206224;
-    "Xcode" = 497799835;
+    # "Xcode" = 497799835;
   };
 
   homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [
@@ -62,7 +62,7 @@ in
     "daisydisk"
     "dash"
     "discord"
-    "docker"
+    # "docker"
     "figma"
     "firefox"
     "firefox@developer-edition"
