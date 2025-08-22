@@ -152,6 +152,7 @@ in
 
   system.defaults.LaunchServices.LSQuarantine = false;
   system.activationScripts.applications.enable = true;
+  system.primaryUser = "jamie";
 
   nixpkgs.config = {
     allowBroken = true;
@@ -192,9 +193,9 @@ in
   nix.nixPath =
     [
       {
-        darwin = "$HOME/.nix-defexpr/darwin";
-        nixpkgs = "$HOME/.nix-defexpr/nixpkgs";
-        darwin-config = "$HOME/.nixpkgs/darwin-configuration.nix";
+        darwin = "/Users/jamie/.nix-defexpr/darwin";
+        nixpkgs = "/Users/jamie/.nix-defexpr/nixpkgs";
+        darwin-config = "/Users/jamie/.nixpkgs/darwin-configuration.nix";
       }
     ];
 
