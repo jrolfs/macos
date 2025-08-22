@@ -57,7 +57,6 @@ in
     "1password-cli"
     "arq"
     "charles"
-    "cleanmymac"
     "cloudflare-warp"
     "cursor"
     "daisydisk"
