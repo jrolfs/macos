@@ -85,7 +85,7 @@ in
     "spotify"
     "stay"
     "superhuman"
-    "tailscale"
+    "tailscale-app"
     "telegram"
     "tuple"
     "unite"
