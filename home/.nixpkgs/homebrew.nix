@@ -62,7 +62,7 @@ in
     "daisydisk"
     "dash"
     "discord"
-    "docker"
+    "docker-desktop"
     "figma"
     "firefox"
     "firefox@developer-edition"
