@@ -22,14 +22,14 @@
     #   };
     # };
 
-    moom = {
-      path = [ "/Applications/Moom.app" ];
-      serviceConfig = {
-        Label = "com.manytricks.Moom";
-        ProgramArguments = [ "/Applications/Moom.app/Contents/MacOS/Moom" ];
-        KeepAlive = true;
-        RunAtLoad = true;
-      };
-    };
+    # moom = {
+    #   path = [ "/Applications/Moom.app" ];
+    #   serviceConfig = {
+    #     Label = "com.manytricks.Moom";
+    #     ProgramArguments = [ "/Applications/Moom.app/Contents/MacOS/Moom" ];
+    #     KeepAlive = true;
+    #     RunAtLoad = true;
+    #   };
+    # };
   };
 }
