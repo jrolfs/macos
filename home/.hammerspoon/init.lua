@@ -13,6 +13,7 @@ require('modules.autohide').start({
   "Sirius",
   "Spotify",
   "YouTube",
+  "iPhone Mirroring",
   "kitty",
 })
 
