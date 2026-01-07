@@ -46,7 +46,6 @@ in
 
   homebrew.masApps = lib.filterAttrs (name: _ : !lib.elem name excludeApps) {
     "CARROT Weather" = 993487541;
-    "Fantastical" = 975937182;
     "Keystroke Pro" = 1572206224;
     # "Xcode" = 497799835;
   };
@@ -63,6 +62,7 @@ in
     "dash"
     "discord"
     "docker-desktop"
+    "fantastical"
     "figma"
     "firefox"
     "firefox@developer-edition"
