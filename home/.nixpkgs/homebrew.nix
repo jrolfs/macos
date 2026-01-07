@@ -81,6 +81,7 @@ in
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
+    "signal"
     "slack"
     "spotify"
     "stay"
