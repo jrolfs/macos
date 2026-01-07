@@ -10,6 +10,7 @@ require('modules.autohide').start({
   "Dash",
   "Find My",
   "Music",
+  "Obsidian",
   "Sirius",
   "Spotify",
   "YouTube",
