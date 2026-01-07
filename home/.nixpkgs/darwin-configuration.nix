@@ -65,7 +65,7 @@ in
       pkgs.figlet
 
       #
-      # Codecs & file support
+      # Media
 
       pkgs.ffmpeg
       pkgs.gifsicle
@@ -73,6 +73,7 @@ in
       pkgs.lame
       pkgs.libpng
       pkgs.unrar
+      pkgs.yt-dlp
 
       #
       # Git
