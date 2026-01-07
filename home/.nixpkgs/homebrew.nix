@@ -45,8 +45,8 @@ in
   ];
 
   homebrew.masApps = lib.filterAttrs (name: _ : !lib.elem name excludeApps) {
-    "CARROT Weather" = 993487541;
-    "Keystroke Pro" = 1572206224;
+    # "CARROT Weather" = 993487541;
+    # "Keystroke Pro" = 1572206224;
     # "Xcode" = 497799835;
   };
 
