@@ -8,6 +8,8 @@ alias mkrs="mackup restore -f && mackup uninstall -f"
 
 alias icn="(cd $HOMESHICK_KINGDOM/macos/icons && sudo ./apply.sh)"
 
+alias nix-switch="sudo -E darwin-rebuild switch --show-trace"
+
 
 #
 #
