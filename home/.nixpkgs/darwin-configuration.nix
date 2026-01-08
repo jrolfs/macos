@@ -81,10 +81,8 @@ in
       pkgs.git
       pkgs.git-crypt
       pkgs.git-lfs
-      pkgs.gitAndTools.delta
-      pkgs.gitAndTools.diff-so-fancy
-      pkgs.gitAndTools.gh
-      pkgs.gitAndTools.hub
+      pkgs.delta
+      pkgs.gh
 
       #
       # Security
