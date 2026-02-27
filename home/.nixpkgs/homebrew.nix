@@ -65,6 +65,7 @@ in
     "daisydisk"
     "discord"
     "docker-desktop"
+    "dropshare"
     "fantastical"
     "figma"
     "firefox"
