@@ -41,8 +41,6 @@ in
       pkgs.jq
       pkgs.m-cli
       pkgs.mackup
-      pkgs.mcfly
-      pkgs.rename
       pkgs.ripgrep
       pkgs.sd
       pkgs.skim
