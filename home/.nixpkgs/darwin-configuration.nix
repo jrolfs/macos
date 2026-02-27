@@ -41,6 +41,7 @@ in
       pkgs.jq
       pkgs.m-cli
       pkgs.mackup
+      pkgs.nightlight
       pkgs.ripgrep
       pkgs.sd
       pkgs.skim
