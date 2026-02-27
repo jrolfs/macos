@@ -68,10 +68,7 @@ in
       # Media
 
       pkgs.ffmpeg
-      pkgs.gifsicle
       pkgs.imagemagick
-      pkgs.lame
-      pkgs.libpng
       pkgs.unrar
       pkgs.yt-dlp
 
