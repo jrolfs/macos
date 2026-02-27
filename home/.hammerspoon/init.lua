@@ -8,6 +8,7 @@ _.bindHyper("c", require("modules.finder").copyPath)
 
 require('modules.autohide').start({
   "Dash",
+  "Discord",
   "Find My",
   "Music",
   "Obsidian",
