@@ -143,6 +143,9 @@ in
       pkgs.devbox
       pkgs.nixpkgs-fmt
 
+      # AI
+      pkgs.claude-code
+
     ];
 
 
