@@ -29,8 +29,6 @@ in
   homebrew.global.lockfiles = true;
 
   homebrew.taps = [
-    "homebrew/bundle"
-
      "jorgelbg/tap"
   ];
 
