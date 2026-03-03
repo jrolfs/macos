@@ -66,6 +66,7 @@ in
     "firefox"
     "firefox@developer-edition"
     "firefox@nightly"
+    "glide-browser"
     "google-chrome"
     "google-chrome@beta"
     "google-chrome@canary"
