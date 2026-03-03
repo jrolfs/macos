@@ -190,6 +190,8 @@ in
 
 	nix.extraOptions = "experimental-features = nix-command flakes";
 
+  nix.enable = false;
+
   nix.nixPath =
     [
       {

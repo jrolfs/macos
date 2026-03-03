@@ -33,3 +33,9 @@ function reset-host {
 # GitHub CLI → Raycast
 
 source "$XDG_CONFIG_HOME/zsh/github-to-raycast.zsh"
+
+#
+# Nix
+
+export NIX_PATH="darwin=$HOME/.nix-defexpr/darwin:nixpkgs=$HOME/.nix-defexpr/nixpkgs:darwin-config=$HOME/.nixpkgs/darwin-configuration.nix"
+
