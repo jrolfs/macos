@@ -61,8 +61,9 @@ in
       #
       # Fun
 
-      pkgs.fortune
+      pkgs.dotacat
       pkgs.figlet
+      pkgs.fortune
 
       #
       # Media
