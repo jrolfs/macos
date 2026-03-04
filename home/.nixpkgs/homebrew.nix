@@ -29,12 +29,13 @@ in
   homebrew.global.lockfiles = true;
 
   homebrew.taps = [
-     "jorgelbg/tap"
+    "jorgelbg/tap"
   ];
 
   # Example:
   # tap "hoverinc/tap", "git@github.com:hoverinc/homebrew-tap.git"
   homebrew.extraConfig = ''
+    tap "meterup/packages", "git@github.com:meterup/packages"
   '';
 
   homebrew.brews = [
@@ -51,6 +52,9 @@ in
   };
 
   homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [
+
+    "meterup/packages/mcurl"
+    "meterup/packages/mctl"
 
     "1password"
     "1password-cli"
@@ -90,7 +94,7 @@ in
     "tailscale-app"
     "telegram"
     "tuple"
-    "unite"
+    # "unite"
     "visual-studio-code"
     "whatsapp"
     "yaak"
