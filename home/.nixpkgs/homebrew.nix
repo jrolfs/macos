@@ -4,18 +4,20 @@ let
   # Don't install casks specified in this environment variable. This is to
   # deal with applications managed by organization device management, etc.
   envApps = builtins.getEnv "NIX_MACOS_EXCLUDE_CASKS";
-  excludeApps = if envApps != "" then
-                  let
-                    parsedApps = builtins.split "," envApps;
-                  in
-                  lib.trace ''
+  excludeApps =
+    if envApps != "" then
+      let
+        parsedApps = builtins.split "," envApps;
+      in
+      lib.trace ''
 
 
-                  ----------------------------------------
-                  ⚠︎ Excluding apps: ${toString parsedApps}
-                  ----------------------------------------
-                  '' parsedApps
-                else [];
+        ----------------------------------------
+        ⚠︎ Excluding apps: ${toString parsedApps}
+        ----------------------------------------
+      '' parsedApps
+    else
+      [ ];
 in
 
 {
@@ -24,6 +26,16 @@ in
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "zap";
   homebrew.enable = true;
+
+  # Clear immutable flags from any applications managed by
+  # self-service tools so Homebrew can manage all applications.
+  system.activationScripts.extraActivation.text = lib.mkIf config.homebrew.enable (
+    lib.mkAfter ''
+      if [ -d /Applications ]; then
+        chflags -R noschg,nouchg /Applications 2>/dev/null || true
+      fi
+    ''
+  );
 
   homebrew.global.brewfile = true;
   homebrew.global.lockfiles = true;
@@ -43,7 +55,7 @@ in
     "openssl"
   ];
 
-  homebrew.masApps = lib.filterAttrs (name: _ : !lib.elem name excludeApps) {
+  homebrew.masApps = lib.filterAttrs (name: _: !lib.elem name excludeApps) {
     "CARROT Weather" = 993487541;
     "Fantastical" = 975937182;
     "Flighty" = 1358823008;
