@@ -21,9 +21,4 @@ require('modules.autohide').start({
 
 require('modules.raycast-focus').start();
 
-local littleSnitch = require("modules.little-snitch")
-
-_.bindHyper("l", littleSnitch.enableLittleSnitch)
-_.bindHyper("o", littleSnitch.disableLittleSnitch)
-
 _.alert("🔨   Loaded Hammerspoon configuration")
