@@ -135,6 +135,8 @@ in
 
       # AI
       pkgs.claude-code
+      pkgs.claude-monitor
+      pkgs.claude-code-router
 
     ];
 
