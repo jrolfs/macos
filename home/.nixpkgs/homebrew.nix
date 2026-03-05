@@ -46,9 +46,9 @@ in
 
   # Example:
   # tap "hoverinc/tap", "git@github.com:hoverinc/homebrew-tap.git"
-  homebrew.extraConfig = ''
-    tap "meterup/packages", "git@github.com:meterup/packages"
-  '';
+  # homebrew.extraConfig = ''
+  #   tap "meterup/packages", "git@github.com:meterup/packages"
+  # '';
 
   homebrew.brews = [
     "mas"
@@ -65,8 +65,8 @@ in
 
   homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [
 
-    "meterup/packages/mcurl"
-    "meterup/packages/mctl"
+    # "meterup/packages/mcurl"
+    # "meterup/packages/mctl"
 
     "1password"
     "1password-cli"
