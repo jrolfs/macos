@@ -70,6 +70,7 @@ in
 
     "1password"
     "1password-cli"
+    "affinity"
     "arq"
     "charles"
     "cloudflare-warp"
