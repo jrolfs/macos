@@ -139,7 +139,6 @@ in
     ];
 
 
-  system.defaults.LaunchServices.LSQuarantine = false;
   system.activationScripts.applications.enable = true;
   system.primaryUser = "jamie";
 

@@ -22,6 +22,8 @@
       QuitMenuItem = true;
     };
 
+    screencapture.location = "~/Images/Screenshots";
+
     trackpad = {
       Clicking = true;
       TrackpadRightClick = true;
@@ -29,6 +31,7 @@
     };
 
     LaunchServices = {
+      LSQuarantine = false;
     };
 
     NSGlobalDomain = {
