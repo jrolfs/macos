@@ -39,16 +39,19 @@ in
       pkgs.fasd
       pkgs.fd
       pkgs.jq
-      pkgs.m-cli
-      pkgs.mackup
-      pkgs.nightlight
       pkgs.ripgrep
       pkgs.sd
       pkgs.skim
       pkgs.starship
       pkgs.tealdeer
-      pkgs.yabai
       pkgs.yq
+
+      #
+      # macOS
+
+      pkgs.m-cli
+      pkgs.mackup
+      pkgs.nightlight
 
       #
       # Build
@@ -60,16 +63,15 @@ in
       #
       # Fun
 
-      pkgs.dotacat
-      pkgs.figlet
       pkgs.fortune
+      pkgs.figlet
+      pkgs.dotacat
 
       #
       # Media
 
       pkgs.ffmpeg
       pkgs.imagemagick
-      pkgs.unrar
       pkgs.yt-dlp
 
       #
@@ -94,23 +96,14 @@ in
       # Development tools
 
       pkgs.httpie
+      pkgs.mise
       pkgs.watchman
 
       #
       # Infrastructure
 
-      pkgs.coder
       pkgs.kubectl
       pkgs.kubectx
-      (pkgs.google-cloud-sdk.withExtraComponents [
-        pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
-      ])
-
-      # SDKs
-
-      # Currently disabled as using the cask for compatibility
-      # with the auth plugin and general compatibility with work
-      # pkgs.google-cloud-sdk
 
       #
       # Editors
@@ -119,9 +112,6 @@ in
       pkgs.neovim
       pkgs.nil
       pkgs.tree-sitter
-
-      pkgs.python311Packages.pynvim
-      pkgs.python311Packages.grip
 
       #
       # Network utilities
