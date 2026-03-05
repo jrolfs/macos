@@ -19,6 +19,4 @@ require('modules.autohide').start({
   "kitty",
 })
 
-require('modules.raycast-focus').start();
-
 _.alert("🔨   Loaded Hammerspoon configuration")
