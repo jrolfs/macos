@@ -116,10 +116,11 @@ in
     "zoom"
 
     # Fonts
+    "font-fira-code-nerd-font"
+    "font-hack-nerd-font"
     "font-ibm-plex"
     "font-iosevka"
     "font-iosevka-slab"
-    "font-fira-code-nerd-font"
     "font-jetbrains-mono"
     "font-jetbrains-mono-nerd-font"
   ];
