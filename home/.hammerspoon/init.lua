@@ -7,11 +7,13 @@ end)
 _.bindHyper("c", require("modules.finder").copyPath)
 
 require('modules.autohide').start({
+  "1Password",
   "Dash",
   "Discord",
   "Find My",
   "Music",
   "Obsidian",
+  "Photos",
   "Sirius",
   "Spotify",
   "YouTube",
