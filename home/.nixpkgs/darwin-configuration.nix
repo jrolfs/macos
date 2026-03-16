@@ -163,20 +163,6 @@ in
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  #  launchd.agents.apply-icons = {
-  #    # FIXME: `$XDG_DATA_HOME` isn't interpolating here, need to figure
-  #    # out how to reference `$XDG_DATA_HOME` or at least `$HOME` from Nix
-  #    command = "$XDG_DATA_HOME/icons/apply.sh";
-  #
-  #	  serviceConfig.StandardErrorPath = "$XDG_DATA_HOME/icons/launchd/stderr.log";
-  #	  serviceConfig.StandardOutPath = "$XDG_DATA_HOME/icons/launchd/stdout.log";
-  #    serviceConfig.WatchPaths = ["/Applications" "$XDG_DATA_HOME/icons"];
-  #    serviceConfig.WorkingDirectory = "$XDG_DATA_HOME/icons";
-  #
-  #    serviceConfig.KeepAlive = false;
-  #    serviceConfig.ProcessType = "Background";
-  #    serviceConfig.ThrottleInterval = 300;
-  #  };
   # NOTE: disabling nix-darwin's support for configuring Nix itself
   # as it conflicts with Determinate Nix. I'm leaving this stuff
   # here in case I switch to something else and for reference.
