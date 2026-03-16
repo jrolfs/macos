@@ -177,11 +177,12 @@ in
   #    serviceConfig.ProcessType = "Background";
   #    serviceConfig.ThrottleInterval = 300;
   #  };
-
-	nix.extraOptions = "experimental-features = nix-command flakes";
-
+  # NOTE: disabling nix-darwin's support for configuring Nix itself
+  # as it conflicts with Determinate Nix. I'm leaving this stuff
+  # here in case I switch to something else and for reference.
   nix.enable = false;
 
+  nix.extraOptions = "experimental-features = nix-command flakes";
   nix.nixPath =
     [
       {
