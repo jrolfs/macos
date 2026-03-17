@@ -16,6 +16,7 @@ require('modules.autohide').start({
   "Photos",
   "Sirius",
   "Spotify",
+  "Yaak",
   "YouTube",
   "iPhone Mirroring",
   "kitty",
