@@ -34,6 +34,8 @@ let
     echo ""
     echo "[$(date -u '+%Y-%m-%d %H:%M:%S UTC')] run started"
 
+    results=$(mktemp /tmp/icon-customizer.XXXXXX)
+
     ${pkgs.fd}/bin/fd \
       --type=f '.*' ${assetsDir} \
       --exec /bin/zsh -c '
@@ -52,6 +54,7 @@ let
 
         if ${fileicon}/bin/fileicon set "$app" "$1" 2>&1; then
           echo "[$ts] ok: $2"
+          echo "$2" >> "'"$results"'"
         else
           echo "[$ts] FAILED: $2"
         fi
@@ -60,6 +63,16 @@ let
           xattr -wx com.apple.macl "$macl" "$app" 2>/dev/null
         fi
       ' zsh {} {/.}
+
+    count=$(wc -l < "$results" 2>/dev/null | tr -d ' ')
+    if [[ "$count" -gt 0 ]]; then
+      apps=$(paste -sd, "$results" | sed 's/,/, /g')
+      uid=$(id -u jamie)
+      launchctl asuser "$uid" ${pkgs.terminal-notifier}/bin/terminal-notifier \
+        -title "Icon Customizer" \
+        -message "$count icon(s) updated: $apps"
+    fi
+    rm -f "$results"
 
     echo "[$(date -u '+%Y-%m-%d %H:%M:%S UTC')] run finished"
   '';
