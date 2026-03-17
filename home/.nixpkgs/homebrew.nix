@@ -74,7 +74,6 @@ in
     "arq"
     "charles"
     "cleanshot"
-    "cloudflare-warp"
     "cursor"
     "daisydisk"
     "discord"
