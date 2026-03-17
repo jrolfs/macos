@@ -73,6 +73,7 @@ in
     "affinity"
     "arq"
     "charles"
+    "cleanshot"
     "cloudflare-warp"
     "cursor"
     "daisydisk"
