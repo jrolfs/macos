@@ -3,13 +3,16 @@
 let
   overlays = import ./overlays.nix;
   # Support Nix installs using the old nixbld group number
-  nixbldGid = builtins.trace "Querying nixbld group..."
-    (pkgs.lib.toInt (builtins.readFile (
-      pkgs.runCommand "nixbld-gid" {} ''
-        /usr/bin/dscl . -read /Groups/nixbld PrimaryGroupID |
-        awk '{print $2}' > $out
-      ''
-    )));
+ nixbldGid = builtins.trace "Querying nixbld group..." (
+    pkgs.lib.toInt (
+      builtins.readFile (
+        pkgs.runCommand "nixbld-gid" { } ''
+          /usr/bin/dscl . -read /Groups/nixbld PrimaryGroupID |
+          awk '{print $2}' > $out
+        ''
+      )
+    )
+  );
 in
 {
   imports = [
@@ -169,14 +172,13 @@ in
   nix.enable = false;
 
   nix.extraOptions = "experimental-features = nix-command flakes";
-  nix.nixPath =
-    [
-      {
-        darwin = "/Users/jamie/.nix-defexpr/darwin";
-        nixpkgs = "/Users/jamie/.nix-defexpr/nixpkgs";
-        darwin-config = "/Users/jamie/.nixpkgs/darwin-configuration.nix";
-      }
-    ];
+  nix.nixPath = [
+    {
+      darwin = "/Users/jamie/.nix-defexpr/darwin";
+      nixpkgs = "/Users/jamie/.nix-defexpr/nixpkgs";
+      darwin-config = "/Users/jamie/.nixpkgs/darwin-configuration.nix";
+    }
+  ];
 
   programs.zsh = {
     enable = true;
