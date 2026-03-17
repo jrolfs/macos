@@ -3,7 +3,7 @@
 let
   overlays = import ./overlays.nix;
   # Support Nix installs using the old nixbld group number
- nixbldGid = builtins.trace "Querying nixbld group..." (
+  nixbldGid = builtins.trace "Querying nixbld group..." (
     pkgs.lib.toInt (
       builtins.readFile (
         pkgs.runCommand "nixbld-gid" { } ''
@@ -28,121 +28,120 @@ in
 
   # Packages
 
-  environment.systemPackages =
-    [
+  environment.systemPackages = [
 
-      #
-      # Utilities
+    #
+    # Utilities
 
-      pkgs.atuin
-      pkgs.bat
-      pkgs.bottom
-      pkgs.dtach
-      pkgs.eza
-      pkgs.fasd
-      pkgs.fd
-      pkgs.jq
-      pkgs.ripgrep
-      pkgs.sd
-      pkgs.skim
-      pkgs.starship
-      pkgs.tealdeer
-      pkgs.yq
+    # Shell
 
-      #
-      # macOS
+    pkgs.atuin
+    pkgs.bat
+    pkgs.bottom
+    pkgs.direnv
+    pkgs.dtach
+    pkgs.eza
+    pkgs.fasd
+    pkgs.fd
+    pkgs.fish
+    pkgs.jq
+    pkgs.ripgrep
+    pkgs.sd
+    pkgs.skim
+    pkgs.starship
+    pkgs.tealdeer
+    pkgs.terminal-notifier
+    pkgs.tmux
+    pkgs.yq
+    pkgs.zsh
 
-      pkgs.m-cli
-      pkgs.mackup
-      pkgs.nightlight
+    # Network
 
-      #
-      # Build
+    pkgs.ngrok
+    pkgs.rclone
+    pkgs.wakeonlan
 
-      pkgs.autoconf
-      pkgs.automake
-      pkgs.cmake
+    #
+    # macOS
 
-      #
-      # Fun
+    pkgs.m-cli
+    pkgs.mackup
+    pkgs.nightlight
+    pkgs.sketchybar
 
-      pkgs.fortune
-      pkgs.figlet
-      pkgs.dotacat
+    #
+    # Build
 
-      #
-      # Media
+    pkgs.autoconf
+    pkgs.automake
+    pkgs.cmake
 
-      pkgs.ffmpeg
-      pkgs.imagemagick
-      pkgs.yt-dlp
+    #
+    # Fun
 
-      #
-      # Git
+    pkgs.fortune
+    pkgs.figlet
+    pkgs.dotacat
 
-      pkgs.git
-      pkgs.git-crypt
-      pkgs.git-lfs
-      pkgs.delta
-      pkgs.gh
+    #
+    # Media
 
-      #
-      # Security
+    pkgs.ffmpeg
+    pkgs.imagemagick
+    pkgs.yt-dlp
 
-      pkgs.pinentry-curses
-      pkgs.pinentry_mac
-      pkgs.gnupg
-      pkgs.keybase
-      pkgs.yubikey-manager
+    #
+    # Git
 
-      #
-      # Development tools
+    pkgs.git
+    pkgs.git-crypt
+    pkgs.git-lfs
+    pkgs.delta
+    pkgs.gh
 
-      pkgs.httpie
-      pkgs.mise
-      pkgs.watchman
+    #
+    # Security
 
-      #
-      # Infrastructure
+    pkgs.pinentry-curses
+    pkgs.pinentry_mac
+    pkgs.gnupg
+    pkgs.keybase
+    pkgs.yubikey-manager
 
-      pkgs.kubectl
-      pkgs.kubectx
+    #
+    # Development tools
 
-      #
-      # Editors
+    pkgs.httpie
+    pkgs.mise
+    pkgs.watchman
 
-      pkgs.neovide
-      pkgs.neovim
-      pkgs.nil
-      pkgs.tree-sitter
+    #
+    # Infrastructure
 
-      #
-      # Network utilities
+    pkgs.kubectl
+    pkgs.kubectx
 
-      pkgs.ngrok
-      pkgs.rclone
-      pkgs.wakeonlan
+    #
+    # Editors
 
-      #
-      # Shell
+    pkgs.neovide
+    pkgs.neovim
+    pkgs.nil
+    pkgs.tree-sitter
 
-      pkgs.direnv
-      pkgs.fish
-      pkgs.terminal-notifier
-      pkgs.tmux
-      pkgs.zsh
+    #
+    # Shell
 
-      # Nix
-      pkgs.devbox
-      pkgs.nixpkgs-fmt
+    # Nix
+    pkgs.devbox
+    pkgs.nixpkgs-fmt
 
-      # AI
-      pkgs.claude-code
-      pkgs.claude-monitor
-      pkgs.claude-code-router
+    # AI
+    pkgs.claude-code
+    pkgs.claude-monitor
+    pkgs.claude-code-router
 
-    ];
-
+  ];
 
   system.activationScripts.applications.enable = true;
   system.primaryUser = "jamie";
