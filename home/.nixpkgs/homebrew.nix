@@ -18,6 +18,35 @@ let
       '' parsedApps
     else
       [ ];
+
+  # Pre-tap helpers — clone tap repos over HTTPS before the homebrew
+  # module's activation runs `brew bundle` (which sanitizes the env
+  # and drops SSH_AUTH_SOCK). We run git as root, whose gitconfig has
+  # no url.*.insteadOf SSH rewrite. For private repos, the
+  # HOMEBREW_GITHUB_API_TOKEN is read at eval time for HTTPS basic auth.
+  githubToken = builtins.getEnv "HOMEBREW_GITHUB_API_TOKEN";
+  githubAuth = if githubToken != "" then "${githubToken}@" else "";
+
+  tapsDir = "${config.homebrew.brewPrefix}/../Library/Taps";
+
+  tapDir = tap: let
+    parts = lib.splitString "/" tap.name;
+  in "${tapsDir}/${builtins.elemAt parts 0}/homebrew-${builtins.elemAt parts 1}";
+
+  tapUrl = tap:
+    if tap.clone_target != null then tap.clone_target
+    else "https://${githubAuth}github.com/${builtins.elemAt (lib.splitString "/" tap.name) 0}/homebrew-${builtins.elemAt (lib.splitString "/" tap.name) 1}";
+
+  primaryUser = config.system.primaryUser;
+
+  preTapScript = lib.concatMapStringsSep "\n" (tap: ''
+    if [ ! -d "${tapDir tap}" ]; then
+      echo >&2 "Pre-tapping ${tap.name} (over HTTPS)..."
+      git clone ${tapUrl tap} ${tapDir tap} \
+        && chown -R ${primaryUser} ${tapDir tap} \
+        || true
+    fi
+  '') config.homebrew.taps;
 in
 
 {
@@ -37,22 +66,27 @@ in
     ''
   );
 
+  # Pre-clone tap repos via HTTPS before the homebrew module runs
+  # `brew bundle` (which sanitizes the env).
+  system.activationScripts.homebrew.text = lib.mkBefore ''
+    ${preTapScript}
+  '';
+
   homebrew.global.brewfile = true;
   homebrew.global.lockfiles = true;
 
   homebrew.taps = [
     "jorgelbg/tap"
+    "jrolfs/tap"
+    "meterup/packages"
   ];
-
-  # Example:
-  # tap "hoverinc/tap", "git@github.com:hoverinc/homebrew-tap.git"
-  # homebrew.extraConfig = ''
-  #   tap "meterup/packages", "git@github.com:meterup/packages"
-  # '';
 
   homebrew.brews = [
     "mas"
     "openssl"
+
+    { name = "meterup/packages/mcurl"; args = [ "HEAD" ]; }
+    { name = "meterup/packages/mctl"; args = [ "HEAD" ]; }
   ];
 
   homebrew.masApps = lib.filterAttrs (name: _: !lib.elem name excludeApps) {
@@ -64,9 +98,6 @@ in
   };
 
   homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [
-
-    # "meterup/packages/mcurl"
-    # "meterup/packages/mctl"
 
     "1password"
     "1password-cli"
@@ -93,6 +124,7 @@ in
     "homebrew/cask/dash"
     "karabiner-elements"
     "kitty"
+    "jrolfs/tap/lingon-pro"
     "moom"
     "obsidian"
     "raycast"
@@ -105,7 +137,7 @@ in
     "superhuman"
     "tailscale-app"
     "telegram"
-    # "unite"
+    "jrolfs/tap/unite-pro"
     "whatsapp"
     "yaak"
     "zed"
