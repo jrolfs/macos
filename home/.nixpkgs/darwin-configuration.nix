@@ -55,6 +55,9 @@ in
     pkgs.yq
     pkgs.zsh
 
+    # Theming
+    pkgs.spicetify-cli
+
     # Network
 
     pkgs.ngrok
