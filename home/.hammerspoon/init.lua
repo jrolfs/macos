@@ -11,6 +11,7 @@ require('modules.autohide').start({
   "Dash",
   "Discord",
   "Find My",
+  "Linear",
   "Maps",
   "Music",
   "Obsidian",
