@@ -116,7 +116,6 @@ in
 
     pkgs.httpie
     pkgs.mise
-    pkgs.watchman
 
     #
     # Infrastructure
