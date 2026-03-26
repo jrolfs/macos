@@ -1,6 +1,9 @@
 self: super:
 
 rec {
+  direnv = super.direnv.overrideAttrs (old: {
+    env = (old.env or { }) // { CGO_ENABLED = 1; };
+  });
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''

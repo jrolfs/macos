@@ -27,7 +27,7 @@ let
   githubToken = builtins.getEnv "HOMEBREW_GITHUB_API_TOKEN";
   githubAuth = if githubToken != "" then "${githubToken}@" else "";
 
-  tapsDir = "${config.homebrew.brewPrefix}/../Library/Taps";
+  tapsDir = "${config.homebrew.prefix}/bin/../Library/Taps";
 
   tapDir = tap: let
     parts = lib.splitString "/" tap.name;
@@ -50,7 +50,7 @@ let
 in
 
 {
-  homebrew.brewPrefix = "/opt/homebrew/bin";
+  homebrew.prefix = "/opt/homebrew";
 
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "zap";
@@ -73,7 +73,6 @@ in
   '';
 
   homebrew.global.brewfile = true;
-  homebrew.global.lockfiles = true;
 
   homebrew.taps = [
     "jorgelbg/tap"
