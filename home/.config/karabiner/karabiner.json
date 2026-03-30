@@ -156,8 +156,38 @@
                 ],
                 "type": "basic"
               },
+
+
               {
-                "description": "Right ⌥ to ^⌥ + a",
+                "description": "Standalone Tab to Fn",
+                "parameters": {
+                  "basic.to_if_alone_timeout_milliseconds": 500
+                },
+                "from": {
+                  "key_code": "tab",
+                  "modifiers": {
+                    "optional": [
+                      "any"
+                    ]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "fn"
+                  }
+                ],
+                "to_if_alone": [
+                  {
+                    "key_code": "tab"
+                  }
+                ],
+                "type": "basic"
+              },
+
+
+
+              {
+                "description": "Right ⌥ to Hyper or ⌥ + a",
                 "from": {
                   "key_code": "right_option",
                   "modifiers": {
