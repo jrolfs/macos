@@ -22,6 +22,7 @@ in
     ./fileicon.nix
     ./homebrew.nix
     ./icons.nix
+    ./tap.nix
 
     # ./applications/codium.nix
   ];
