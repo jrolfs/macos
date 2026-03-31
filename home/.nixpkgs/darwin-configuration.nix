@@ -98,11 +98,12 @@ in
     #
     # Git
 
+    pkgs.delta
+    pkgs.gh
     pkgs.git
     pkgs.git-crypt
     pkgs.git-lfs
-    pkgs.delta
-    pkgs.gh
+    pkgs.worktrunk
 
     #
     # Security
