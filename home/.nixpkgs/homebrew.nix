@@ -90,10 +90,11 @@ in
 
   homebrew.masApps = lib.filterAttrs (name: _: !lib.elem name excludeApps) {
     "CARROT Weather" = 993487541;
+    "Cloud Baby Monitor" = 517602535;
     "Fantastical" = 975937182;
     "Flighty" = 1358823008;
     "Keystroke Pro" = 1572206224;
-    # "Xcode" = 497799835;
+    "Xcode" = 497799835;
   };
 
   homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [

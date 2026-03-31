@@ -2,6 +2,7 @@
 
 let
   overlays = import ./overlays.nix;
+
   # Support Nix installs using the old nixbld group number
   nixbldGid = builtins.trace "Querying nixbld group..." (
     pkgs.lib.toInt (
