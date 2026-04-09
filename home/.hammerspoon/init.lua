@@ -16,6 +16,7 @@ require('modules.autohide').start({
   "Music",
   "Obsidian",
   "Photos",
+  "Reminders",
   "Resilio Sync",
   "Sirius",
   "Spotify",
