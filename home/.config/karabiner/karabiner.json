@@ -15,7 +15,25 @@
           {
             "manipulators": [
 
-
+              {
+                "type": "basic",
+                "description": "Disable all keys on under-desk Touch ID keyboard",
+                "from": {
+                  "any": "key_code"
+                },
+                "to": [],
+                "conditions": [
+                  {
+                    "type": "device_if",
+                    "identifiers": [
+                      {
+                        "vendor_id": 76,
+                        "product_id": 666
+                      }
+                    ]
+                  }
+                ]
+              },
 
               {
                 "type": "basic",
