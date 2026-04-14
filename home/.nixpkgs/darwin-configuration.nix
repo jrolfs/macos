@@ -3,17 +3,6 @@
 let
   overlays = import ./overlays.nix;
 
-  # Support Nix installs using the old nixbld group number
-  nixbldGid = builtins.trace "Querying nixbld group..." (
-    pkgs.lib.toInt (
-      builtins.readFile (
-        pkgs.runCommand "nixbld-gid" { } ''
-          /usr/bin/dscl . -read /Groups/nixbld PrimaryGroupID |
-          awk '{print $2}' > $out
-        ''
-      )
-    )
-  );
 in
 {
   imports = [
@@ -160,7 +149,6 @@ in
   nixpkgs.overlays = [ overlays ];
 
   system.stateVersion = 5;
-  ids.gids.nixbld = nixbldGid;
 
   services.postgresql = {
     enable = false;
