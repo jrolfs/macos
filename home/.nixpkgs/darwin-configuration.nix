@@ -158,10 +158,8 @@ in
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  # NOTE: disabling nix-darwin's support for configuring Nix itself
-  # as it conflicts with Determinate Nix. I'm leaving this stuff
-  # here in case I switch to something else and for reference.
-  nix.enable = false;
+  nix.package = pkgs.lix;
+  nix.enable = true;
 
   nix.extraOptions = "experimental-features = nix-command flakes";
   nix.nixPath = [
