@@ -11,6 +11,7 @@ in
     ./defaults.nix
     ./fileicon.nix
     ./homebrew.nix
+    ./glide-developer.nix
     ./icons.nix
     ./tap.nix
 
