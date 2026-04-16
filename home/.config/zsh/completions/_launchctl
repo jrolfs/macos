@@ -1,0 +1,443 @@
+#compdef launchctl
+
+# Zsh completion for launchctl (macOS launchd control tool)
+# Covers the modern domain-based interface (macOS 10.10+) and the legacy
+# load/unload/start/stop interface.
+#
+# Install: place this file as `_launchctl` anywhere on your $fpath, then
+#          run `compinit` (or restart your shell).
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ primitives ━
+
+# Complete a domain target: system | user/<uid> | gui/<uid> | login/<asid> | pid/<pid>
+_launchctl_domain_target() {
+  local -a static_domains
+  static_domains=(
+    'system:System-wide launchd domain'
+    "user/$(id -u):Current user's user domain (uid=$(id -u))"
+    "gui/$(id -u):Current user's GUI (Aqua session) domain (uid=$(id -u))"
+  )
+  # Also offer pid/ with running PIDs as a hint
+  local -a pid_targets
+  pid_targets=(${(f)"$(ps -axo pid= 2>/dev/null | awk '{print "pid/"$1}')"})
+
+  _describe -t domain-targets 'domain target' static_domains
+  _describe -t pid-targets 'pid target' pid_targets
+}
+
+# Complete a service label from launchctl list output.
+# Usage: _launchctl_service_labels [domain]
+_launchctl_service_labels() {
+  local -a labels
+  labels=(${(f)"$(launchctl list 2>/dev/null | awk 'NR>1 && $3 != "-" {print $3}')"})
+  _describe -t services 'service label' labels
+}
+
+# Complete a service target: <domain-target>/<service-label>
+# We complete the domain portion first, then the label portion.
+_launchctl_service_target() {
+  local cur=$words[CURRENT]
+
+  # If the current word already contains a slash, complete the label part.
+  if [[ $cur == */* ]]; then
+    local prefix=${cur%%/*}
+    local -a labels
+    labels=(${(f)"$(launchctl list 2>/dev/null | awk 'NR>1 && $3 != "-" {print $3}')"})
+    local -a targets
+    targets=("${labels[@]/#/$prefix/}")
+    _describe -t service-targets 'service target' targets
+  else
+    # Complete the domain portion
+    local -a static_domains
+    static_domains=(
+      "system"
+      "user/$(id -u)"
+      "gui/$(id -u)"
+    )
+    _describe -t domain-prefixes 'domain target prefix' static_domains
+  fi
+}
+
+# Complete a Unix signal name for `kill`.
+_launchctl_signal() {
+  local -a sigs
+  sigs=(
+    'SIGTERM:Terminate (graceful shutdown)'
+    'SIGKILL:Kill (immediate, uncatchable)'
+    'SIGHUP:Hangup (reload config)'
+    'SIGINT:Interrupt (Ctrl-C)'
+    'SIGQUIT:Quit with core dump'
+    'SIGUSR1:User-defined signal 1'
+    'SIGUSR2:User-defined signal 2'
+    'SIGSTOP:Stop process (uncatchable)'
+    'SIGCONT:Continue a stopped process'
+  )
+  _describe -t signals 'signal' sigs
+}
+
+# Complete a plist file path (launchd plists are .plist files).
+_launchctl_plist_file() {
+  _files -g '*.plist'
+}
+
+# Complete well-known plist search domains for the legacy -D flag.
+_launchctl_search_domain() {
+  local -a domains
+  domains=(
+    'all:All domains'
+    'user:Per-user LaunchAgents'
+    'local:Local LaunchDaemons/Agents'
+    'network:Network LaunchDaemons'
+    'system:System LaunchDaemons'
+  )
+  _describe -t search-domains 'search domain' domains
+}
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ subcommand handlers ━
+
+# ── bootstrap ────────────────────────────────────────────────────────────
+# launchctl bootstrap <domain-target> [plist-path ...]
+_launchctl_cmd_bootstrap() {
+  local -i rel=$(( CURRENT - 1 ))
+  case $rel in
+    1) _launchctl_domain_target ;;
+    *) _launchctl_plist_file ;;
+  esac
+}
+
+# ── bootout ──────────────────────────────────────────────────────────────
+# launchctl bootout <domain-target | service-target> [plist-path ...]
+_launchctl_cmd_bootout() {
+  local -i rel=$(( CURRENT - 1 ))
+  case $rel in
+    1) _launchctl_service_target ;;
+    *) _launchctl_plist_file ;;
+  esac
+}
+
+# ── enable / disable ─────────────────────────────────────────────────────
+# launchctl enable <service-target>
+# launchctl disable <service-target>
+_launchctl_cmd_enable_disable() {
+  local -i rel=$(( CURRENT - 1 ))
+  (( rel == 1 )) && _launchctl_service_target
+}
+
+# ── kickstart ────────────────────────────────────────────────────────────
+# launchctl kickstart [-kp] <service-target>
+_launchctl_cmd_kickstart() {
+  _arguments \
+    '-k[kill the service if already running before starting]' \
+    '-p[print the PID of the service after starting]' \
+    '1:service target:_launchctl_service_target'
+}
+
+# ── attach ───────────────────────────────────────────────────────────────
+# launchctl attach [-ksx] <service-target>
+_launchctl_cmd_attach() {
+  _arguments \
+    '-k[kill existing job before attaching]' \
+    '-s[force stop after attach]' \
+    '-x[attach to XPC service within job]' \
+    '1:service target:_launchctl_service_target'
+}
+
+# ── debug ────────────────────────────────────────────────────────────────
+# launchctl debug <service-target> [--program <path>] [--stdout <path>]
+#   [--stderr <path>] [--stdin <path>] [--environment KEY=VALUE ...]
+#   [-- argv ...]
+_launchctl_cmd_debug() {
+  _arguments \
+    '1:service target:_launchctl_service_target' \
+    '--program[override the executable path]:executable:_files' \
+    '--stdout[redirect stdout to file]:file:_files' \
+    '--stderr[redirect stderr to file]:file:_files' \
+    '--stdin[redirect stdin from file]:file:_files' \
+    '--environment[set an environment variable (KEY=VALUE)]:KEY=VALUE' \
+    '--guard-malloc[enable Guard Malloc for the service]' \
+    '--malloc-stack-logging[enable malloc stack logging]' \
+    '*:additional argv:_files'
+}
+
+# ── kill ─────────────────────────────────────────────────────────────────
+# launchctl kill <signal-name> <service-target>
+_launchctl_cmd_kill() {
+  local -i rel=$(( CURRENT - 1 ))
+  case $rel in
+    1) _launchctl_signal ;;
+    2) _launchctl_service_target ;;
+  esac
+}
+
+# ── blame ────────────────────────────────────────────────────────────────
+# launchctl blame <service-target>
+_launchctl_cmd_blame() {
+  local -i rel=$(( CURRENT - 1 ))
+  (( rel == 1 )) && _launchctl_service_target
+}
+
+# ── print ────────────────────────────────────────────────────────────────
+# launchctl print <domain-target | service-target>
+_launchctl_cmd_print() {
+  local -i rel=$(( CURRENT - 1 ))
+  (( rel == 1 )) && _launchctl_service_target
+}
+
+# ── print-disabled ───────────────────────────────────────────────────────
+# launchctl print-disabled <domain-target>
+_launchctl_cmd_print_disabled() {
+  local -i rel=$(( CURRENT - 1 ))
+  (( rel == 1 )) && _launchctl_domain_target
+}
+
+# ── procinfo ─────────────────────────────────────────────────────────────
+# launchctl procinfo <pid>
+_launchctl_cmd_procinfo() {
+  local -i rel=$(( CURRENT - 1 ))
+  if (( rel == 1 )); then
+    local -a pids
+    pids=(${(f)"$(ps -axo pid=,comm= 2>/dev/null | awk '{printf "%s:%s\n",$1,$2}')"})
+    _describe -t pids 'process' pids
+  fi
+}
+
+# ── runstats ─────────────────────────────────────────────────────────────
+# launchctl runstats <service-target>
+_launchctl_cmd_runstats() {
+  local -i rel=$(( CURRENT - 1 ))
+  (( rel == 1 )) && _launchctl_service_target
+}
+
+# ── error ────────────────────────────────────────────────────────────────
+# launchctl error <posix|mach|bootstrap> <error-code>
+_launchctl_cmd_error() {
+  local -i rel=$(( CURRENT - 1 ))
+  case $rel in
+    1)
+      local -a domains
+      domains=(
+        'posix:POSIX (errno) error code'
+        'mach:Mach kernel error code'
+        'bootstrap:Bootstrap server error code'
+      )
+      _describe -t error-domains 'error domain' domains
+      ;;
+    2) _message 'numeric error code' ;;
+  esac
+}
+
+# ── config ───────────────────────────────────────────────────────────────
+# launchctl config <system|user> <key> <value>
+_launchctl_cmd_config() {
+  local -i rel=$(( CURRENT - 1 ))
+  case $rel in
+    1)
+      local -a targets
+      targets=('system:System-wide launchd configuration' 'user:Per-user launchd configuration')
+      _describe -t config-targets 'config target' targets
+      ;;
+    2)
+      local -a keys
+      keys=(
+        'umask:Set the default umask for launched jobs'
+        'path:Set the default PATH for launched jobs'
+      )
+      _describe -t config-keys 'configuration key' keys
+      ;;
+    3) _message 'configuration value' ;;
+  esac
+}
+
+# ── reboot ───────────────────────────────────────────────────────────────
+# launchctl reboot [system|userspace|halt|logout|apps|reroot/<volume>]
+_launchctl_cmd_reboot() {
+  local -i rel=$(( CURRENT - 1 ))
+  if (( rel == 1 )); then
+    local -a qualifiers
+    qualifiers=(
+      'system:Full system reboot'
+      'userspace:Restart userspace (launchd) without rebooting the kernel'
+      'halt:Halt the system'
+      'logout:Log out the current user'
+      'apps:Restart all user-launched apps'
+    )
+    _describe -t reboot-qualifiers 'reboot qualifier' qualifiers
+  fi
+}
+
+# ── asuser ───────────────────────────────────────────────────────────────
+# launchctl asuser <uid> <command> [args ...]
+_launchctl_cmd_asuser() {
+  local -i rel=$(( CURRENT - 1 ))
+  case $rel in
+    1)
+      local -a users
+      users=(${(f)"$(dscl . list /Users UniqueID 2>/dev/null | awk '$2>=500{print $2":"$1}')"})
+      _describe -t uids 'user (uid:name)' users
+      ;;
+    *) _cmdstring ;;
+  esac
+}
+
+# ── limit ────────────────────────────────────────────────────────────────
+# launchctl limit [resource [soft [hard]]]
+_launchctl_cmd_limit() {
+  local -i rel=$(( CURRENT - 1 ))
+  case $rel in
+    1)
+      local -a resources
+      resources=(
+        'cpu:CPU time limit'
+        'filesize:Maximum file size'
+        'data:Maximum data segment size'
+        'stack:Maximum stack size'
+        'core:Maximum core file size'
+        'rss:Maximum resident set size'
+        'memlock:Maximum locked-in-memory address space'
+        'maxproc:Maximum number of processes'
+        'maxfiles:Maximum number of open files'
+      )
+      _describe -t resources 'resource' resources
+      ;;
+    2) _message 'soft limit value (or "unlimited")' ;;
+    3) _message 'hard limit value (or "unlimited")' ;;
+  esac
+}
+
+# ── legacy: load / unload ────────────────────────────────────────────────
+# launchctl load [-wF] [-S session] [-D domain] path ...
+# launchctl unload [-wF] [-S session] [-D domain] path ...
+_launchctl_cmd_load_unload() {
+  _arguments \
+    '-w[mark the job as not disabled (load) / disabled (unload) in override database]' \
+    '-F[force load/unload even if the job is disabled]' \
+    '-S[specify the session type]:session type:(Aqua LoginWindow Background Finder)' \
+    '-D[search for plist files in a given domain]:search domain:_launchctl_search_domain' \
+    '*:plist file:_launchctl_plist_file'
+}
+
+# ── legacy: start / stop / remove ────────────────────────────────────────
+_launchctl_cmd_start_stop_remove() {
+  local -i rel=$(( CURRENT - 1 ))
+  (( rel == 1 )) && _launchctl_service_labels
+}
+
+# ── legacy: list ─────────────────────────────────────────────────────────
+# launchctl list [service-name]
+_launchctl_cmd_list() {
+  local -i rel=$(( CURRENT - 1 ))
+  if (( rel == 1 )); then
+    _launchctl_service_labels
+  fi
+}
+
+# ── legacy: submit ───────────────────────────────────────────────────────
+# launchctl submit -l label [-peo] [-- command [args ...]]
+_launchctl_cmd_submit() {
+  _arguments \
+    '-l[job label (required)]:label' \
+    '-p[program to execute]:executable:_files' \
+    '-e[redirect stderr to file]:file:_files' \
+    '-o[redirect stdout to file]:file:_files' \
+    '--:command and arguments: :_cmdstring'
+}
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ main ━━
+
+_launchctl() {
+  local context state state_descr line
+  typeset -A opt_args
+  local curcontext="$curcontext"
+
+  _arguments -C \
+    '1:launchctl subcommand:->command' \
+    '*:: :->args' \
+    && return 0
+
+  case $state in
+    command)
+      local -a modern legacy
+      modern=(
+        # Modern (domain-based) interface
+        'bootstrap:Load services into a domain from a plist'
+        'bootout:Unload services from a domain'
+        'enable:Enable a service (persists across boots)'
+        'disable:Disable a service (persists across boots)'
+        'kickstart:Start a service immediately'
+        'attach:Attach to a running service for debugging'
+        'debug:Configure next-launch debugging options for a service'
+        'kill:Send a signal to a running service'
+        'blame:Print why a service is running'
+        'print:Print information about a domain or service'
+        'print-cache:Print the launchd job cache'
+        'print-disabled:Print disabled services in a domain'
+        'procinfo:Print process information for a PID'
+        'hostinfo:Print host and platform information'
+        'resolveport:Resolve a port name to a process'
+        'examine:Run a diagnostic tool against launchd'
+        'config:Modify persistent launchd configuration'
+        'dumpstate:Dump full launchd state to stdout'
+        'dumpjpcategory:Dump job property category information'
+        'reboot:Reboot the system or restart userspace'
+        'runstats:Print runtime statistics for a service'
+        'error:Look up the description of an error code'
+        'asuser:Run a command in the context of a given user'
+        'managerpid:Print the PID of the current launchd manager'
+        'manageruid:Print the UID of the current launchd manager'
+        'managername:Print the name of the current launchd manager'
+        'version:Print the launchd version string'
+        'help:Print help information'
+      )
+      legacy=(
+        # Legacy interface (still functional, soft-deprecated)
+        'load:Load a job definition from a plist file (legacy)'
+        'unload:Unload a job definition (legacy)'
+        'start:Start a loaded job by label (legacy)'
+        'stop:Stop a running job by label (legacy)'
+        'list:List all loaded jobs, or show details for one (legacy)'
+        'remove:Remove a job by label (legacy)'
+        'submit:Submit a job inline without a plist (legacy)'
+        'limit:View or set resource limits (legacy)'
+        'umask:View or set the umask (legacy)'
+        'bsexec:Execute a command in a bootstrap context (legacy)'
+        'bslist:List bootstrap services (legacy)'
+        'bstree:Show the bootstrap namespace tree (legacy)'
+        'log:Change the logging level or mask (legacy)'
+        'getenv:Print a launchd environment variable (legacy)'
+        'setenv:Set a launchd environment variable (legacy)'
+        'unsetenv:Unset a launchd environment variable (legacy)'
+      )
+      _describe -t modern-commands 'modern subcommand' modern
+      _describe -t legacy-commands 'legacy subcommand' legacy
+      ;;
+
+    args)
+      local cmd=$words[1]
+      case $cmd in
+        bootstrap)               _launchctl_cmd_bootstrap ;;
+        bootout)                 _launchctl_cmd_bootout ;;
+        enable|disable)          _launchctl_cmd_enable_disable ;;
+        kickstart)               _launchctl_cmd_kickstart ;;
+        attach)                  _launchctl_cmd_attach ;;
+        debug)                   _launchctl_cmd_debug ;;
+        kill)                    _launchctl_cmd_kill ;;
+        blame)                   _launchctl_cmd_blame ;;
+        print)                   _launchctl_cmd_print ;;
+        print-disabled)          _launchctl_cmd_print_disabled ;;
+        procinfo)                _launchctl_cmd_procinfo ;;
+        runstats)                _launchctl_cmd_runstats ;;
+        error)                   _launchctl_cmd_error ;;
+        config)                  _launchctl_cmd_config ;;
+        reboot)                  _launchctl_cmd_reboot ;;
+        asuser)                  _launchctl_cmd_asuser ;;
+        load|unload)             _launchctl_cmd_load_unload ;;
+        start|stop|remove)       _launchctl_cmd_start_stop_remove ;;
+        list)                    _launchctl_cmd_list ;;
+        submit)                  _launchctl_cmd_submit ;;
+        limit)                   _launchctl_cmd_limit ;;
+      esac
+      ;;
+  esac
+}
+
+_launchctl "$@"
