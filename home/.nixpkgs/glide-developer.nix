@@ -21,8 +21,21 @@ in
         -c "Set :CFBundleName ${bundleName}" \
         "${targetApp}/Contents/Info.plist"
 
+      # Update the localized display name (UTF-16 LE file that macOS uses for
+      # the menu bar title, overriding CFBundleName from Info.plist).
+      for lproj in "${targetApp}"/Contents/Resources/*.lproj; do
+        strings_file="$lproj/InfoPlist.strings"
+        if [[ -f "$strings_file" ]]; then
+          printf 'CFBundleName = "%s";\n' "${bundleName}" \
+            | iconv -f UTF-8 -t UTF-16LE > "$strings_file"
+        fi
+      done
+
       codesign --force --deep --sign - "${targetApp}"
       echo "Created ${targetApp} (${bundleIdentifier})"
+
+      # Apply custom icon if available (icon-customizer is built by icons.nix)
+      /run/current-system/sw/bin/icon-customizer || true
     else
       echo "Skipping Glide Developer: ${sourceApp} not found"
     fi
