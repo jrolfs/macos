@@ -52,7 +52,7 @@ let
       ' zsh {} {/.}
 
     count=$(wc -l < "$results" 2>/dev/null | tr -d ' ')
-    if [[ "$count" -gt 0 ]]; then
+    if [[ "$count" -gt 0 && "$ICON_CUSTOMIZER_NOTIFY" != "0" ]]; then
       apps=$(paste -sd, "$results" | sed 's/,/, /g')
       ${pkgs.terminal-notifier}/bin/terminal-notifier \
         -title "Icon Customizer" \
@@ -108,6 +108,7 @@ in
   launchd.user.agents.icon-customizer = {
     serviceConfig = {
       ProgramArguments = [ wrapperPath ];
+      EnvironmentVariables.ICON_CUSTOMIZER_NOTIFY = "0";
       WatchPaths = [
         "/Applications"
         assetsDir
