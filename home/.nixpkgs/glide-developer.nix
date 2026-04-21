@@ -31,6 +31,12 @@ in
         fi
       done
 
+      # Strip custom icon detritus copied from source — codesign rejects
+      # resource forks and FinderInfo ("resource fork, Finder information,
+      # or similar detritus not allowed").
+      rm -f "${targetApp}/Icon"$'\r'
+      xattr -cr "${targetApp}"
+
       codesign --force --deep --sign - "${targetApp}"
       echo "Created ${targetApp} (${bundleIdentifier})"
 
