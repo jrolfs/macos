@@ -94,6 +94,7 @@ in
     "Fantastical" = 975937182;
     "Flighty" = 1358823008;
     "Keystroke Pro" = 1572206224;
+    "Velja" = 1607635845;
     "Xcode" = 497799835;
   };
 
