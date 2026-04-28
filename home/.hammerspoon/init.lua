@@ -26,4 +26,6 @@ require('modules.autohide').start({
   "kitty",
 })
 
+require('modules.touchid-focus').start()
+
 _.alert("🔨   Loaded Hammerspoon configuration")
