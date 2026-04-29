@@ -19,34 +19,6 @@ let
     else
       [ ];
 
-  # Pre-tap helpers — clone tap repos over HTTPS before the homebrew
-  # module's activation runs `brew bundle` (which sanitizes the env
-  # and drops SSH_AUTH_SOCK). We run git as root, whose gitconfig has
-  # no url.*.insteadOf SSH rewrite. For private repos, the
-  # HOMEBREW_GITHUB_API_TOKEN is read at eval time for HTTPS basic auth.
-  githubToken = builtins.getEnv "HOMEBREW_GITHUB_API_TOKEN";
-  githubAuth = if githubToken != "" then "${githubToken}@" else "";
-
-  tapsDir = "${config.homebrew.prefix}/bin/../Library/Taps";
-
-  tapDir = tap: let
-    parts = lib.splitString "/" tap.name;
-  in "${tapsDir}/${builtins.elemAt parts 0}/homebrew-${builtins.elemAt parts 1}";
-
-  tapUrl = tap:
-    if tap.clone_target != null then tap.clone_target
-    else "https://${githubAuth}github.com/${builtins.elemAt (lib.splitString "/" tap.name) 0}/homebrew-${builtins.elemAt (lib.splitString "/" tap.name) 1}";
-
-  primaryUser = config.system.primaryUser;
-
-  preTapScript = lib.concatMapStringsSep "\n" (tap: ''
-    if [ ! -d "${tapDir tap}" ]; then
-      echo >&2 "Pre-tapping ${tap.name} (over HTTPS)..."
-      git clone ${tapUrl tap} ${tapDir tap} \
-        && chown -R ${primaryUser} ${tapDir tap} \
-        || true
-    fi
-  '') config.homebrew.taps;
 in
 
 {
@@ -66,11 +38,18 @@ in
     ''
   );
 
-  # Pre-clone tap repos via HTTPS before the homebrew module runs
-  # `brew bundle` (which sanitizes the env).
-  system.activationScripts.homebrew.text = lib.mkBefore ''
-    ${preTapScript}
-  '';
+  # Temporarily remove the HTTPS→SSH git URL rewrite during brew
+  # activation — brew sanitizes SSH_AUTH_SOCK so gpg-agent SSH auth
+  # is unavailable, but the global insteadOf rewrites all HTTPS clones
+  # to SSH, causing formula fetches to fail.
+  system.activationScripts.homebrew.text = lib.mkMerge [
+    (lib.mkBefore ''
+      sudo -u ${config.homebrew.user} git config --file ~${config.homebrew.user}/.config/git/config --unset-all url.git@github.com:.insteadOf 2>/dev/null || true
+    '')
+    (lib.mkAfter ''
+      sudo -u ${config.homebrew.user} git config --file ~${config.homebrew.user}/.config/git/config url.git@github.com:.insteadOf https://github.com/
+    '')
+  ];
 
   homebrew.global.brewfile = true;
 
@@ -86,6 +65,7 @@ in
 
     { name = "meterup/packages/mcurl"; args = [ "HEAD" ]; }
     { name = "meterup/packages/mctl"; args = [ "HEAD" ]; }
+    { name = "meterup/packages/hostsfile"; args = [ "HEAD" ]; }
   ];
 
   homebrew.masApps = lib.filterAttrs (name: _: !lib.elem name excludeApps) {
@@ -109,7 +89,6 @@ in
     "cursor"
     "daisydisk"
     "discord"
-    "docker-desktop"
     "dropshare"
     "fantastical"
     "figma"
@@ -130,6 +109,8 @@ in
     "linear-linear"
     "moom"
     "obsidian"
+    "orbstack"
+    "plex"
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
@@ -143,6 +124,7 @@ in
     "whatsapp"
     "yaak"
     "zed"
+    "zed@preview"
     "zoom"
 
     # Fonts
