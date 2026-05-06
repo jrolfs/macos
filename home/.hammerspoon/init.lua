@@ -29,4 +29,9 @@ require('modules.autohide').start({
 
 require('modules.touchid-focus').start()
 
+local zed = require('modules.zed')
+
+_.bindHyper("z", zed.toast.view)
+_.bindHyper("x", zed.toast.dismiss)
+
 _.alert("🔨   Loaded Hammerspoon configuration")
