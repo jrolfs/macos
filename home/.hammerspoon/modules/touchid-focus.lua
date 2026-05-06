@@ -5,41 +5,17 @@ local watcher = nil
 -- SecurityAgent shows the Touch ID / password prompt
 local SECURITY_AGENT = "SecurityAgent"
 
--- How long after activation to keep re-focusing (seconds)
-local GUARD_DURATION = 2
--- How often to check focus during the guard period
-local GUARD_INTERVAL = 0.1
+local activatedAt = nil
+local refocusTimer = nil
 
-local guardTimer = nil
+-- Only refocus if SecurityAgent loses focus within this window of first appearing
+local REFOCUS_WINDOW = 0.4
 
-local function stopGuard()
-  if guardTimer then
-    guardTimer:stop()
-    guardTimer = nil
+local function cancelRefocus()
+  if refocusTimer then
+    refocusTimer:stop()
+    refocusTimer = nil
   end
-end
-
-local function guardFocus(appObject)
-  stopGuard()
-
-  local expiry = hs.timer.secondsSinceEpoch() + GUARD_DURATION
-
-  guardTimer = hs.timer.doEvery(GUARD_INTERVAL, function()
-    if hs.timer.secondsSinceEpoch() > expiry then
-      stopGuard()
-      return
-    end
-
-    -- If SecurityAgent is still running but lost focus, bring it back
-    if appObject and appObject:isRunning() then
-      local frontmost = hs.application.frontmostApplication()
-      if frontmost and frontmost:name() ~= SECURITY_AGENT then
-        appObject:activate()
-      end
-    else
-      stopGuard()
-    end
-  end)
 end
 
 function M.start()
@@ -51,18 +27,26 @@ function M.start()
     if appName ~= SECURITY_AGENT then return end
 
     if eventType == hs.application.watcher.activated then
-      guardFocus(appObject)
+      activatedAt = hs.timer.secondsSinceEpoch()
     elseif eventType == hs.application.watcher.deactivated then
-      -- Lost focus — if still running, re-activate after a brief moment
-      if appObject and appObject:isRunning() then
-        hs.timer.doAfter(0.05, function()
-          if appObject:isRunning() then
-            appObject:activate()
-          end
-        end)
+      cancelRefocus()
+
+      -- Only refocus if it lost focus suspiciously fast after appearing
+      if activatedAt and appObject and appObject:isRunning() then
+        local elapsed = hs.timer.secondsSinceEpoch() - activatedAt
+
+        if elapsed < REFOCUS_WINDOW then
+          refocusTimer = hs.timer.doAfter(0.05, function()
+            refocusTimer = nil
+            if appObject:isRunning() then
+              appObject:activate()
+            end
+          end)
+        end
       end
     elseif eventType == hs.application.watcher.terminated then
-      stopGuard()
+      cancelRefocus()
+      activatedAt = nil
     end
   end)
 
@@ -70,7 +54,8 @@ function M.start()
 end
 
 function M.stop()
-  stopGuard()
+  cancelRefocus()
+  activatedAt = nil
 
   if watcher then
     watcher:stop()
