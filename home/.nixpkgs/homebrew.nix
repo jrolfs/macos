@@ -111,6 +111,7 @@ in
     "obsidian"
     "orbstack"
     "plex"
+    "plexamp"
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
