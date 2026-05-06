@@ -113,6 +113,7 @@ in
     #
     # Infrastructure
 
+    pkgs.azure-cli
     pkgs.kubectl
     pkgs.kubectx
 
