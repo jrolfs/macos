@@ -9,6 +9,7 @@ _.bindHyper("c", require("modules.finder").copyPath)
 require('modules.autohide').start({
   "1Password",
   "Dash",
+  "DevDocs",
   "Discord",
   "Find My",
   "Linear",
