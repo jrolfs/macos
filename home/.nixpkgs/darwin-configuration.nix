@@ -130,6 +130,7 @@ in
 
     # Nix
     pkgs.devbox
+    pkgs.devenv
     pkgs.nixpkgs-fmt
 
     # AI
