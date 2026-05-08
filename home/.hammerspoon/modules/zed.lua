@@ -8,56 +8,51 @@ local function findZed()
   return hs.application.find("dev.zed.Zed") or hs.application.find("Zed")
 end
 
-local function findButton(element, titlePattern, depth)
-  if depth > 10 or not element then return nil end
-
-  local role = element:attributeValue("AXRole")
-  if role == "AXButton" then
-    local title = element:attributeValue("AXTitle")
-                  or element:attributeValue("AXDescription")
-                  or ""
-    if title:find(titlePattern) then return element end
-  end
-
-  for _, child in ipairs(element:attributeValue("AXChildren") or {}) do
-    local hit = findButton(child, titlePattern, depth + 1)
-    if hit then return hit end
-  end
-
-  return nil
-end
-
-local function pressToastButton(titlePattern, label)
+-- GPUI doesn't expose AX children, so we locate the toast window
+-- (AXSystemDialog, 450x72) and click by coordinate offset.
+local function findToast()
   local zed = findZed()
   if not zed then
     _.alert("Zed not running")
-    return
+    return nil
   end
 
   local appElement = ax.applicationElement(zed)
-  if not appElement then
-    zed:activate()
-    return
-  end
+  if not appElement then return nil end
 
   for _, win in ipairs(appElement:attributeValue("AXWindows") or {}) do
-    local btn = findButton(win, titlePattern, 0)
-    if btn then
-      zed:activate()
-      btn:performAction("AXPress")
-      return
+    if win:attributeValue("AXSubrole") == "AXSystemDialog" then
+      return win, zed
     end
   end
 
   _.alert("No Zed toast found")
+  return nil
 end
 
+local function clickToastOffset(offsetX, offsetY)
+  local win, zed = findToast()
+  if not win then return end
+
+  local pos = win:attributeValue("AXPosition")
+  local clickAt = hs.geometry.point(pos.x + offsetX, pos.y + offsetY)
+
+  zed:activate()
+  hs.timer.doAfter(0.05, function()
+    local prev = hs.mouse.absolutePosition()
+    hs.eventtap.leftClick(clickAt, 20000)
+    hs.mouse.absolutePosition(prev)
+  end)
+end
+
+-- "View" button: upper-right area of 450x72 toast
 function M.toast.view()
-  pressToastButton("View", "View")
+  clickToastOffset(415, 25)
 end
 
+-- "Dismiss" text: below "View" in the right area
 function M.toast.dismiss()
-  pressToastButton("Dismiss", "Dismiss")
+  clickToastOffset(415, 52)
 end
 
 return M
