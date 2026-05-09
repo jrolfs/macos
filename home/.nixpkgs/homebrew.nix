@@ -105,6 +105,7 @@ in
     "karabiner-elements"
     "kitty"
     "linear"
+    "loom"
     "moom"
     "obsidian"
     "orbstack"
