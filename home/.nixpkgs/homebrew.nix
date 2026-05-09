@@ -104,7 +104,7 @@ in
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
     "kitty"
-    "linear-linear"
+    "linear"
     "moom"
     "obsidian"
     "orbstack"
