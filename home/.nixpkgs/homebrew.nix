@@ -84,6 +84,7 @@ in
     "affinity"
     "arq"
     "charles"
+    "claude"
     "cleanshot"
     "cursor"
     "daisydisk"
