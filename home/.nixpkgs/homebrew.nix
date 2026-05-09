@@ -88,7 +88,6 @@ in
     "cursor"
     "daisydisk"
     "discord"
-    "dropshare"
     "fantastical"
     "figma"
     "firefox"
