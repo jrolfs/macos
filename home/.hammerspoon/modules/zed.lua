@@ -37,7 +37,13 @@ local function clickToastOffset(offsetX, offsetY)
   local pos = win:attributeValue("AXPosition")
   local clickAt = hs.geometry.point(pos.x + offsetX, pos.y + offsetY)
 
+  if not zed then
+    _.alert("Unable to find Zed toast")
+    return
+  end
+
   zed:activate()
+
   hs.timer.doAfter(0.05, function()
     local prev = hs.mouse.absolutePosition()
     hs.eventtap.leftClick(clickAt, 20000)
