@@ -1,9 +1,0 @@
-[submodule "nix-darwin"]
-	path = nix-darwin
-	url = git@github.com:jrolfs/nix-darwin.git
-[submodule "nixpkgs"]
-	path = nixpkgs
-	url = git@github.com:NixOS/nixpkgs.git
-[submodule "homebrew"]
-	path = homebrew
-	url = git@github.com:jrolfs/homebrew-tap.git
