@@ -82,6 +82,6 @@
       darwinConfigurations.ala = mkDarwin "ala" "aarch64-darwin";
       # darwinConfigurations.newt = mkDarwin "newt" "aarch64-darwin";  # phase 3
 
-      nixosConfigurations.nuc = mkNixos "nuc" "x86_64-linux";  # phase 2 stub
+      nixosConfigurations.irulan = mkNixos "irulan" "x86_64-linux";  # phase 2
     };
 }
