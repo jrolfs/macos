@@ -12,7 +12,7 @@ unset preztorc platformrc
 # <zinit>
 #
 
-source "$HOMESHICK_KINGDOM/dot/zinit/zinit.zsh"
+source "$XDG_DATA_HOME/zinit/zinit.zsh"
 
 # Prezto (synchronous — must load before interactive features)
 zinit ice pick"init.zsh" \
