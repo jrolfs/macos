@@ -1,23 +1,15 @@
-{ config, lib, ... }:
+{ config, lib, hostname, ... }:
 
 let
-  # Don't install casks specified in this environment variable. This is to
-  # deal with applications managed by organization device management, etc.
-  envApps = builtins.getEnv "NIX_MACOS_EXCLUDE_CASKS";
-  excludeApps =
-    if envApps != "" then
-      let
-        parsedApps = builtins.split "," envApps;
-      in
-      lib.trace ''
-
-
-        ----------------------------------------
-        ⚠︎ Excluding apps: ${toString parsedApps}
-        ----------------------------------------
-      '' parsedApps
-    else
-      [ ];
+  # Per-host cask/masApps exclusions — typically apps installed by
+  # organization device management. Keyed on the short hostname.
+  excludeByHost = {
+    ala = [ ];
+    newt = [ "Xcode" "zoom" ];
+    orolo = [ "google-chrome" "Xcode" "zoom" ];
+    yours-truly = [ "Xcode" ];
+  };
+  excludeApps = excludeByHost.${hostname} or [ ];
 
 in
 

@@ -1,0 +1,154 @@
+{
+  "nodes": {
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1778850834,
+        "narHash": "sha256-JB+iK+5p0m3Jx9Zi9vQO2d3BR07dbW3UqpgOhUXix3s=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "e7a7c550e22ae631cd738db9dcd317a9544962e3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "kitty-gruvbox-material": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1696055465,
+        "narHash": "sha256-XSPlvYM/NrDq7bfUUAMfaOojqf6gHiycyCtM49KQSBI=",
+        "owner": "jrolfs",
+        "repo": "gruvbox-material-kitty",
+        "rev": "1dd10693532f1fccd43ef119eaf58d0c09140861",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jrolfs",
+        "repo": "gruvbox-material-kitty",
+        "type": "github"
+      }
+    },
+    "neovim-config": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778310869,
+        "narHash": "sha256-euNRoDKnUmvJzZdUVlXpd4EoU4fRKgobG4VhHY07gHU=",
+        "owner": "jrolfs",
+        "repo": "neovim",
+        "rev": "2955016b1afdcd9c23510513b1d86f710ed3d43e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jrolfs",
+        "repo": "neovim",
+        "type": "github"
+      }
+    },
+    "nix-darwin": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1777780666,
+        "narHash": "sha256-8wURyQMdDkGUarSTKOGdCuFfYiwa3HbzwscUfn3STDE=",
+        "owner": "nix-darwin",
+        "repo": "nix-darwin",
+        "rev": "8c62fba0854ba15c8917aed18894dbccb48a3777",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-darwin",
+        "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1778794387,
+        "narHash": "sha256-BL04pOS9453Awkeb9f90XBJXBSkWxN+vB7HIgnL0iMM=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "8a1b0127302ea51e05bf4ea5a291743fac442406",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "home-manager": "home-manager",
+        "kitty-gruvbox-material": "kitty-gruvbox-material",
+        "neovim-config": "neovim-config",
+        "nix-darwin": "nix-darwin",
+        "nixpkgs": "nixpkgs",
+        "spicetify-gruvbox-material": "spicetify-gruvbox-material",
+        "tridactyl-gruvbox-material": "tridactyl-gruvbox-material",
+        "zinit": "zinit"
+      }
+    },
+    "spicetify-gruvbox-material": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773150176,
+        "narHash": "sha256-CoeklT1V6dCShV+5O4IdK2iiAe7RMKepDtPxl4TylAo=",
+        "owner": "whiterqbbit",
+        "repo": "spicetify-gruvbox-material",
+        "rev": "9fdb4fcbee82cd3703490666054296374186206e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "whiterqbbit",
+        "repo": "spicetify-gruvbox-material",
+        "type": "github"
+      }
+    },
+    "tridactyl-gruvbox-material": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773133221,
+        "narHash": "sha256-5j9F+Cd2jQFbRkqiqOfLfHM3R6w9TN1HuuYPKQbsxBE=",
+        "owner": "jrolfs",
+        "repo": "gruvbox-material-tridactyl",
+        "rev": "e13591ebc9b1c59b5942da027b9f34aedd6853c0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jrolfs",
+        "repo": "gruvbox-material-tridactyl",
+        "type": "github"
+      }
+    },
+    "zinit": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1774338742,
+        "narHash": "sha256-wmNk0HIqwayU2ISbn6vzDetbM2TWmSn4CZzJNpR8E+s=",
+        "owner": "zdharma-continuum",
+        "repo": "zinit",
+        "rev": "6c9ac1c4bc9bcaede64cb473759ac2c5b9187f98",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zdharma-continuum",
+        "repo": "zinit",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

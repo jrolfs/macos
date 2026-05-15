@@ -1,6 +1,7 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, userName, ... }:
 let
-  xdgDataHome = builtins.getEnv "XDG_DATA_HOME";
+  # Hardcoded because builtins.getEnv returns "" under pure flake eval.
+  xdgDataHome = "/Users/${userName}/.local/share";
   assetsDir = "${xdgDataHome}/icons/assets";
 
   # A small C tool that sets custom icons on macOS app bundles via direct

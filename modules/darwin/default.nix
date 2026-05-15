@@ -1,10 +1,12 @@
-{ pkgs, ... }:
+{ pkgs, inputs, userName, ... }:
 
 let
-  overlays = import ./overlays.nix;
+  overlays = import ../../overlays;
 
 in
 {
+  users.users.${userName}.home = "/Users/${userName}";
+
   imports = [
 
     ./daemons.nix
@@ -166,12 +168,14 @@ in
   nix.enable = true;
 
   nix.extraOptions = "experimental-features = nix-command flakes";
+
+  # Flake-based registry pin. Makes `nix shell nixpkgs#foo` and
+  # `nix-shell -p foo` both resolve to the flake-pinned nixpkgs.
+  nix.registry.nixpkgs.flake = inputs.nixpkgs;
+  nix.registry.nix-darwin.flake = inputs.nix-darwin;
   nix.nixPath = [
-    {
-      darwin = "/Users/jamie/.nix-defexpr/darwin";
-      nixpkgs = "/Users/jamie/.nix-defexpr/nixpkgs";
-      darwin-config = "/Users/jamie/.nixpkgs/darwin-configuration.nix";
-    }
+    "nixpkgs=${inputs.nixpkgs}"
+    "nix-darwin=${inputs.nix-darwin}"
   ];
 
   programs.ssh.knownHosts = {

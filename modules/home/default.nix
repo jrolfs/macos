@@ -7,9 +7,9 @@
   imports = lib.optional (builtins.pathExists ./hosts/${hostname}.nix) ./hosts/${hostname}.nix;
 
   home.username = userName;
-  home.homeDirectory =
-    if pkgs.stdenv.isDarwin then "/Users/${userName}" else "/home/${userName}";
-
+  # home.homeDirectory is auto-derived from users.users.<name>.home by
+  # the nix-darwin / nixos home-manager integration. We just need to
+  # ensure users.users.${userName}.home is set in the system module.
   home.stateVersion = "24.05";
 
   # Pointer to the consolidated nix-config repo on disk. Read by the

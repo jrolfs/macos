@@ -4,7 +4,7 @@ let
   script = pkgs.writeShellScriptBin "cask-updater" ''
     set -euo pipefail
 
-    tap_dir="''${HOMESHICK_KINGDOM:-$HOME/.homesick/repos}/macos/homebrew"
+    tap_dir="''${NIX_CONFIG_DIR:-$HOME/.config/system}/homebrew"
 
     if [[ ! -d "$tap_dir/Casks" ]]; then
       echo "error: tap directory not found: $tap_dir/Casks" >&2
