@@ -37,12 +37,13 @@ local zed = require('modules.zed')
 _.bindHyper("z", zed.toast.view)
 _.bindHyper("x", zed.toast.dismiss)
 
-local notifications = require("modules.notifications")
-local notificationMode = hs.hotkey.modal.new({"ctrl", "alt", "cmd", "shift"}, "n")
-
-notificationMode:bind({}, "n", function() notificationMode:exit(); notifications.activate() end)
-notificationMode:bind({}, "d", function() notificationMode:exit(); notifications.details() end)
-notificationMode:bind({}, "c", function() notificationMode:exit(); notifications.close() end)
-notificationMode:bind({}, "escape", function() notificationMode:exit() end)
+require("modules.notifications").bind({
+  leader = { {"ctrl", "alt", "cmd", "shift"}, "n" },
+  activate = "return",
+  details = "d",
+  close = "c",
+  next = "k",
+  previous = "j",
+})
 
 _.alert("🔨   Loaded Hammerspoon configuration")
