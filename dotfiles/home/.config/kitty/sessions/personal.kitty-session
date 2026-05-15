@@ -1,0 +1,21 @@
+# vim:fileencoding=utf-8:ft=kitty
+
+# Home
+
+new_tab 
+layout splits
+
+cd ~
+
+launch /run/current-system/sw/bin/zsh --login
+launch /run/current-system/sw/bin/zsh --login
+
+# Files
+
+new_tab 󰉓 files
+layout splits
+
+cd ~/Downloads
+
+launch /run/current-system/sw/bin/zsh --login
+launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "cd ~/Images/Screenshots && exec zsh --login"

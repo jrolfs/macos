@@ -1,0 +1,14 @@
+# current machine's name, optional; it can be used to filter settings or in the commit message
+hostname: ""
+# more details at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hostname.md
+
+# # how to run commands before and after events at https://github.com/zokugun/vscode-sync-settings/blob/master/docs/hooks.md
+# hooks:
+#   post-upload: osascript -e 'display notification "The settings have been uploaded"'
+
+profile: main
+
+repository:
+  type: git
+  path: ~/.homesick/repos/dot/vscode
+  branch: main

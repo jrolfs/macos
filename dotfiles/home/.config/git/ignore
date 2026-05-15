@@ -1,0 +1,29 @@
+.yalc/
+yalc.lock
+
+# Editor Droppings #
+####################
+.idea
+*.swp
+*.swo
+Session.vim
+.tern-port
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Tag files produced by exuberant ctags #
+#########################################
+TAGS
+!TAGS/
+tags
+!tags/
+
+**/.claude/settings.local.json
+
+jamie.*.code-workspace

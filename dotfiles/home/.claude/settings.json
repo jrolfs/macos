@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "includeCoAuthoredBy": true,
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:json.schemastore.org)",
+      "WebFetch(domain:www.schemastore.org)",
+      "Bash(curl:*)",
+      "Bash(echo:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(gh search code:*)",
+      "Bash(git check-ignore:*)"
+    ],
+    "defaultMode": "default"
+  },
+  "autoMemoryEnabled": true,
+  "editorMode": "vim",
+  "preferredNotifChannel": "kitty"
+}

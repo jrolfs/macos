@@ -1,0 +1,10 @@
+{
+  "baseFontSize": 16,
+  "cssTheme": "Material Gruvbox",
+  "theme": "obsidian",
+  "translucency": true,
+  "accentColor": "#d3869b",
+  "showViewHeader": false,
+  "nativeMenus": false,
+  "showRibbon": false
+}

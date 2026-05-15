@@ -1,0 +1,16 @@
+jamie.*.code-workspace
+
+devbox.d/
+.devbox
+.direnv/
+.envrc
+.aliases
+devbox.json
+devbox.lock
+flake.nix
+flake.lock
+process-compose.yml
+process-compose.yaml
+
+.env.devbox
+.npmrc.devbox

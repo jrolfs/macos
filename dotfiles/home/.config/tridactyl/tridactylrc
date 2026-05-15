@@ -1,0 +1,81 @@
+js -r tridactyl.js
+
+sanitise tridactyllocal tridactylsync
+
+"
+" Settings
+
+colorscheme gruvbox-material-tridactyl/css/dark-soft
+
+set smoothscroll true
+
+set allowautofocus true
+
+set hintfiltermode vimperator-reflow
+set hintuppercase false
+
+set tabopencontaineraware true
+
+set profiledir jamie
+
+#
+# Blacklist
+
+blacklistadd app.coderpad.io
+unbindurl app.coderpad.io --mode=ignore <C-o>
+
+blacklistadd www.hackerrank.com/challenges
+unbindurl www.hackerrank.com/challenges --mode=ignore <C-o>
+
+blacklistadd excalidraw.com
+
+"
+" Bindings
+
+bind <C-P> pin
+
+bind J tabprev
+bind K tabnext
+
+bind <C-n> ex.next_completion
+bind <C-p> ex.prev_completion
+
+" Yank repository URL
+bind yr composite js tri.commands.getRepositoryUrl() | clipboard yank
+
+" Yank clone command for forks/sources
+bind yg composite js tri.commands.getForkCloneCommand() | clipboard yank
+
+" Yank clone command for upstream
+bind yG composite js tri.commands.getUpstreamCloneCommand() | clipboard yank
+
+" Yank pull request number
+bind yN composite js tri.commands.getPullRequestNumber() | clipboard yank
+
+" bind gv composite js "https://github.com/" + document.location.href.match(/https:\/\/github\.com\/(.*?)\/(.*?)(\/|$)/)[1] + "/" + document.location.href.match(/https:\/\/github\.com\/(.*?)\/(.*?)(\/|$)/)[2] + "/releases" | open
+" bind nr composite js "https://github.com/" + document.location.href.match(/https:\/\/github\.com\/(.*?)\/(.*?)(\/|$)/)[1] + "/" + document.location.href.match(/https:\/\/github\.com\/(.*?)\/(.*?)(\/|$)/)[2] + "/releases" | open
+" bind nr composite js "https://github.com" + document.location.href.match(/https:\/\/github\.com\/(.*?)\/(.*?)(\/|$)/)[1] + "/releases" | open
+" bind nr composite js /https:\/\/github\.com\/(.*?)\/(.*?)(\/|$)/.exec(document.location.href)[1] + "/releases" | open
+
+" Make gu take you back to subreddit from comments
+bindurl reddit.com gu urlparent 4
+
+" Allow Ctrl-a to select all in the commandline
+unbind --mode=ex <C-a>
+
+
+"
+" Containers
+
+" containercreate work orange chill
+
+"
+" Contained
+
+
+" See comments here regarding this stuff
+" https://github.com/tridactyl/tridactyl/blob/293ec5503f8a9d2784d65c57c1cf520ac3491b88/.tridactylrc#L103-L131
+" command fixamo_quiet jsb tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""'))
+" command fixamo js tri.excmds.setpref("privacy.resistFingerprinting.block_mozAddonManager", "true").then(tri.excmds.setpref("extensions.webextensions.restrictedDomains", '""').then(tri.excmds.fillcmdline_tmp(3000, "Permissions added to user.js. Please restart Firefox to make them take affect.")))
+" fixamo_quiet
+" jsb browser.webRequest.onHeadersReceived.addListener(tri.request.clobberCSP,{urls:["<all_urls>"],types:["main_frame"]},["blocking","responseHeaders"])

@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "proseWrap": "always",
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "experimentalSortImports": {
+    "order": "asc",
+    "ignoreCase": true,
+    "newlinesBetween": true,
+    "internalPattern": ["@jrolfs/"],
+    "groups": [
+      ["type-builtin", "value-builtin"],
+      ["type-external", "value-external"],
+      ["type-internal", "value-internal"],
+      ["type-parent", "value-parent"],
+      ["type-sibling", "type-index", "value-sibling", "value-index"],
+      "unknown"
+    ]
+  },
+  "experimentalSortPackageJson": {
+    "sortScripts": true
+  }
+}

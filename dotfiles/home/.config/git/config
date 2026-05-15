@@ -1,0 +1,204 @@
+; User
+
+[user]
+  email = jamie.rolfs@gmail.com
+  name = Jamie Rolfs
+  signingkey = 91C155A78968EEE863ED8B22626AE770762AC2F3
+
+[github]
+  user = jrolfs
+
+
+; Defaults
+
+[init]
+  defaultBranch = main
+
+[commit]
+  gpgsign = true
+
+[pull]
+  rebase = true
+
+[push]
+  default = simple
+
+[branch]
+  autosetupmerge = true
+
+[rebase]
+  autosquash = true
+
+[core]
+  commentchar = "#"
+  askpass = git-gui--askpass
+
+[pager]
+  diff = delta
+  log = delta
+  reflog = delta
+  show = delta
+
+[interactive]
+  diffFilter = delta --color-only
+
+[apply]
+  whitespace = nowarn
+
+[color]
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
+  ui = auto
+
+[gpg]
+  program = gpg
+
+[submodule]
+  fetchJobs = 4
+
+[trailer]
+	ifexists = addIfDifferent
+
+
+; Diff/Merge
+
+[diff]
+  tool = cursor
+[merge]
+  tool = zed
+  conflictstyle = zdiff3
+
+[difftool]
+  prompt = false
+[mergetool]
+  prompt = true
+  keepBackup = false
+  hideResolved = true
+
+[rerere]
+  enabled = true
+  autoUpdate = true
+
+
+; Aliases
+
+[alias]
+  st = status
+  di = diff
+  co = checkout
+  ci = commit
+  pc = pair-commit
+  br = branch
+  sta = stash
+  llog = log --date=local
+  flog = log --pretty=fuller --decorate
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+  lol = log --graph --decorate --oneline
+  lola = log --graph --decorate --oneline --all
+  blog = log origin/master... --left-right
+  ds = diff --staged
+  fixup = commit --fixup
+  squash = commit --squash
+  unstage = reset HEAD
+  ; git-duet
+  dc = duet-commit
+  dr = duet-revert
+  dm = duet-merge
+  drb = rebase -i --exec 'git duet-commit --amend --reset-author' rum = rebase master@{u}
+
+  ; Recent branches
+  recent = for-each-ref --sort=-committerdate --count=10 --format='%(refname:short)' refs/heads/
+  recent-more = for-each-ref --sort=-committerdate --count=30 --format='%(refname:short)' refs/heads/
+  rb = recent
+  rbm = recent-more
+
+  ; Local ignores
+  ignore-devbox = config core.excludesfile '~/.config/git/ignore-devbox'
+  ignore-web-react = config core.excludesfile '~/.config/git/ignore-web-react'
+  ignore-devbox-and-claude = config core.excludesfile '~/.config/git/ignore-devbox-and-claude'
+  ignore-clear = config core.excludesfile ''
+
+
+
+
+; Filters
+
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+
+[filter "spicetify"]
+	clean = ~/.config/git/filters/spicetify-clean
+	smudge = cat
+
+
+; Delta
+
+[delta]
+  ; features = side-by-side line-numbers decorations
+  features = line-numbers decorations
+  syntax-theme = ansi
+  navigate = true
+
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-decoration-style = cyan box ul
+
+[delta "line-numbers"]
+    line-numbers-left-style = cyan
+    line-numbers-right-style = cyan
+    line-numbers-minus-style = 124
+    line-numbers-plus-style = 28
+
+; Go (for private packages)
+
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+
+; Diff Tools
+
+[difftool "vscode"]
+  cmd = code -n --wait --disable-extension=\"eamodio.gitlens\" --diff $LOCAL $REMOTE
+
+[difftool "cursor"]
+  cmd = cursor -n --wait --disable-extension=\"eamodio.gitlens\" --diff $LOCAL $REMOTE
+
+[difftool "zed"]
+  cmd = zed --wait --diff $LOCAL $REMOTE
+
+[difftool "kitty"]
+    cmd = kitty +kitten diff $LOCAL $REMOTE
+
+[difftool "kitty.gui"]
+    cmd = kitty kitty +kitten diff $LOCAL $REMOTE
+
+
+; Merge Tools
+
+[mergetool "vscode"]
+  cmd = code -n --wait $MERGED --disable-extension=\"eamodio.gitlens\"
+
+[mergetool "cursor"]
+  cmd = cursor -n --wait $MERGED --disable-extension=\"eamodio.gitlens\"
+
+[mergetool "zed"]
+  cmd = zed --wait --new --diff "$LOCAL" "$MERGED"
+  trustExitCode = false
+
+; GitHub's gh CLI adds this stuff without even asking
+
+[credential "https://github.com"]
+  helper =
+  helper = !/run/current-system/sw/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+  helper =
+  helper = !/run/current-system/sw/bin/gh auth git-credential
+
+[url "ssh://git@github.com/"]
+  insteadOf = https://github.com/

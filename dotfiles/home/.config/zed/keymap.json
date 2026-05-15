@@ -1,0 +1,95 @@
+// Zed keymap
+
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      // "shift shift": "file_finder::Toggle"
+    },
+  },
+  {
+    "context": "Editor && vim_mode == insert",
+    "bindings": {
+      // "j k": "vim::NormalBefore"
+    },
+  },
+
+  {
+    "context": "VimControl && !menu || !Editor && !Terminal",
+    "bindings": {
+      // window related commands (ctrl-w X)
+      "ctrl-w shift-h": [
+        "workspace::MoveItemToPaneInDirection",
+        { "direction": "left" },
+      ],
+      "ctrl-w shift-l": [
+        "workspace::MoveItemToPaneInDirection",
+        { "direction": "right" },
+      ],
+      "ctrl-w shift-k": [
+        "workspace::MoveItemToPaneInDirection",
+        { "direction": "up" },
+      ],
+      "ctrl-w shift-j": [
+        "workspace::MoveItemToPaneInDirection",
+        { "direction": "down" },
+      ],
+    },
+  },
+
+  {
+    "context": "!Editor && !Terminal",
+    "bindings": {
+      "] w": "pane::ActivateNextItem",
+      "[ w": "pane::ActivatePreviousItem",
+    },
+  },
+
+  {
+    "context": "vim_mode == normal || vim_mode == visual || vim_mode == operator",
+    "bindings": {
+      "] w": "pane::ActivateNextItem",
+      "[ w": "pane::ActivatePreviousItem",
+      "] c": "editor::GoToHunk",
+      "[ c": "editor::GoToPreviousHunk",
+      "g w": "vim::HelixJumpToWord",
+    },
+  },
+
+  {
+    "context": "AgentPanel",
+    "use_key_equivalents": true,
+    "bindings": {
+      "cmd-shift-y": "agent::AllowAlways",
+    },
+  },
+
+  {
+    "bindings": {
+      "cmd-ctrl-l": "agent::Toggle"
+    }
+  },
+
+  // Standard macOS bindings
+  {
+    "use_key_equivalents": true,
+    "bindings": {
+      "shift-escape": null,
+      "ctrl-w z": "workspace::ToggleZoom",
+    },
+  },
+
+
+  {
+    "context": "Editor",
+    "use_key_equivalents": true,
+    "bindings": {
+      "ctrl-k": null,
+    },
+  }
+]

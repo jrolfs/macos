@@ -1,0 +1,113 @@
+#!/usr/bin/env zsh
+
+set -e
+
+BOLD='\033[1m'
+GRAY='\033[90m'
+RESET='\033[0m'
+
+usage() {
+  echo "Usage: gh stale [list|revive] [options]"
+  echo
+  echo "Commands:"
+  echo "  list              List stale PRs"
+  echo "  revive <PR>       Remove 'Stale' and 'Closed as Stale' labels from a specific PR and reopen it"
+  echo
+  echo "Options:"
+  echo "  --author <author> Specify the author of the PRs (default: current user)"
+  echo "  --days <days>     Specify the number of days to look back (default: 7)"
+  echo "  --all             Revive all stale PRs (only with 'revive' command)"
+  echo "  -h, --help        Show this help message"
+}
+
+# Defaults
+AUTHOR=$(gh api user -q .login)
+DAYS=7
+COMMAND=""
+ALL_FLAG=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    list|revive)
+      COMMAND="$1"
+      shift
+      ;;
+    --author)
+      AUTHOR="$2"
+      shift 2
+      ;;
+    --days)
+      DAYS="$2"
+      shift 2
+      ;;
+    --all)
+      ALL_FLAG=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      if [[ $COMMAND == "revive" && -z $PR_NUMBER ]]; then
+        PR_NUMBER="$1"
+        shift
+      else
+        echo "Unknown option: $1"
+        usage
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+# Check if a command was provided
+if [[ -z "$COMMAND" ]]; then
+  echo "Error: You must specify either 'list' or 'revive'"
+  usage
+  exit 1
+fi
+
+BASE_COMMAND="gh pr list --state closed --author $AUTHOR --search \"is:pr is:closed label:Stale,\\\"Closed as Stale\\\" closed:>$(date -d "$DAYS days ago" '+%Y-%m-%d')\""
+
+remove_labels_and_reopen() {
+  local pr_number="$1"
+  local labels="$2"
+  local actions=()
+
+  if [[ $labels == *"Stale"* ]]; then
+    gh pr edit "$pr_number" --remove-label "Stale"
+    actions+=("removed 'Stale' label")
+  fi
+  if [[ $labels == *"Closed as Stale"* ]]; then
+    gh pr edit "$pr_number" --remove-label "Closed as Stale"
+    actions+=("removed 'Closed as Stale' label")
+  fi
+
+  # Reopen the PR
+  gh pr reopen "$pr_number"
+  actions+=("reopened")
+
+  # Join the actions with commas and print the result
+  local action_string=$(IFS=', '; echo "${actions[*]}")
+  echo "🌱 ${BOLD}${GRAY}#$pr_number${RESET} · $action_string"
+}
+
+if [[ "$COMMAND" = "list" ]]; then
+  eval $BASE_COMMAND
+elif [[ "$COMMAND" = "revive" ]]; then
+  if [[ "$ALL_FLAG" = true ]]; then
+    eval "$BASE_COMMAND --json number,labels --jq '.[] | [.number, (.labels | map(.name) | join(\",\"))] | @tsv'" | while IFS=$'\t' read -r pr_number labels; do
+      remove_labels_and_reopen "$pr_number" "$labels"
+    done
+  elif [[ -n "$PR_NUMBER" ]]; then
+    pr_info=$(gh pr view "$PR_NUMBER" --json number,labels)
+    pr_number=$(echo "$pr_info" | jq -r '.number')
+    labels=$(echo "$pr_info" | jq -r '.labels | map(.name) | join(",")')
+    remove_labels_and_reopen "$pr_number" "$labels"
+  else
+    echo "Error: You must specify a PR number or use the --all flag with the 'revive' command"
+    usage
+    exit 1
+  fi
+fi

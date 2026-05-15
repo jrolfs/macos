@@ -1,0 +1,8 @@
+[
+  {
+    "label": "Copy line SHA",
+    "command": "git blame -L $ZED_ROW,$ZED_ROW -- $ZED_FILE | awk '{print $1}' | pbcopy",
+    "hide": "always",
+    "tags": ["copy-line-sha"]
+  }
+]

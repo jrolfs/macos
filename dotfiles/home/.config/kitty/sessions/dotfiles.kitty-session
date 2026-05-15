@@ -1,0 +1,48 @@
+# vim:fileencoding=utf-8:ft=kitty
+
+# Pre-start gpg-agent so parallel shells don't race to start it, then load other sessions
+launch /run/current-system/sw/bin/zsh --login -c "gpgconf --launch gpg-agent 2>/dev/null; sleep 1 && kitty @ action goto_session $HOME/.config/kitty/sessions/work.kitty-session && kitty @ action goto_session $HOME/.config/kitty/sessions/personal.kitty-session && kitty @ action goto_session $HOME/.config/kitty/sessions/dotfiles.kitty-session && kitty @ close-window --self"
+
+# Dot
+
+new_tab  dot
+layout splits
+
+cd ~/.homesick/repos/dot
+
+launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/dot--dot.vim"
+launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "claude"
+launch --location=hsplit /run/current-system/sw/bin/zsh --login
+
+# macOS
+
+new_tab  macos
+layout splits
+
+cd ~/.homesick/repos/macos
+
+launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/dot--macos.vim"
+launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "claude"
+launch --location=hsplit /run/current-system/sw/bin/zsh --login
+
+# Neovim
+
+new_tab  neovim
+layout splits
+
+cd ~/.homesick/repos/neovim
+
+launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/dot--neovim.vim"
+launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "claude"
+launch --location=hsplit /run/current-system/sw/bin/zsh --login
+
+# Private
+
+new_tab  private
+layout splits
+
+cd ~/.homesick/repos/private
+
+launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/dot--private.vim"
+launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "claude"
+launch --location=hsplit /run/current-system/sw/bin/zsh --login

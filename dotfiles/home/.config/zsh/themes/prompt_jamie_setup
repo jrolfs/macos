@@ -1,0 +1,260 @@
+#!/usr/bin/env zsh
+
+
+#
+# Eventually this will just print out a bike shed
+#
+# Authors:
+#   Jamie Rolfs <jamie@rolfs.sh>
+#   Steve Losh <steve@stevelosh.com>
+#   Bart Trojanowski <bart@jukie.net>
+#   Brian Carper <brian@carper.ca>
+#   steeef <steeef@gmail.com>
+#   Sorin Ionescu <jamie.ionescu@gmail.com>
+#
+# Screenshots:
+#   http://i.imgur.com/HyRvv.png
+#
+
+function prompt_jamie_calculate_truncation {
+  local zero='%([BSUbfksu]|([FK]|){*})'
+  local formatted=${(S%%)${(e)_prompt_jamie_first_line}//$~zero}
+  local length=${#formatted}
+  local overflow=$(($COLUMNS - $length))
+  local git_length=${#${(S%%)_prompt_jamie_git//$~zero}}
+
+  if [[ $overflow -lt 0 ]]; then
+    (( _prompt_jamie_truncate = $git_length + $overflow ))
+  fi
+}
+
+#
+# Prompt hook
+
+function prompt_jamie_precmd {
+  if (( $+functions[node-info] )); then
+    node-info
+  fi
+
+  if (( $+functions[python-info] )); then
+    python-info
+  fi
+
+  if (( $+functions[ruby-info] )); then
+    ruby-info
+  fi
+
+  # Kill the old process of slow commands if it is still running.
+  async_flush_jobs async_jamie_git
+
+  # Format current directory
+  _prompt_jamie_pwd=$(prompt-pwd)
+
+  # Handle updating git data. We also clear the git prompt data if we're in a
+  # different git root now.
+  if (( $+functions[git-dir] )); then
+    local new_git_root="$(git-dir 2> /dev/null)"
+
+    if [[ $new_git_root != $_jamie_current_git_root ]]; then
+      prompt_jamie_reset_git
+
+      _jamie_current_git_root=$new_git_root
+    fi
+  fi
+
+  prompt_jamie_calculate_truncation
+
+  print ""
+
+  # Compute slow commands in the background.
+  async_job async_jamie_git prompt_jamie_async_git "$PWD"
+ }
+
+#
+# Git info asynchronous callback
+
+function prompt_jamie_git_info {
+  # We can safely split on ':' because it isn't allowed in ref names
+  IFS=':' read _git_prompt _git_prompt_right <<<"$3"
+
+  if [[ -z "$_git_prompt" ]]; then
+    # No git target detected, flush the git fragment and redisplay the prompt
+    if [[ -n "$_prompt_jamie_git" ]]; then
+      prompt_jamie_set_git '' ''
+
+      zle && zle reset-prompt
+    fi
+  else
+    # Git target detected, update the git fragment and redisplay the prompt
+    prompt_jamie_set_git "${_git_prompt}" "${_git_prompt_right}"
+
+    zle && zle reset-prompt
+  fi
+}
+
+#
+# Git information
+
+function prompt_jamie_async_git {
+  cd -q "$1"
+
+  if (( $+functions[git-info] )); then
+    git-info
+    print "${git_info[prompt]}:${git_info[rprompt]}"
+  fi
+}
+
+function prompt_jamie_set_git {
+  _prompt_jamie_git=$1
+  _prompt_jamie_git_right=''
+
+  prompt_jamie_calculate_truncation
+
+  # Replace any numbers with subscript
+
+  local right_prompt="$2"
+  local unicode_numbers=(₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉)
+  local in_curlies=false
+
+  for i in $(seq 1 ${#right_prompt}); do
+    local character=${right_prompt:$i-1:1}
+
+    if [ "$in_curlies" = true ]; then
+      if [ "$character" = "}" ]; then
+        in_curlies=false
+      fi
+
+      _prompt_jamie_git_right+=$character
+      continue
+    elif [ "$character" = "{" ]; then
+      _prompt_jamie_git_right+=$character
+      in_curlies=true
+      continue
+    fi
+
+    if [[ $character =~ [0-9] ]]; then
+      character=$unicode_numbers[$character+1]
+    fi
+
+    _prompt_jamie_git_right+=$character
+  done
+}
+
+function prompt_jamie_reset_git {
+  prompt_jamie_set_git '...' '...'
+}
+
+function prompt_jamie_setup {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+
+  prompt_opts=(cr percent subst)
+
+  _prompt_jamie_pwd=''
+
+  _prompt_jamie_precmd_async_pid=0
+  _prompt_jamie_precmd_async_data=$(mktemp "${TMPDIR:-/tmp}/jamie-prompt-async-XXXXXXXXXX")
+
+  # Load required functions.
+  autoload -Uz add-zsh-hook
+  autoload -Uz async && async
+
+  # Add prompt hook
+  add-zsh-hook precmd prompt_jamie_precmd
+
+  black="%F{0}"
+  bright_black="%F{8}"
+
+  red="%F{1}"
+  bright_red="%F{9}"
+  scary_red="%F{168}"
+  dark_red="%F{52}"
+
+  green="%F{2}"
+  bright_green="%F{10}"
+
+  yellow="%F{3}"
+  bright_yellow="%F{11}"
+
+  blue="%F{4}"
+  bright_blue="%F{12}"
+
+  magenta="%F{5}"
+  bright_magenta="%F{13}"
+
+  cyan="%F{6}"
+  bright_cyan="%F{14}"
+
+  white="%F{7}"
+  bright_white="%F{15}"
+
+  teal="%uF{73}"
+
+  # Set editor-info options
+  zstyle ':prezto:module:editor:info:completing' format "%B${red}...%f%b"
+  zstyle ':prezto:module:editor:info:keymap:primary' format "▸ "
+  zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format " ${red}♺%f"
+  zstyle ':prezto:module:editor:info:keymap:alternate' format "${bright_cyan}›%f "
+
+  # Set git-info options
+  zstyle ':prezto:module:git:info' verbose 'yes'
+  zstyle ':prezto:module:git:info:action' format " :%%B${bright_magenta}%s%f%%b"
+  zstyle ':prezto:module:git:info:added' format " %%B%${cyan}%a%f%%b"
+  zstyle ':prezto:module:git:info:ahead' format " %%B${bright_magenta}%A%f%%b"
+  zstyle ':prezto:module:git:info:behind' format " %%B${bright_magenta}%B%f%%b"
+  zstyle ':prezto:module:git:info:branch' format "${bright_blue}%$_prompt_jamie_truncate<...<%b%<<%f"
+  zstyle ':prezto:module:git:info:commit' format ":%${bright_magenta}%.7c%f"
+  zstyle ':prezto:module:git:info:deleted' format " %%B${red}%d%f%%b"
+  zstyle ':prezto:module:git:info:modified' format " %%B${blue}%m%f%%b"
+  zstyle ':prezto:module:git:info:position' format ":${blue}%p%f"
+  zstyle ':prezto:module:git:info:renamed' format " %%B${magenta}%r%f%%b"
+  zstyle ':prezto:module:git:info:stashed' format " %%B${bright_yellow}%S%f%%b"
+  zstyle ':prezto:module:git:info:unmerged' format " %%B${magenta}%U%f%%b"
+  zstyle ':prezto:module:git:info:untracked' format " %%B${white}%u%f%%b"
+  zstyle ':prezto:module:git:info:keys' format \
+    'prompt' '%b' \
+    'rprompt' '%A%B%a%d%m%r%U%u%S'
+
+  # Set node-info options
+  zstyle ':prezto:module:node:info:version' format "${bright_green} %v%f"
+
+  # Set python-info options
+  zstyle ':prezto:module:python:info:virtualenv' format "${bright_green} %v%f"
+
+  # Set ruby-info options
+  zstyle ':prezto:module:ruby:info:version' format "${red} %v%f"
+
+  # Get the async worker set up
+  async_start_worker async_jamie_git -n
+  async_register_callback async_jamie_git prompt_jamie_git_info
+
+  _jamie_current_git_root=''
+
+
+  #
+  # Prompt
+
+  prompt_jamie_reset_git
+
+  _prompt_jamie_first_line='λ ${bright_magenta}%n%f at \
+${bright_yellow}%m%f in \
+${bright_cyan}${_prompt_jamie_pwd}%f \
+$([ $_prompt_jamie_git ] && echo -e " $_prompt_jamie_git")'
+
+  _prompt_jamie_second_line='
+$editor_info[keymap]'
+
+  _prompt_jamie_right='$([ $_prompt_jamie_git_right ] && echo -e " $_prompt_jamie_git_right 〜 ") \
+$node_info[version] · \
+$ruby_info[version]\
+%(?:: • ${yellow}👎%f)'
+
+  PROMPT=${_prompt_jamie_first_line}
+  PROMPT+=${_prompt_jamie_second_line}
+
+  RPROMPT="$_prompt_jamie_right"
+
+  SPROMPT="${bright_red}%R%f ➟ ${bright_green}%r%f 🤔  ? "
+}
+
+prompt_jamie_setup "$@"

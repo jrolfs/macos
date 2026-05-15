@@ -1,0 +1,234 @@
+add_newline=false
+
+format = """
+$username\
+$hostname\
+$shlvl\
+${custom.directory}\
+$git_branch\
+$hg_branch\
+$git_commit\
+$git_status\
+$git_state\
+${custom.pinentry}\
+$package\
+$fill\
+$docker_context\
+$cmake\
+$dart\
+$dotnet\
+$elixir\
+$elm\
+$erlang\
+$golang\
+$helm\
+$julia\
+$nim\
+$nodejs\
+$ocaml\
+$perl\
+$php\
+$purescript\
+$python\
+$ruby\
+$rust\
+$swift\
+$terraform\
+$zig\
+$java\
+$conda\
+$memory_usage\
+$aws\
+$gcloud\
+$openstack\
+$env_var\
+$crystal\
+$custom\
+$lua\
+$line_break\
+$jobs\
+$battery\
+$time\
+$status\
+$nix_shell\
+$character\
+"""
+
+# right_format = """
+# ${custom.pair}\
+# $kubernetes\
+# $cmd_duration
+# """
+
+right_format = """
+${custom.pair}\
+$direnv
+$cmd_duration
+"""
+
+[fill]
+symbol = " "
+style = ""
+
+#
+# ---------- General ----------------------------------------
+
+[character]
+success_symbol = "[→](green)"
+error_symbol = "[×](red)"
+
+vimcmd_symbol = "[·](green)"
+# vimcmd_visual_symbol = "[⊙](green)"
+# vimcmd_replace_symbol = "[⊚](green)"
+# vimcmd_replace_one_symbol = "[⊚](green)"
+
+
+[directory]
+disabled = true
+truncation_length = 3
+truncation_symbol = "…/"
+truncate_to_repo = true
+read_only = " "
+
+[cmd_duration]
+format = " took [$duration]($style)"
+
+
+#
+# ---------- Context ---------------------------------------
+
+[custom.directory]
+command = "$XDG_CONFIG_HOME/starship/directory.zsh"
+when = true
+format = "[$output](cyan bold) "
+shell = ["zsh", "--no-rcs"]
+
+[custom.pinentry]
+command = "$XDG_CONFIG_HOME/starship/pinentry.sh"
+shell = ["/run/current-system/sw/bin/zsh"]
+format = "[$output](yellow)"
+when = true
+style = ""
+
+[custom.pair]
+command = "$XDG_CONFIG_HOME/starship/pair-status.sh"
+shell = ["/run/current-system/sw/bin/zsh"]
+when = "$XDG_CONFIG_HOME/starship/is-pairing.sh"
+format = "[$symbol($output)]($style) [ ](purple) ·"
+style = ""
+
+[git_branch]
+style = "purple"
+symbol = " "
+truncation_length = 30
+format = "on [$symbol$branch]($style) "
+
+[git_state]
+format = '[$state( $progress_current/$progress_total)]($style) '
+cherry_pick = "[🍒 picking](bold red)"
+rebase = "[↑ rebasing](bold yellow)"
+merge = "[→ merging](bold cyan)"
+bisect = "[↕ bisecting](bold yellow)"
+style = "yellow"
+
+[git_status]
+format = '([[$modified$conflicted$deleted$renamed$staged$untracked$stashed $ahead_behind](bold red)]($style) )'
+style = "red"
+ahead = "↑"
+behind = "↓"
+conflicted = "≠"
+deleted = "×"
+diverged = "↕"
+modified = "·"
+renamed = "»"
+staged = "+"
+stashed = "⚑"
+untracked = "?"
+# up_to_date = "✔"
+
+[package]
+disabled = true
+
+[gcloud]
+disabled = true
+format = ' [$symbol$account(@$domain)(\($project\))]($style)'
+
+[kubernetes]
+# format = 'on [⛵ ($user on )($cluster in )$context \($namespace\)](dimmed green) '
+format = ' [󱃾 $context » [$namespace](bold)](blue)'
+disabled = false
+[kubernetes.context_aliases]
+# Production
+'.*app02-prod.*' = 'production'
+'.*arg01-prod .*' = 'production:arg'
+'.*shared02-prod.*' = 'production:shared'
+
+# Staging
+'.*app05-prep.*' = 'staging'
+'.*arg03-prep.*' = 'staging:arg'
+'.*shared01-prep.*' = 'staging:shared'
+
+# [kubernetes.user_aliases]
+# 'dev.local.cluster.k8s' = 'dev'
+# 'root/.*' = 'root'
+
+[nix_shell]
+impure_msg = "[](bold red)"
+pure_msg = "[λ](bold green)"
+symbol = " "
+format = "[${symbol}](bold blue)"
+
+
+#
+# ---------- Languages -------------------------------------
+
+[docker_context]
+symbol = " "
+format = " [${symbol}(${context})]($style)"
+
+[nodejs]
+style = "bold green"
+symbol = " "
+format = " [${symbol}(${version})]($style)"
+
+[ruby]
+symbol = " "
+format = " [${symbol}(${version})]($style)"
+
+[rust]
+symbol = " "
+format = " [${symbol}(${version})]($style)"
+
+[golang]
+symbol = " "
+format = " [${symbol}(${version})]($style)"
+
+[python]
+style = "cyan"
+symbol = " "
+format = " [${symbol}(${version})](bold $style)[·$virtualenv]($style)"
+# format = 'via [${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+
+[java]
+symbol = " "
+format = " [${symbol}(${version})]($style)"
+
+
+
+#
+# ---------- System ----------------------------------------
+
+[battery]
+full_symbol = "🔋"
+charging_symbol = "⚡️"
+discharging_symbol = "💀"
+
+[[battery.display]]
+threshold = 15
+
+[memory_usage]
+disabled = true
+threshold = 75
+symbol = " "
+style = "dimmed green"
+
