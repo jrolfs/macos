@@ -1,9 +1,9 @@
 {
   "Lua.runtime.version": "LuaJIT",
   "Lua.diagnostics.globals": ["hs"],
-  "Lua.workspace.library": {
-    "/path/to/your/hammerspoon/scripts": true
-  },
+  "Lua.workspace.library": [
+    "/Applications/Hammerspoon.app/Contents/Resources/extensions"
+  ],
   "Lua.telemetry.enable": false
 }
 
