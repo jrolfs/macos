@@ -53,7 +53,6 @@ in
 
     # Network
 
-    pkgs.ngrok
     pkgs.rclone
     pkgs.wakeonlan
 
