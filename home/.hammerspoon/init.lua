@@ -8,7 +8,9 @@ end)
 
 _.bindHyper("c", require("modules.finder").copyPath)
 
-require('modules.autohide').start({
+local autohide = require('modules.autohide')
+
+autohide.start({
   "1Password",
   "Dash",
   "DevDocs",
@@ -23,7 +25,7 @@ require('modules.autohide').start({
   "Reminders",
   "Resilio Sync",
   "Sirius",
-  "Spotify",
+  { name = "Spotify", when = autohide.maxDisplays(1) },
   "Yaak",
   "YouTube",
   "iPhone Mirroring",

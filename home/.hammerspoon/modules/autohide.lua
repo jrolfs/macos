@@ -8,6 +8,27 @@ local lastHideTime = {}
 
 local DEBOUNCE_INTERVAL = 1 -- Adjust this value (in seconds) as needed
 
+function M.maxDisplays(n)
+  return function()
+    return #hs.screen.allScreens() <= n
+  end
+end
+
+local function normalize(entry)
+  if type(entry) == 'string' then
+    return { name = entry }
+  end
+  return entry
+end
+
+local function normalizeAll(apps)
+  local result = {}
+  for i, entry in ipairs(apps or {}) do
+    result[i] = normalize(entry)
+  end
+  return result
+end
+
 local function shouldAutoHide(appName)
   if not appName then return false end
 
@@ -21,8 +42,11 @@ local function shouldAutoHide(appName)
     return false
   end
 
-  for _, name in ipairs(appsToHide) do
-    if string.lower(name) == lowerAppName then
+  for _, entry in ipairs(appsToHide) do
+    if string.lower(entry.name) == lowerAppName then
+      if entry.when and not entry.when() then
+        return false
+      end
       return true
     end
   end
@@ -74,7 +98,7 @@ function M.start(apps)
     autoHideWatcher:stop()
   end
 
-  appsToHide = apps or {}
+  appsToHide = normalizeAll(apps)
   lastHideTime = {} -- Reset the hide times when starting
 
   autoHideWatcher = createWatcher()
@@ -90,7 +114,7 @@ function M.stop()
 end
 
 function M.updateApps(apps)
-  appsToHide = apps or {}
+  appsToHide = normalizeAll(apps)
 end
 
 return M
