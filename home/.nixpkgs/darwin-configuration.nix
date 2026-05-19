@@ -45,6 +45,7 @@ in
     pkgs.terminal-notifier
     pkgs.tmux
     pkgs.yq
+    pkgs.zoxide
     pkgs.zsh
 
     # Theming
