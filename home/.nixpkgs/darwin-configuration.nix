@@ -36,6 +36,7 @@ in
     pkgs.fasd
     pkgs.fd
     pkgs.jq
+    pkgs.miller
     pkgs.ripgrep
     pkgs.sd
     pkgs.skim
