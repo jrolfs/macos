@@ -60,7 +60,6 @@ in
     pkgs.m-cli
     pkgs.mackup
     pkgs.nightlight
-    pkgs.sketchybar
 
     #
     # Build
