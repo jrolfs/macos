@@ -32,11 +32,9 @@ in
     pkgs.bat
     pkgs.bottom
     pkgs.direnv
-    pkgs.dtach
     pkgs.eza
     pkgs.fasd
     pkgs.fd
-    pkgs.fish
     pkgs.jq
     pkgs.ripgrep
     pkgs.sd
@@ -101,7 +99,6 @@ in
     pkgs.pinentry-curses
     pkgs.pinentry_mac
     pkgs.gnupg
-    pkgs.keybase
     pkgs.yubikey-manager
 
     #
