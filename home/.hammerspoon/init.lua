@@ -43,8 +43,8 @@ _.bindHyper("x", zed.toast.dismiss)
 require("modules.notifications").bind({
   leader = { {"ctrl", "alt", "cmd", "shift"}, "n" },
   activate = "return",
-  details = "d",
-  close = "c",
+  details = "o",
+  close = "x",
   next = "k",
   previous = "j",
 })
