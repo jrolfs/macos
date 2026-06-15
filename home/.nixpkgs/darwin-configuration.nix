@@ -60,7 +60,6 @@ in
     #
     # macOS
 
-    pkgs.lunar
     pkgs.m-cli
     pkgs.mackup
     pkgs.nightlight
