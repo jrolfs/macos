@@ -21,6 +21,18 @@ static void put16(unsigned char *pointer, uint16_t value) {
     pointer[1] =  value       & 0xff;
 }
 
+/* Clear kHasCustomIcon (0x0400) in FinderInfo.  Used on failure paths so a
+ * bundle is never left advertising a custom icon it no longer has — that
+ * combination is what makes Finder fall back to the generic folder icon. */
+static void clear_custom_icon_flag(const char *app_path) {
+    unsigned char finder_info[32] = {0};
+    if (getxattr(app_path, "com.apple.FinderInfo", finder_info, 32, 0, 0) > 0 &&
+        (finder_info[8] & 0x04)) {
+        finder_info[8] &= ~0x04;
+        setxattr(app_path, "com.apple.FinderInfo", finder_info, 32, 0, 0);
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc != 3) {
         fprintf(stderr, "usage: icon-setter APP_PATH ICON_PATH\n");
@@ -108,12 +120,25 @@ int main(int argc, char **argv) {
     sprintf(icon_file_path, "%s/Icon\r", app_path);
     sprintf(resource_fork_path, "%s/Icon\r/..namedfork/rsrc", app_path);
 
-    /* Remove any pre-existing Icon\r (may be owned by a different user
-     * from a previous daemon run, which would make O_TRUNC fail). */
-    unlink(icon_file_path);
-
-    /* Create Icon\r */
+    /*
+     * Create (or truncate) Icon\r.  We deliberately do NOT unlink first.
+     *
+     * Deleting the existing icon and only then discovering we cannot
+     * rewrite it is exactly what leaves a bundle with kHasCustomIcon set
+     * but no Icon\r — the generic folder icon.  That happens on
+     * com.apple.macl'd bundles when the process lacks Full Disk Access:
+     * the unlink succeeds but the recreate fails with EPERM.
+     *
+     * Opening with O_TRUNC is non-destructive on failure — if it fails we
+     * bail with the existing icon intact.  The one case O_TRUNC can't
+     * handle is an Icon\r left root-owned by the old root LaunchDaemon,
+     * which fails with EACCES; there, removing and recreating IS safe
+     * because the bundle directory itself is user-writable.
+     */
     int fd = open(icon_file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0 && errno == EACCES && unlink(icon_file_path) == 0) {
+        fd = open(icon_file_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    }
     if (fd < 0) {
         fprintf(stderr, "cannot create Icon\\r in %s: %s\n",
                 app_path, strerror(errno));
@@ -186,6 +211,8 @@ int main(int argc, char **argv) {
     if (fd < 0) {
         fprintf(stderr, "cannot write resource fork for %s: %s\n",
                 app_path, strerror(errno));
+        unlink(icon_file_path);
+        clear_custom_icon_flag(app_path);
         free(buffer); free(icon_file_path); free(resource_fork_path);
         return 1;
     }
@@ -193,7 +220,10 @@ int main(int argc, char **argv) {
     if (write(fd, buffer, total_size) != (ssize_t)total_size) {
         fprintf(stderr, "short write for %s: %s\n",
                 app_path, strerror(errno));
-        close(fd); free(buffer); free(icon_file_path); free(resource_fork_path);
+        close(fd);
+        unlink(icon_file_path);
+        clear_custom_icon_flag(app_path);
+        free(buffer); free(icon_file_path); free(resource_fork_path);
         return 1;
     }
 
