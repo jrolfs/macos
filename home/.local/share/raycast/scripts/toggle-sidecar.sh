@@ -8,14 +8,12 @@
 # Optional parameters:
 # @raycast.icon 🖥️
 
-source "$(dirname $0)/../helpers/automator.sh"
+# Toggles a Sidecar session with the "Leto" iPad via the `sidecar` CLI, which
+# drives the private SidecarCore framework directly (no Automator / "Watch Me
+# Do" UI replay). `sidecar` is built and installed by home/.nixpkgs/sidecar.nix.
 
-setup toggle-sidecar
-
-if [ $(system_profiler SPDisplaysDataType | grep -c "Sidecar Display") -gt 0 ]; then
-  run_automator "stop-mirroring-to-ipad"
-  echo "Disconnected"
+if output=$(sidecar toggle "Leto" 2>&1); then
+  echo "Leto ${output}"
 else
-  run_automator "mirror-to-ipad"
-  echo "Connected"
+  echo "Sidecar error: ${output}"
 fi
