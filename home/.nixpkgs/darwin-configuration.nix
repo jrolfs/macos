@@ -138,6 +138,9 @@ in
     pkgs.claude-monitor
     pkgs.claude-code-router
 
+    pkgs.opencode
+    pkgs.opencode-claude-auth
+
   ];
 
   system.activationScripts.applications.enable = true;
