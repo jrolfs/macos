@@ -26,6 +26,8 @@ in
 
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "zap";
+  # Homebrew 4.7+ requires explicit confirmation for `brew bundle --cleanup`.
+  homebrew.onActivation.extraFlags = [ "--force-cleanup" ];
   homebrew.enable = true;
 
   # Clear immutable flags from any applications managed by
