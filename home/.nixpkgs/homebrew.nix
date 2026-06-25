@@ -122,6 +122,7 @@ in
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
+    "sensei"
     "signal"
     "slack"
     "spotify"
