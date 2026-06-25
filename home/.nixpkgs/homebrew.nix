@@ -106,7 +106,6 @@ in
     "google-chrome@canary"
     "grammarly-desktop"
     "hammerspoon"
-    "homebrew/cask/dash"
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
