@@ -1,6 +1,21 @@
 self: super:
 
-rec {
+let
+  # Pin packages whose current-revision build isn't in the binary cache yet.
+  # `pin` prints the live cache status on each rebuild (see pin.nix) so we know
+  # when a pin is safe to remove. As of 6-28-2026 on nixpkgs@89570f,
+  # mise@2026.6.11 isn't cached for aarch64-darwin, so pin it to the latest
+  # cached build (2026.6.5, from nixpkgs@baf9fac).
+  pin = import ./pin.nix super;
+in
+
+{
+  mise = pin {
+    name = "mise";
+    rev = "baf9fac791ea8173567a01ac2b21c96806c63b05";
+    sha256 = "02k7092jj3qql9hxl7zawxi89917kbyjk6a17mf118hicq1cp84y";
+  };
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''
