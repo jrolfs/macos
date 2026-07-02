@@ -40,6 +40,10 @@ local zed = require('modules.zed')
 _.bindHyper("z", zed.toast.view)
 _.bindHyper("x", zed.toast.dismiss)
 
+local displays = require('modules.displays')
+
+_.bindHyper("d", displays.choose)
+
 require("modules.notifications").bind({
   leader = { {"ctrl", "alt", "cmd", "shift"}, "n" },
   activate = "return",
