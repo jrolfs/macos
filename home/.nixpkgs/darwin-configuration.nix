@@ -163,7 +163,11 @@ in
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  nix.package = pkgs.lix;
+  # Pinned to 2.94.2: Lix 2.95 ("Kakigōri", 2026-03-25) removed `builtins.fetchClosure`
+  # along with CA derivations, and devbox's install path depends on fetchClosure to pull
+  # pinned packages from cache.nixos.org (it fails with "attribute 'fetchClosure' missing").
+  # 2.94 is the last Lix that ships it. Revert to `pkgs.lix` once devbox repos move to devenv.
+  nix.package = pkgs.lixPackageSets.lix_2_94.lix;
   nix.enable = true;
 
   nix.extraOptions = "experimental-features = nix-command flakes";
