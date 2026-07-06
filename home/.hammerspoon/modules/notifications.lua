@@ -238,7 +238,7 @@ local function navActivate()
   performActionOnElement(el, "AXPress")
 
   if isStack then
-    hs.timer.doAfter(0.3, refreshAlerts)
+    hs.timer.doAfter(0.05, refreshAlerts)
   else
     navMode:exit()
     exitNavigation()
