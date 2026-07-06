@@ -30,7 +30,18 @@ let
       --type=f '\.(icns|png)$' ${assetsDir} \
       --exec /bin/zsh -c '
         ts=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
-        app="/Applications/$2.app"
+        icon="$1"
+
+        # The app this icon targets is its path *relative to the assets
+        # root*, with the extension dropped — so the asset tree mirrors
+        # /Applications.  A top-level "Slack.png" targets
+        # /Applications/Slack.app, while a nested
+        # "Maxon Cinema 4D 2026/Cinema 4D.icns" targets
+        # /Applications/Maxon Cinema 4D 2026/Cinema 4D.app (the folder is a
+        # plain folder; the real bundle lives inside it).
+        rel="''${icon#${assetsDir}/}"
+        name="''${rel%.*}"
+        app="/Applications/$name.app"
 
         if [[ ! -d "$app" ]]; then
           exit 0
@@ -43,13 +54,13 @@ let
           run=("$setter")
         fi
 
-        if "''${run[@]}" "$app" "$1" 2>&1; then
-          echo "[$ts] ok: $2"
-          echo "$2" >> "'"$results"'"
+        if "''${run[@]}" "$app" "$icon" 2>&1; then
+          echo "[$ts] ok: $name"
+          echo "$name" >> "'"$results"'"
         else
-          echo "[$ts] FAILED: $2"
+          echo "[$ts] FAILED: $name"
         fi
-      ' zsh {} {/.}
+      ' zsh {}
 
     count=$(wc -l < "$results" 2>/dev/null | tr -d ' ')
     if [[ "$count" -gt 0 && "$ICON_CUSTOMIZER_NOTIFY" != "0" ]]; then

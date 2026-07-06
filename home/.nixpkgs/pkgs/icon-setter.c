@@ -42,7 +42,10 @@ int main(int argc, char **argv) {
     const char *app_path  = argv[1];
     const char *icon_path = argv[2];
 
-    /* Verify app bundle exists */
+    fprintf(stdout, "icon_path: %s\n", icon_path);
+    fprintf(stdout, "app_path: %s\n", app_path);
+
+  /* Verify app bundle exists */
     struct stat status;
 
     if (stat(app_path, &status) != 0 || !S_ISDIR(status.st_mode)) {
