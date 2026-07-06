@@ -55,15 +55,10 @@ in
 
   homebrew.global.brewfile = true;
 
-  # Recent Homebrew enables HOMEBREW_REQUIRE_TAP_TRUST by default, which refuses
-  # to load formulae from non-official taps (and silently skips their casks)
-  # unless trusted. nix-darwin's tap `trusted` flag (defaults to true) runs
-  # `brew trust --tap` on these before the bundle. Provided by a cherry-picked
-  # commit from https://github.com/nix-darwin/nix-darwin/pull/1789 until it merges.
   homebrew.taps = [
-    "jorgelbg/tap"
-    "jrolfs/tap"
-    "meterup/packages"
+    { name = "jorgelbg/tap"; trusted = true; }
+    { name = "jrolfs/tap"; trusted = true; }
+    { name = "meterup/packages"; trusted = true; }
   ];
 
   homebrew.brews = [
