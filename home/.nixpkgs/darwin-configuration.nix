@@ -140,6 +140,8 @@ in
     pkgs.opencode
     pkgs.opencode-claude-auth
 
+    pkgs.mcp-nixos
+
   ];
 
   system.activationScripts.applications.enable = true;
