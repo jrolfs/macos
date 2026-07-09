@@ -30,6 +30,8 @@ in
     sha256 = "02k7092jj3qql9hxl7zawxi89917kbyjk6a17mf118hicq1cp84y";
   };
 
+  spicetify-cli = masterPkgs.spicetify-cli;
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''
