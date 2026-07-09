@@ -109,6 +109,9 @@ in
     pkgs.httpie
     pkgs.mise
 
+    # Language servers
+    pkgs.nixd
+
     #
     # Infrastructure
 
