@@ -1,0 +1,18 @@
+{
+  "pins": {
+    "nixpkgs": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "NixOS",
+        "repo": "nixpkgs"
+      },
+      "branch": "master",
+      "submodules": false,
+      "revision": "d65b116ca7a6f0c568e628e84ab819954d627a49",
+      "url": "https://github.com/NixOS/nixpkgs/archive/d65b116ca7a6f0c568e628e84ab819954d627a49.tar.gz",
+      "hash": "sha256-mNSMIcwv6yw0MCX9FiytexfJscX8IZ4VppaV5ONO9Kw="
+    }
+  },
+  "version": 8
+}

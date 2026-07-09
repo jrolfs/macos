@@ -7,6 +7,20 @@ let
   # mise@2026.6.11 isn't cached for aarch64-darwin, so pin it to the latest
   # cached build (2026.6.5, from nixpkgs@baf9fac).
   pin = import ./pin.nix super;
+
+  # Support installing packages from the `nixpkgs/master` branch via
+  # `masterPkgs`, but pin `nixpkgs/master` revision in npins/sources.json
+  # via `pkgs.npins`. Update the lockfile via `npins update nixpkgs`.
+  #
+  # NOTE: packages installed from `master` are often not cached in
+  # Cachix, so install from `masterPkgs`  may often result in building
+  # a bunch of stuff from source.
+
+  sources = import ./npins;
+  masterPkgs = import sources.nixpkgs {
+    localSystem = super.stdenv.hostPlatform.system;
+    inherit (super) config;
+  };
 in
 
 {

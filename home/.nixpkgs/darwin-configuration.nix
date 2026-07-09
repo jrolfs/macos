@@ -134,6 +134,7 @@ in
     pkgs.devbox
     pkgs.devenv
     pkgs.nixpkgs-fmt
+    pkgs.npins
 
     # AI
     pkgs.claude-code
