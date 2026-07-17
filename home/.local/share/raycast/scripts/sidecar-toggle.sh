@@ -2,7 +2,7 @@
 
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Toggle Sidecar Display
+# @raycast.title Toggle 📱
 # @raycast.mode silent
 
 # Optional parameters:

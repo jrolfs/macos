@@ -2,7 +2,7 @@
 
 # Required parameters:
 # @raycast.schemaVersion 1
-# @raycast.title Arrange Sidecar Display
+# @raycast.title Arrange 📲
 # @raycast.mode silent
 
 # Optional parameters:
