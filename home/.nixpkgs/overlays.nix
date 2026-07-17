@@ -32,6 +32,26 @@ in
 
   spicetify-cli = masterPkgs.spicetify-cli;
 
+  # zshcs — Zsh LSP server (github:yuys13/zshcs), not in nixpkgs. Pinned via
+  # `pkgs.npins` (see npins/sources.json); update with `npins update zshcs`.
+  # Reuses upstream flake.nix's build recipe: a plain buildRustPackage with
+  # checks disabled (its tests need a pty unavailable in the Nix sandbox).
+  # The server spawns `zsh` at runtime for completions, so wrap it to guarantee
+  # zsh is on PATH even when launched by a GUI editor with a minimal environment
+  # (--suffix keeps the user's own environment/commands ahead of it).
+  zshcs = super.rustPlatform.buildRustPackage {
+    pname = "zshcs";
+    version = "0.1.0";
+    src = sources.zshcs;
+    cargoLock.lockFile = "${sources.zshcs}/Cargo.lock";
+    doCheck = false;
+    nativeBuildInputs = [ super.makeWrapper ];
+    postInstall = ''
+      wrapProgram $out/bin/zshcs \
+        --suffix PATH : ${super.lib.makeBinPath [ super.zsh ]}
+    '';
+  };
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''

@@ -111,6 +111,7 @@ in
 
     # Language servers
     pkgs.nixd
+    pkgs.zshcs
 
     #
     # Infrastructure

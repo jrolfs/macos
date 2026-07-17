@@ -12,6 +12,19 @@
       "revision": "d65b116ca7a6f0c568e628e84ab819954d627a49",
       "url": "https://github.com/NixOS/nixpkgs/archive/d65b116ca7a6f0c568e628e84ab819954d627a49.tar.gz",
       "hash": "sha256-mNSMIcwv6yw0MCX9FiytexfJscX8IZ4VppaV5ONO9Kw="
+    },
+    "zshcs": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "yuys13",
+        "repo": "zshcs"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "d88154cb5fca24d5bf3e0228597314cda905308a",
+      "url": "https://github.com/yuys13/zshcs/archive/d88154cb5fca24d5bf3e0228597314cda905308a.tar.gz",
+      "hash": "sha256-2GARMlD+xF6pQiZlqwroYXi96b1/NeLRfXeDPwjfPTU="
     }
   },
   "version": 8
