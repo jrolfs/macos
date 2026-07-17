@@ -8,10 +8,12 @@ let
   # and `status` are reliable without sniffing display names.
   #
   #   sidecar devices | connected
+  #   sidecar list                       (attached external displays, tagged Wired/Sidecar)
   #   sidecar status     <name>
   #   sidecar connect    <name> [-wired]
   #   sidecar disconnect <name>
   #   sidecar toggle     <name> [-wired]
+  #   sidecar arrange    <name> --arrange=<side>   (any external display, not just Sidecar)
   #
   # Compiled with the *system* Swift toolchain via xcrun: SidecarCore is an
   # Apple private framework that only exists in the macOS SDK, and the nix

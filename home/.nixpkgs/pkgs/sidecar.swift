@@ -6,13 +6,19 @@
 //  SidecarDisplayManager.connectedDevices, so `toggle`/`status` are reliable
 //  without sniffing display names or shelling out to system_profiler.
 //
-//  Display arrangement (`arrange`, and the --arrange flags on connect/toggle)
-//  is done through CoreGraphics' display-reconfiguration API — the Sidecar
-//  display is moved flush against the built-in panel on the requested side.
+//  Display arrangement (`arrange`, `list`, and the --arrange flags on
+//  connect/toggle) is done through CoreGraphics' display-reconfiguration API,
+//  which is display-type-agnostic: the target display is moved flush against
+//  the built-in panel on the requested side. So `arrange`/`list` work on *any*
+//  external display — an ordinary wired monitor (HDMI/USB-C/Thunderbolt) as
+//  well as a Sidecar iPad. Only connect/disconnect/toggle are Sidecar-specific,
+//  since SidecarCore is the only backend that can attach/detach a display.
 //
 //  Commands:
 //    devices                 List reachable Sidecar-capable device names.
-//    connected               List currently-connected device names.
+//    connected               List currently-connected Sidecar device names.
+//    list                    List every attached external display (arrange targets),
+//                            each tagged Wired or Sidecar.
 //    status     <name>       Print connected|disconnected (exit 0 if connected, 8 if not).
 //                            When connected, also prints the current arrangement.
 //    connect    <name> [-wired] [--arrange=...] [--arrange-align=...] [--arrange-offset=...]
@@ -52,6 +58,7 @@ import AppKit
 enum Command: String {
     case devices
     case connected
+    case list
     case status
     case connect
     case disconnect
@@ -84,15 +91,18 @@ func printHelp() {
     sidecar — manage Sidecar (iPad-as-display) sessions via SidecarCore.
 
     Usage:
-      sidecar devices                       List reachable device names.
-      sidecar connected                     List currently-connected device names.
+      sidecar devices                       List reachable Sidecar device names.
+      sidecar connected                     List currently-connected Sidecar device names.
+      sidecar list                          List attached external displays, tagged by type.
       sidecar status     <name>             Print connected|disconnected (+ arrangement).
       sidecar connect    <name> [\(wiredFlag)] [arrange flags]   Connect (extend) to the device.
       sidecar disconnect <name>             Disconnect (stop extending).
       sidecar toggle     <name> [\(wiredFlag)] [arrange flags]   Toggle the connection.
-      sidecar arrange    <name> --arrange=<side> [arrange flags] Reposition the connected display.
+      sidecar arrange    <name> --arrange=<side> [arrange flags] Reposition an attached display.
 
-    Device names are matched case-insensitively. Quote names with spaces.
+    `arrange` and `list` work on any external display (wired monitor or Sidecar);
+    connect/disconnect/toggle are Sidecar-only. Names are matched case-insensitively
+    (use `list`/`devices` to see them). Quote names with spaces.
     The optional \(wiredFlag) flag forces a wired Sidecar session (experimental).
 
     Arrange flags:
@@ -238,16 +248,78 @@ func anchorDisplayID(excluding excluded: CGDirectDisplayID) -> CGDirectDisplayID
     return CGMainDisplayID()
 }
 
-/// Resolve the Sidecar display for a device by its localized screen name
-/// (fresh at process start), falling back to the sole non-built-in display.
-func resolveSidecarDisplayID(forDeviceNamed name: String) -> CGDirectDisplayID? {
+/// Resolve an external display by its localized screen name (fresh at process
+/// start), falling back to the sole non-built-in display. Works for any external
+/// panel — a wired monitor as readily as a Sidecar iPad — since it only matches
+/// on the name CoreGraphics/AppKit reports.
+func resolveExternalDisplayID(named name: String) -> CGDirectDisplayID? {
     let lowered = name.lowercased()
+
+    // Direct hit on the panel's own name — a wired monitor by its model, or a
+    // Sidecar panel that macOS happened to label after the device.
     for screen in NSScreen.screens
     where screen.localizedName.lowercased().contains(lowered) {
         if let id = screenDisplayID(screen) { return id }
     }
+
     let externals = activeDisplayIDs().filter { CGDisplayIsBuiltin($0) == 0 }
+
+    // A Sidecar device is named after the iPad (e.g. "Leto"), but its panel is
+    // usually labelled "Sidecar Display (AirPlay)" — so the loop above misses it.
+    // If the requested name is a connected Sidecar device, resolve to whichever
+    // external panel classifies as Sidecar.
+    let sidecarNames = connectedSidecarNames()
+    if sidecarNames.contains(where: { $0.contains(lowered) || lowered.contains($0) }),
+       let id = externals.first(where: { classifyDisplay($0, sidecarNames: sidecarNames) == .sidecar }) {
+        return id
+    }
+
+    // Last resort: a lone external panel must be the one meant.
     return externals.count == 1 ? externals.first : nil
+}
+
+// MARK: - External display inventory
+
+/// How an external display is attached. CoreGraphics exposes no "is this
+/// Sidecar/AirPlay" flag, so the kind is inferred by cross-referencing the
+/// display's name against SidecarCore's own connected-device list.
+enum DisplayKind {
+    case wired
+    case sidecar
+
+    /// Nerd Font-tagged label used by the `list` command.
+    var tag: String {
+        switch self {
+        case .wired:   return "󰍹  Wired"
+        case .sidecar: return "󰦉  Sidecar"
+        }
+    }
+}
+
+/// The localized name of a display, via its backing NSScreen. Falls back to a
+/// synthetic label if no NSScreen matches (shouldn't happen for active displays).
+func displayName(_ id: CGDirectDisplayID) -> String {
+    for screen in NSScreen.screens where screenDisplayID(screen) == id {
+        return screen.localizedName
+    }
+    return "Display \(id)"
+}
+
+/// Lowercased names of the Sidecar devices macOS currently reports as connected —
+/// the reference set for telling a Sidecar panel apart from a plain wired display.
+func connectedSidecarNames() -> Set<String> {
+    Set(deviceList("connectedDevices").map { deviceName($0).lowercased() }.filter { !$0.isEmpty })
+}
+
+/// Classify an external display. Two Sidecar signals, either sufficient:
+///   • macOS labels the panel itself "Sidecar Display (AirPlay)" — the strongest,
+///     locale-stable marker (a wired monitor reports its model name instead);
+///   • on setups that name the panel after the device, it matches a connected
+///     Sidecar device name from SidecarCore (e.g. "Leto").
+func classifyDisplay(_ id: CGDirectDisplayID, sidecarNames: Set<String>) -> DisplayKind {
+    let name = displayName(id).lowercased()
+    let isSidecar = name.contains("sidecar") || sidecarNames.contains(where: { name.contains($0) })
+    return isSidecar ? .sidecar : .wired
 }
 
 /// The new display ID that appears after connecting (vs. a pre-connect snapshot),
@@ -451,10 +523,26 @@ case .connected:
     deviceList("connectedDevices").map(deviceName).forEach { print($0) }
     exit(0)
 
+case .list:
+    // Every attached external display is an arrange target. Tag each by how it's
+    // attached, resolving Sidecar-ness once against the connected-device list.
+    let sidecarNames = connectedSidecarNames()
+    let externals = activeDisplayIDs().filter { CGDisplayIsBuiltin($0) == 0 }
+    let rows = externals.map {
+        (name: displayName($0), tag: classifyDisplay($0, sidecarNames: sidecarNames).tag)
+    }
+    // Left-align names in a column so the type tags line up (names are ASCII).
+    let width = rows.map { $0.name.count }.max() ?? 0
+    rows.forEach {
+        let padded = $0.name.padding(toLength: max(width, $0.name.count), withPad: " ", startingAt: 0)
+        print("\(padded)   \($0.tag)")
+    }
+    exit(0)
+
 case .status:
     let isConnected = deviceList("connectedDevices").contains(where: matches)
     print(isConnected ? "connected" : "disconnected")
-    if isConnected, let sidecarID = resolveSidecarDisplayID(forDeviceNamed: targetName) {
+    if isConnected, let sidecarID = resolveExternalDisplayID(named: targetName) {
         print("arrangement: \(describeArrangement(sidecarID))")
     }
     exit(isConnected ? 0 : 8)
@@ -463,8 +551,8 @@ case .arrange:
     guard let side = arrangeSide else {
         fail("arrange requires --arrange=<left|top|right|bottom>", 1)
     }
-    guard let sidecarID = resolveSidecarDisplayID(forDeviceNamed: targetName) else {
-        fail("Couldn't find a connected display for \"\(targetName)\".", 3)
+    guard let sidecarID = resolveExternalDisplayID(named: targetName) else {
+        fail("Couldn't find an attached display for \"\(targetName)\".", 3)
     }
     arrangeDisplay(sidecarID, side: side, align: arrangeAlign, offset: arrangeOffset, label: targetName)
 
@@ -493,7 +581,7 @@ case .connect, .disconnect, .toggle:
             // Honor --arrange even when already connected: the display is already
             // present, so resolve it by name rather than waiting for a new one.
             if let side = arrangeSide {
-                guard let sidecarID = resolveSidecarDisplayID(forDeviceNamed: targetName) else {
+                guard let sidecarID = resolveExternalDisplayID(named: targetName) else {
                     fail("Connected, but couldn't find \"\(targetName)\"'s display to arrange.", 3)
                 }
                 arrangeDisplay(sidecarID, side: side, align: arrangeAlign, offset: arrangeOffset, label: targetName)
