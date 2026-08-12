@@ -103,14 +103,19 @@ in
     mkdir -p /usr/local/bin
     cp ${wrapper}/bin/icon-customizer ${wrapperPath}
     chmod +x ${wrapperPath}
-
-    # Passwordless sudo for icon-setter so the LaunchAgent can customise
-    # icons on root-owned app bundles (e.g. Kandji-managed apps).
-    # Must be a real file (not symlink) with mode 0440 for sudoers to accept it.
-    echo "jamie ALL=(root) NOPASSWD: ${iconSetter}/bin/icon-setter" \
-      > /etc/sudoers.d/icon-customizer
-    chmod 0440 /etc/sudoers.d/icon-customizer
   '';
+
+  # Passwordless sudo for icon-setter so the LaunchAgent can customise icons on
+  # root-owned app bundles (e.g. Kandji-managed apps).  Managed declaratively
+  # via environment.etc — NOT a hand-rolled `echo` in postActivation — so
+  # nix-darwin regenerates it on every switch in lockstep with the icon-setter
+  # store path.  That path changes whenever icon-setter's build inputs change
+  # (e.g. a toolchain bump on a nixpkgs update), and a stale rule silently
+  # breaks NOPASSWD, unleashing one Touch ID prompt per root-owned app.  Same
+  # pattern nix-darwin's built-in yabai module uses.  (nix-darwin renders this
+  # as a symlink into the store, mode 0444 root-owned, which sudo accepts.)
+  environment.etc."sudoers.d/icon-customizer".text =
+    "jamie ALL=(root) NOPASSWD: ${iconSetter}/bin/icon-setter\n";
 
   # LaunchAgent (not Daemon) so the process runs in the user's login
   # session where FDA grants from System Settings actually apply.
