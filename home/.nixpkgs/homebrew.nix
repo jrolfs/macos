@@ -85,6 +85,7 @@ in
     "1password-cli"
     "affinity"
     "arq"
+    "aws-vpn-client"
     "claude"
     "cleanshot"
     "cursor"
