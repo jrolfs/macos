@@ -140,6 +140,34 @@ Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
    (`hardware.graphics` + `intel-media-driver`); media over NFS from the QNAP;
    Pi-hole keeps its LAN IP via macvlan. `hosts/irulan/hardware-configuration.nix`
    is generated on the box at install time. See `modules/nixos/services/`.
+
+   **Resilio on Irulan** — Resilio stays the mechanism for non-git sync, and
+   NixOS has a first-class module: `services.resilio.enable` +
+   `services.resilio.sharedFolders` (declarative shares), which is the right
+   approach here rather than the imperative `sync.conf` seeding the macOS
+   bootstrap does. Three caveats when wiring it up:
+   - The daemon runs as the `rslsync` system user, so a path under
+     `/home/jamie` needs `rslsync` group ownership + `chmod g+s` + `setfacl`
+     (see the option docs) — or pick a path outside `$HOME`.
+   - `sharedFolders` puts the share secret in the **world-readable nix store**;
+     source it from **agenix/sops-nix** instead of inlining it.
+   - `sharedFolders` requires the web UI off (`enableWebUI = false`).
+
+   **Share layout wants optimizing first** (deferred until Ala is working —
+   ideally done before Irulan). `~/Configuration` is ~1.3 GB, of which ~1.29 GB
+   is macOS-only: Mackup 610M, Raycast 547M, Alfred 97M, Shimo 36M, plus
+   Dash/Stay/Arq/Photoshop prefs. The portable remainder is ~44 KB —
+   `Certificates/` (step-ca `*.rolfs.lan` leaf certs + root CA), `Networking/`
+   (wgcf account + WireGuard profile), `Nuphy/` (keyboard-configurator JSON).
+   Subscribing Irulan to the whole share would pull 1.3 GB for 44 KB, so split
+   into a macOS-only share and a portable one before Irulan subscribes. Note
+   Irulan runs step-ca itself, so it needs the migrated CA data, not synced
+   leaf certs.
+
+   Also worth revisiting independently: `Networking/wgcf-*` is a WireGuard
+   private key + account token and `Certificates/` is LAN PKI, both currently
+   replicated in cleartext across devices and Resilio relays. The git-crypt'd
+   `private` castle may be the better home for those two specifically.
 3. **Newt** (daily driver) — migrated last, once Ala + Irulan are proven.
    Back up `~/.homesick`, `homeshick unlink dot macos` (leave `private`),
    `mv ~/.homesick/repos/macos ~/.config/system`, add `hosts/newt/`, switch.
