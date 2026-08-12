@@ -91,12 +91,43 @@ becomes unwieldy or a package needs a precise old version. Not adopted yet.
 ## Bootstrap (`jrolfs/bootstrap`, `flake-migration` branch)
 
 Fresh-machine installer, two stages: `bootstrap.sh` (bash) installs **Lix** +
-Xcode CLT, then a Deno/TS app orchestrates: GitHub device-flow auth → mint SSH
-key → clone `~/.config/system` + `private` castle → `homeshick link private` →
-`darwin-rebuild`/`nixos-rebuild --flake ~/.config/system#$(hostname -s)`. Then
-installs **1Password CLI**, pulls the **Resilio** share secret via `op`, and
-seeds `~/Configuration` syncing. Cross-platform (macOS steps gated on
-`Deno.build.os`), resumable via a phase log at `~/.bootstrap/state.json`.
+Xcode CLT and clones itself (`BOOTSTRAP_REF` selects the branch — use
+`flake-migration` until it merges to `main`), then a Deno/TS app runs an
+ordered, resumable set of phases (state in `~/.bootstrap/state.json`; re-run
+the one-liner to resume). macOS-only steps are gated on `Deno.build.os`.
+
+Run it on a fresh machine:
+
+```sh
+BOOTSTRAP_REF=flake-migration bash -c "$(curl -fsSL \
+  https://raw.githubusercontent.com/jrolfs/bootstrap/flake-migration/bootstrap.sh)"
+```
+
+Phases, in order:
+1. **hostname-set** — confirm/set the hostname *first* (the flake selects its
+   host config by it). macOS sets HostName + LocalHostName + ComputerName +
+   flushes DNS; Linux uses `hostnamectl`. The chosen name is persisted and used
+   for the flake selector, not a live re-read (a fresh Mac's `hostname` is often
+   a DHCP/marketing name, not e.g. `ala`).
+2. **github-authed** — device-flow auth, mint + upload an SSH key.
+3. **homebrew-installed** → **op-installed** → **op-authenticated** (enable the
+   1Password GUI's CLI integration; verified via `op whoami`).
+4. **private-cloned** (homeshick clone + `link private`) → **nix-config-cloned**
+   (`nixConfigRepo`@`nixConfigBranch` → `~/.config/system`; currently
+   `jrolfs/macos`@`migration-flake` — flip the repo name after the rename) →
+   **vscode-sync-cloned**.
+5. **resilio-configured** — install Resilio, best-effort seed `sync.conf`, launch
+   foreground and **guide the user** through the first-run EULA + adding the
+   `~/Configuration` share (secret pulled via `op`, shown on screen). The GUI app
+   manages folders in its own storage, so the manual add is surfaced with a
+   pause rather than assumed. Then wait for `~/Configuration/mackup` to sync.
+6. **first-switch-completed** — `darwin-rebuild`/`nixos-rebuild switch --flake
+   ~/.config/system#<hostname>` (first run bootstraps the tool via `nix run`).
+7. **mackup-restored** — confirmed `mackup restore -f` from the synced
+   `~/Configuration/mackup` (mackup is installed by the switch). Skips cleanly if
+   not ready; `mkrs` remains available.
+
+Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
 
 ## Phases
 
