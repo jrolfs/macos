@@ -173,6 +173,13 @@ Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
    `mv ~/.homesick/repos/macos ~/.config/system`, add `hosts/newt/`, switch.
    Consider `cleanup = "uninstall"` (not `zap`) for the first switch.
 
+## Secrets & private configuration
+
+Getting off git-crypt, splitting genuine secrets (→ 1Password) from private
+non-secret overlays (→ plain symlinks), and a `secrets` CLI to manage the
+`op://` references. See [SECRETS.md](SECRETS.md) — independent of this
+migration; the prune and split steps can happen on either side of it.
+
 ## Backporting fixes to the pre-migration setup
 
 `newt` runs the old setup until phase 3, so bugs found while migrating often
