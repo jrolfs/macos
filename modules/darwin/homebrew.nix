@@ -18,6 +18,8 @@ in
 
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "zap";
+  # Homebrew 4.7+ requires explicit confirmation for `brew bundle --cleanup`.
+  homebrew.onActivation.extraFlags = [ "--force-cleanup" ];
   homebrew.enable = true;
 
   # Clear immutable flags from any applications managed by
@@ -46,9 +48,9 @@ in
   homebrew.global.brewfile = true;
 
   homebrew.taps = [
-    "jorgelbg/tap"
-    "jrolfs/tap"
-    "meterup/packages"
+    { name = "jorgelbg/tap"; trusted = true; }
+    { name = "jrolfs/tap"; trusted = true; }
+    { name = "meterup/packages"; trusted = true; }
   ];
 
   homebrew.brews = [
@@ -75,6 +77,7 @@ in
     "1password-cli"
     "affinity"
     "arq"
+    "aws-vpn-client"
     "claude"
     "cleanshot"
     "cursor"
@@ -91,7 +94,6 @@ in
     "google-chrome@canary"
     "grammarly-desktop"
     "hammerspoon"
-    "homebrew/cask/dash"
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
@@ -108,6 +110,7 @@ in
     "raycast"
     "resilio-sync"
     "safari-technology-preview"
+    "sensei"
     "signal"
     "slack"
     "spotify"

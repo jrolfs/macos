@@ -1,7 +1,7 @@
 { pkgs, inputs, userName, ... }:
 
 let
-  overlays = import ../../overlays;
+  overlays = import ../../overlays inputs;
 
 in
 {
@@ -15,6 +15,7 @@ in
     ./homebrew.nix
     ./glide-developer.nix
     ./icons.nix
+    ./sidecar.nix
     ./spicetify.nix
     ./tap.nix
 
@@ -34,12 +35,11 @@ in
     pkgs.bat
     pkgs.bottom
     pkgs.direnv
-    pkgs.dtach
     pkgs.eza
     pkgs.fasd
     pkgs.fd
-    pkgs.fish
     pkgs.jq
+    pkgs.miller
     pkgs.ripgrep
     pkgs.sd
     pkgs.skim
@@ -48,6 +48,7 @@ in
     pkgs.terminal-notifier
     pkgs.tmux
     pkgs.yq
+    pkgs.zoxide
     pkgs.zsh
 
     # Theming
@@ -55,7 +56,6 @@ in
 
     # Network
 
-    pkgs.ngrok
     pkgs.rclone
     pkgs.wakeonlan
 
@@ -65,7 +65,6 @@ in
     pkgs.m-cli
     pkgs.mackup
     pkgs.nightlight
-    pkgs.sketchybar
 
     #
     # Build
@@ -104,7 +103,6 @@ in
     pkgs.pinentry-curses
     pkgs.pinentry_mac
     pkgs.gnupg
-    pkgs.keybase
     pkgs.yubikey-manager
 
     #
@@ -112,6 +110,10 @@ in
 
     pkgs.httpie
     pkgs.mise
+
+    # Language servers
+    pkgs.nixd
+    pkgs.zshcs
 
     #
     # Infrastructure
@@ -141,6 +143,11 @@ in
     pkgs.claude-monitor
     pkgs.claude-code-router
 
+    pkgs.opencode
+    pkgs.opencode-claude-auth
+
+    pkgs.mcp-nixos
+
   ];
 
   system.activationScripts.applications.enable = true;
@@ -164,7 +171,11 @@ in
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  nix.package = pkgs.lix;
+  # Pinned to 2.94.2: Lix 2.95 ("Kakigōri", 2026-03-25) removed `builtins.fetchClosure`
+  # along with CA derivations, and devbox's install path depends on fetchClosure to pull
+  # pinned packages from cache.nixos.org (it fails with "attribute 'fetchClosure' missing").
+  # 2.94 is the last Lix that ships it. Revert to `pkgs.lix` once devbox repos move to devenv.
+  nix.package = pkgs.lixPackageSets.lix_2_94.lix;
   nix.enable = true;
 
   nix.extraOptions = "experimental-features = nix-command flakes";

@@ -31,7 +31,18 @@ let
       --type=f '\.(icns|png)$' ${assetsDir} \
       --exec /bin/zsh -c '
         ts=$(date -u "+%Y-%m-%d %H:%M:%S UTC")
-        app="/Applications/$2.app"
+        icon="$1"
+
+        # The app this icon targets is its path *relative to the assets
+        # root*, with the extension dropped — so the asset tree mirrors
+        # /Applications.  A top-level "Slack.png" targets
+        # /Applications/Slack.app, while a nested
+        # "Maxon Cinema 4D 2026/Cinema 4D.icns" targets
+        # /Applications/Maxon Cinema 4D 2026/Cinema 4D.app (the folder is a
+        # plain folder; the real bundle lives inside it).
+        rel="''${icon#${assetsDir}/}"
+        name="''${rel%.*}"
+        app="/Applications/$name.app"
 
         if [[ ! -d "$app" ]]; then
           exit 0
@@ -44,13 +55,13 @@ let
           run=("$setter")
         fi
 
-        if "''${run[@]}" "$app" "$1" 2>&1; then
-          echo "[$ts] ok: $2"
-          echo "$2" >> "'"$results"'"
+        if "''${run[@]}" "$app" "$icon" 2>&1; then
+          echo "[$ts] ok: $name"
+          echo "$name" >> "'"$results"'"
         else
-          echo "[$ts] FAILED: $2"
+          echo "[$ts] FAILED: $name"
         fi
-      ' zsh {} {/.}
+      ' zsh {}
 
     count=$(wc -l < "$results" 2>/dev/null | tr -d ' ')
     if [[ "$count" -gt 0 && "$ICON_CUSTOMIZER_NOTIFY" != "0" ]]; then
@@ -93,14 +104,19 @@ in
     mkdir -p /usr/local/bin
     cp ${wrapper}/bin/icon-customizer ${wrapperPath}
     chmod +x ${wrapperPath}
-
-    # Passwordless sudo for icon-setter so the LaunchAgent can customise
-    # icons on root-owned app bundles (e.g. Kandji-managed apps).
-    # Must be a real file (not symlink) with mode 0440 for sudoers to accept it.
-    echo "jamie ALL=(root) NOPASSWD: ${iconSetter}/bin/icon-setter" \
-      > /etc/sudoers.d/icon-customizer
-    chmod 0440 /etc/sudoers.d/icon-customizer
   '';
+
+  # Passwordless sudo for icon-setter so the LaunchAgent can customise icons on
+  # root-owned app bundles (e.g. Kandji-managed apps).  Managed declaratively
+  # via environment.etc — NOT a hand-rolled `echo` in postActivation — so
+  # nix-darwin regenerates it on every switch in lockstep with the icon-setter
+  # store path.  That path changes whenever icon-setter's build inputs change
+  # (e.g. a toolchain bump on a nixpkgs update), and a stale rule silently
+  # breaks NOPASSWD, unleashing one Touch ID prompt per root-owned app.  Same
+  # pattern nix-darwin's built-in yabai module uses.  (nix-darwin renders this
+  # as a symlink into the store, mode 0444 root-owned, which sudo accepts.)
+  environment.etc."sudoers.d/icon-customizer".text =
+    "jamie ALL=(root) NOPASSWD: ${iconSetter}/bin/icon-setter\n";
 
   # LaunchAgent (not Daemon) so the process runs in the user's login
   # session where FDA grants from System Settings actually apply.

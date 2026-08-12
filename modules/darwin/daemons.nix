@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   launchd.user.agents = {
@@ -8,6 +8,18 @@
         Label = "org.hammerspoon.Hammerspoon";
         ProgramArguments = [ "/Applications/Hammerspoon.app/Contents/MacOS/Hammerspoon" ];
         KeepAlive = true;
+        RunAtLoad = true;
+      };
+    };
+
+    nightlight = {
+      serviceConfig = {
+        Label = "com.github.smudge.nightlight";
+        ProgramArguments = [
+          "/bin/sh"
+          "-c"
+          "${pkgs.nightlight}/bin/nightlight schedule start && ${pkgs.nightlight}/bin/nightlight temp 75"
+        ];
         RunAtLoad = true;
       };
     };

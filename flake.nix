@@ -4,6 +4,11 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # nixpkgs/master, for packages that need a bleeding-edge build via the
+    # `masterPkgs` overlay (e.g. spicetify-cli). Bump: nix flake update
+    # nixpkgs-master. Replaces the old npins-based master pin.
+    nixpkgs-master.url = "github:NixOS/nixpkgs";
+
     nix-darwin = {
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -36,6 +41,14 @@
     };
     zinit = {
       url = "github:zdharma-continuum/zinit";
+      flake = false;
+    };
+
+    # zshcs — Zsh LSP server, built by the overlay (overlays/default.nix).
+    # Not in nixpkgs; was previously pinned via npins. flake = false so we
+    # just get the source tree.
+    zshcs = {
+      url = "github:yuys13/zshcs";
       flake = false;
     };
   };
