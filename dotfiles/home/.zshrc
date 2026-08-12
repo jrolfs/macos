@@ -12,6 +12,10 @@ unset preztorc platformrc
 # <zinit>
 #
 
+declare -A ZINIT
+
+ZINIT[NO_ALIASES]=1
+
 source "$XDG_DATA_HOME/zinit/zinit.zsh"
 
 # Prezto (synchronous — must load before interactive features)
@@ -31,12 +35,14 @@ zinit ice atload'
 '
 zinit light zdharma-continuum/null
 
+zinit ice has'zoxide'; zinit light ajeetdsouza/zoxide
+
 zinit ice nocd atload'eval "$(direnv hook zsh)"'
 zinit light zdharma-continuum/null
 
 # Sticking with direnv for now
-# zinit ice nocd atload'eval "$(devenv hook zsh)"'
-# zinit light zdharma-continuum/null
+zinit ice nocd atload'eval "$(devenv hook zsh)"'
+zinit light zdharma-continuum/null
 
 zinit ice nocd atload'eval "$(command wt config shell init zsh)"' if'command -v wt >/dev/null 2>&1'
 zinit light zdharma-continuum/null

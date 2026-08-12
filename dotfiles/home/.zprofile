@@ -36,6 +36,7 @@ fpath+=(
 path=(
   /opt/homebrew/bin
   /usr/local/{bin,sbin}
+  $HOME/.local/bin
   $GOPATH/bin
   $SPICETIFY_INSTALL
   $WORK_BIN

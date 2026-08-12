@@ -1,4 +1,21 @@
 {
+  "close_on_file_delete": false,
+  "seed_search_query_from_cursor": "selection",
+  "use_smartcase_search": false,
+  "search": {
+    "button": true,
+    "center_on_match": false,
+    "regex": false,
+    "case_sensitive": true
+  },
+  "minimum_split_diff_width": 200.0,
+  "diff_view_style": "split",
+  "proxy": "",
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Zed (Default)",
+    "dark": "Colored Zed Icons Theme Dark"
+  },
   "excerpt_context_lines": 4,
   "file_finder": {
     "modal_max_width": "xlarge"
@@ -43,7 +60,11 @@
     "show_branch_status_icon": true
   },
   "vim": {
+    "show_edit_predictions_in_normal_mode": true,
+    "use_regex_search": false,
+    "use_system_clipboard": "never",
     "cursor_shape": {
+      "visual": "hollow",
       "replace": "hollow",
       "insert": "bar"
     },
@@ -51,8 +72,9 @@
     "toggle_relative_line_numbers": true
   },
   "toolbar": {
+    "agent_review": false,
     "code_actions": false,
-    "selections_menu": true,
+    "selections_menu": false,
     "quick_actions": false,
     "breadcrumbs": true
   },
@@ -60,12 +82,13 @@
     "show": "never"
   },
   "scrollbar": {
+    "search_results": true,
     "show": "auto"
   },
   "gutter": {
     "min_line_number_digits": 3
   },
-  "show_signature_help_after_edits": true,
+  "show_signature_help_after_edits": false,
   "auto_signature_help": true,
   "vertical_scroll_margin": 5.0,
   "scroll_beyond_last_line": "vertical_scroll_margin",
@@ -87,6 +110,8 @@
     "dock": "right"
   },
   "agent": {
+    "terminal_init_command": "",
+    "play_sound_when_agent_done": "when_hidden",
     "show_turn_stats": true,
     "sidebar_side": "right",
     "dock": "right",
@@ -94,6 +119,8 @@
     "model_parameters": []
   },
   "git_panel": {
+    "group_by": "status",
+    "tree_view": true,
     "show_count_badge": true,
     "fallback_branch_name": "main",
     "file_icons": true,
@@ -101,26 +128,45 @@
   },
   "semantic_tokens": "combined",
   "agent_servers": {
-    "claude-acp": {
+    "opencode": {
       "type": "registry"
+    },
+    "claude-acp": {
+      "default_config_options": {
+        "effort": "xhigh",
+        "mode": "auto"
+      },
+      "type": "registry"
+    },
+    "Claude Foundry": {
+      "type": "custom",
+      "command": "npx",
+      "args": ["@zed-industries/claude-code-acp"],
+      "env": {
+        "CLAUDE_CODE_USE_FOUNDRY": "1",
+        "ANTHROPIC_FOUNDRY_RESOURCE": "abhijeet-3779"
+      }
     }
   },
-  "theme": "Gruvbox Material Custom Dark",
+  "theme": {
+    "mode": "dark",
+    "light": "Gruvbox Material Custom Light",
+    "dark": "Gruvbox Material Custom Dark"
+  },
   "vim_mode": true,
   "ui_font_size": 15,
-  "buffer_font_size": 13,
+  "buffer_font_size": 13.0,
   "ui_font_family": "IBM Plex Sans",
   "buffer_font_family": "JetBrains Mono",
   "format_on_save": "off",
   "relative_line_numbers": "enabled",
   "terminal": {
     "font_family": "JetBrains Mono",
-    "font_size": 13,
     "font_fallbacks": ["JetBrainsMono Nerd Font", "FiraCode Nerd Font"]
   },
-  "wrap_guides": [100, 120],
+  "wrap_guides": [100],
   "edit_predictions": {
     "mode": "eager",
-    "provider": "mercury"
+    "provider": "zed"
   }
 }

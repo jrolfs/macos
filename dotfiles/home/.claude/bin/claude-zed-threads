@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""List Claude Code threads started by Zed's ACP client, with their home dirs.
+
+Zed drives Claude Code non-interactively over the Agent Client Protocol, so the
+threads it starts land in the same per-project store as the terminal CLI
+(`~/.claude/projects/<slug>/<id>.jsonl`) but with a different fingerprint: the
+first JSONL record carries `operation: "enqueue"` and no `mode: "normal"`,
+whereas interactive terminal sessions are `mode: "normal"` with no `operation`.
+
+The built-in `/resume` picker mixes both together *and* is scoped to the current
+project directory. Zed history is siloed per working directory, so threads you
+started elsewhere never appear. This isolates the Zed/ACP threads and can widen
+the scope to every worktree of the current repo (`--repo`) or everything
+(`--all`).
+
+Any scripted `claude -p` run is also non-interactive and will appear here; in a
+repo working directory these are almost always Zed threads in practice.
+"""
+from __future__ import annotations
+
+import argparse
+import glob
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+PROJECTS_ROOT = os.path.expanduser("~/.claude/projects")
+
+# Only scan the head of each transcript: the meta record is first, and both the
+# recorded cwd and the opening user message follow within the first few records.
+HEAD_LINES = 40
+
+
+def slug_for(path: str) -> str:
+    """Encode a working directory the way Claude Code names its project store.
+
+    Every non-alphanumeric character becomes a hyphen, so a leading slash
+    yields a leading hyphen (matching `~/.claude/projects/-Users-...`).
+    """
+    return re.sub(r"[^a-zA-Z0-9]", "-", os.path.abspath(path))
+
+
+def repo_worktree_dirs(start: str) -> list[str]:
+    """Absolute paths of every git worktree sharing `start`'s repo.
+
+    Falls back to just `start` when it isn't inside a git repo.
+    """
+    try:
+        completed = subprocess.run(
+            ["git", "-C", start, "worktree", "list", "--porcelain"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return [os.path.abspath(start)]
+    dirs = [
+        line[len("worktree ") :]
+        for line in completed.stdout.splitlines()
+        if line.startswith("worktree ")
+    ]
+    return dirs or [os.path.abspath(start)]
+
+
+def is_zed(meta: dict) -> bool:
+    """Classify a session's meta record as a Zed/ACP (non-interactive) thread."""
+    return bool(meta.get("operation")) and meta.get("mode") != "normal"
+
+
+def title_from(records: list[dict], meta: dict) -> str:
+    """Best-effort human label: an assigned title, else the first user message."""
+    for key in ("customTitle", "aiTitle"):
+        if meta.get(key):
+            return str(meta[key])
+    for record in records:
+        if record.get("type") != "user":
+            continue
+        content = record.get("message", {}).get("content")
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            for part in content:
+                if isinstance(part, dict) and part.get("type") == "text":
+                    return str(part.get("text", ""))
+    return ""
+
+
+def scan_project_dir(root: str) -> list[tuple[float, str, str, str]]:
+    """Return (mtime, session_id, cwd, title) for Zed threads under one slug dir."""
+    found: list[tuple[float, str, str, str]] = []
+    for path in glob.glob(os.path.join(root, "*.jsonl")):
+        records: list[dict] = []
+        cwd = ""
+        try:
+            with open(path, encoding="utf-8") as handle:
+                for index, line in enumerate(handle):
+                    if index >= HEAD_LINES:
+                        break
+                    try:
+                        record = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    records.append(record)
+                    if not cwd and record.get("cwd"):
+                        cwd = record["cwd"]
+        except OSError:
+            continue
+        if not records or not is_zed(records[0]):
+            continue
+        session_id = os.path.splitext(os.path.basename(path))[0]
+        title = " ".join(title_from(records, records[0]).split())
+        found.append((os.path.getmtime(path), session_id, cwd, title))
+    return found
+
+
+def sessions(directory: str, scope: str) -> list[tuple[float, str, str, str]]:
+    """Collect Zed threads for the requested scope, newest first.
+
+    scope: "here" (just `directory`), "repo" (all its git worktrees), or "all".
+    """
+    if scope == "all":
+        roots = glob.glob(os.path.join(PROJECTS_ROOT, "*"))
+    elif scope == "repo":
+        roots = [
+            os.path.join(PROJECTS_ROOT, slug_for(worktree))
+            for worktree in repo_worktree_dirs(directory)
+        ]
+    else:
+        roots = [os.path.join(PROJECTS_ROOT, slug_for(directory))]
+
+    found: list[tuple[float, str, str, str]] = []
+    for root in roots:
+        if os.path.isdir(root):
+            found.extend(scan_project_dir(root))
+    found.sort(reverse=True)
+    return found
+
+
+TAG_WIDTH = 25
+
+
+def project_tag(cwd: str) -> str:
+    """Short label for a thread's directory, keeping the distinguishing tail.
+
+    Sibling worktrees share a long common prefix (`frontends.jamie-feature-...`)
+    and differ only at the end, so elide from the left rather than the right.
+    """
+    name = os.path.basename(cwd.rstrip("/")) if cwd else "?"
+    return name if len(name) <= TAG_WIDTH else "…" + name[-(TAG_WIDTH - 1) :]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "-d",
+        "--dir",
+        default=os.getcwd(),
+        help="project directory to inspect (default: cwd)",
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--repo",
+        action="store_const",
+        dest="scope",
+        const="repo",
+        help="span every git worktree of the current repo",
+    )
+    group.add_argument(
+        "--all",
+        action="store_const",
+        dest="scope",
+        const="all",
+        help="span every project on disk",
+    )
+    parser.add_argument(
+        "--sk",
+        action="store_true",
+        help="emit 'id<TAB>cwd<TAB>display' rows for a picker instead of the human list",
+    )
+    parser.set_defaults(scope="here")
+    arguments = parser.parse_args()
+
+    rows = sessions(arguments.dir, arguments.scope)
+    multi = arguments.scope != "here"
+
+    def display_for(mtime: float, cwd: str, title: str) -> str:
+        when = time.strftime("%Y-%m-%d %H:%M", time.localtime(mtime))
+        label = title[:80] or "(untitled)"
+        if multi:
+            return f"{when}  {project_tag(cwd):<{TAG_WIDTH}}  {label}"
+        return f"{when}  {label}"
+
+    if arguments.sk:
+        for mtime, session_id, cwd, title in rows:
+            print(f"{session_id}\t{cwd}\t{display_for(mtime, cwd, title)}")
+        return 0
+
+    if not rows:
+        print(f"No Zed/ACP threads found ({arguments.scope}: {arguments.dir})")
+        return 0
+
+    for mtime, session_id, cwd, title in rows:
+        print(display_for(mtime, cwd, title))
+        if multi and cwd:
+            print(f"    (cd {cwd} && claude --resume {session_id})")
+        else:
+            print(f"    claude --resume {session_id}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

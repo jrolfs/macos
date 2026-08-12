@@ -28,10 +28,12 @@ export HOMESHICK_KINGDOM="${HOMESHICK_DIR:-$HOME/.homesick/repos}"
 export HS_KINGDOM=$HOMESHICK_KINGDOM
 export ZSH_EXTRA_COMPLETIONS="${XDG_CONFIG_HOME}/zsh/completions"
 
-export ORGANIZATION="Hover"
+export GITHUB_USER="jrolfs"
+export ORGANIZATION="meterup"
 export DEVELOPER="${HOME}/Developer"
 export SOURCES="${DEVELOPER}/Sources"
-export WORK_HOME="${DEVELOPER}/${ORGANIZATION}"
+
+export WORK_HOME="${SOURCES}/${ORGANIZATION}"
 export PERSONAL_HOME="${DEVELOPER}/${ORGANIZATION}"
 
 export WORK_BIN="${XDG_DATA_HOME}/${(L)ORGANIZATION}/bin"

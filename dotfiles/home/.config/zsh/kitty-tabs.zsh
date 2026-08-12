@@ -4,6 +4,23 @@
 typeset -g _ktt_icon=""
 typeset -g _ktt_cached_dir=""
 
+# Central store for manually-pinned titles, keyed by absolute directory path.
+# Persists across restarts and lives outside any repo (no gitignore needed).
+typeset -g _ktt_override_file="${XDG_STATE_HOME:-$HOME/.local/state}/kitty/tab-titles"
+
+# Look up a pinned title for $PWD. Sets REPLY and returns 0 on hit, else 1.
+_ktt_lookup_override() {
+  [[ -f "$_ktt_override_file" ]] || return 1
+  local dir title
+  while IFS=$'\t' read -r dir title || [[ -n "$dir" ]]; do
+    if [[ "$dir" == "$PWD" ]]; then
+      REPLY="$title"
+      return 0
+    fi
+  done < "$_ktt_override_file"
+  return 1
+}
+
 _ktt_detect_project() {
   [[ "$PWD" == "$_ktt_cached_dir" ]] && return
   _ktt_cached_dir="$PWD"
@@ -45,6 +62,13 @@ _ktt_detect_project() {
 typeset -g _ktt_max_title_len=24
 
 _ktt_set_title() {
+  # A pinned title for this directory wins over the automatic one.
+  local REPLY
+  if _ktt_lookup_override; then
+    print -n "\e]2;${REPLY}\a"
+    return
+  fi
+
   _ktt_detect_project
   local title="${(%):-%1~}"
 
@@ -64,3 +88,48 @@ _ktt_set_title() {
 
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _ktt_set_title
+
+# Rewrite the store, dropping any existing entry for $PWD. If $1 is non-empty
+# it is appended as the new title for $PWD.
+_ktt_write_override() {
+  local title="$1" tab=$'\t' tmp dir t
+  mkdir -p -- "${_ktt_override_file:h}"
+  tmp="${_ktt_override_file}.tmp.$$"
+  : > "$tmp"
+  if [[ -f "$_ktt_override_file" ]]; then
+    while IFS=$'\t' read -r dir t || [[ -n "$dir" ]]; do
+      [[ "$dir" == "$PWD" ]] && continue
+      print -r -- "${dir}${tab}${t}"
+    done < "$_ktt_override_file" >> "$tmp"
+  fi
+  [[ -n "$title" ]] && print -r -- "${PWD}${tab}${title}" >> "$tmp"
+  mv -- "$tmp" "$_ktt_override_file"
+}
+
+# Pin a custom kitty tab title for the current directory. Persisted centrally,
+# keyed by absolute path, and overrides the automatic project-aware title.
+#
+#   tab-title Deploy prod   # pin a title for $PWD (quotes optional)
+#   tab-title               # show the pinned title for $PWD, if any
+#   tab-title -c            # clear the pinned title for $PWD
+tab-title() {
+  case "$1" in
+    -c | --clear)
+      _ktt_write_override ""
+      _ktt_cached_dir=""   # force the auto title to recompute
+      _ktt_set_title
+      ;;
+    "")
+      local REPLY
+      if _ktt_lookup_override; then
+        print -r -- "$REPLY"
+      else
+        print -r -- "no pinned title for $PWD"
+      fi
+      ;;
+    *)
+      _ktt_write_override "$*"
+      print -n "\e]2;$*\a"
+      ;;
+  esac
+}

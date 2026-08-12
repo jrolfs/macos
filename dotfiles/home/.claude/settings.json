@@ -1,5 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 90,
   "includeCoAuthoredBy": true,
   "permissions": {
     "allow": [
@@ -18,7 +19,26 @@
     ],
     "defaultMode": "default"
   },
+  "model": "claude-opus-4-8[1m]",
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true,
+    "worktrunk@worktrunk": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "worktrunk": {
+      "source": {
+        "source": "github",
+        "repo": "max-sixty/worktrunk"
+      }
+    }
+  },
+  "effortLevel": "xhigh",
+  "tui": "default",
   "autoMemoryEnabled": true,
   "editorMode": "vim",
-  "preferredNotifChannel": "kitty"
+  "preferredNotifChannel": "kitty",
+  "autoCompactEnabled": true
 }

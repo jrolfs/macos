@@ -4,6 +4,8 @@ alias vim=nvim
 alias hs=homeshick
 
 alias J=fasd_cd
+alias jj="fasd_cd -tdi"
+alias zz=__zoxide_zi
 
 # Git
 
@@ -26,8 +28,6 @@ fi
 if command -v exa >&/dev/null 2>&1; then
   alias ls="$XDG_DATA_HOME/exa-wrapper.sh"
 fi
-
-alias jj="fasd_cd -tdi"
 
 # Images
 

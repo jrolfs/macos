@@ -120,7 +120,7 @@ style = ""
 [git_branch]
 style = "purple"
 symbol = " "
-truncation_length = 30
+truncation_length = 40
 format = "on [$symbol$branch]($style) "
 
 [git_state]

@@ -246,3 +246,10 @@ copy = "wt step copy-ignored"
 [projects."github.com/meterup/frontends"]
 post-create.direnv = "direnv allow"
 post-create.deps = "pnpm install"
+
+# [projects."github.com/meterup/frontends".post-start]
+# direnv = "direnv allow"
+# deps = "pnpm install"
+
+[commit.generation]
+command = "MAX_THINKING_TOKENS=0 claude -p --no-session-persistence --model=haiku --tools='' --disable-slash-commands --setting-sources='' --system-prompt=''"

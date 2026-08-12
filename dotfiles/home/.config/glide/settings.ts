@@ -64,3 +64,29 @@ const scaleToggle = glide.excmds.create(
 );
 // oxfmt-ignore
 declare global { interface ExcmdRegistry { scale_toggle: typeof scaleToggle; } }
+
+const TOOLS_HOSTS = ['bottom', 'right', 'window'] as const;
+
+type ToolsHost = (typeof TOOLS_HOSTS)[number];
+
+const isToolsHost = (value: string): value is ToolsHost =>
+  TOOLS_HOSTS.includes(value as ToolsHost);
+
+const toolsPlace = glide.excmds.create(
+  {
+    name: 'tools_place',
+    description: 'Dock devtools bottom/right, or detach into its own window',
+  },
+  ({ args_arr: [arg] }) => {
+    assert(
+      arg && isToolsHost(arg),
+      `Placement must be one of: ${TOOLS_HOSTS.join(', ')}`,
+    );
+
+    // Applied the next time devtools is opened (Firefox reads this pref at
+    // toolbox-open time, so it won't reposition an already-open toolbox).
+    glide.prefs.set('devtools.toolbox.host', arg);
+  },
+);
+// oxfmt-ignore
+declare global { interface ExcmdRegistry { tools_place: typeof toolsPlace; } }

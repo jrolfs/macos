@@ -27,3 +27,5 @@ tags
 **/.claude/settings.local.json
 
 jamie.*.code-workspace
+
+.atuin/

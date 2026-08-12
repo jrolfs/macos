@@ -118,6 +118,7 @@
   ignore-devbox = config core.excludesfile '~/.config/git/ignore-devbox'
   ignore-web-react = config core.excludesfile '~/.config/git/ignore-web-react'
   ignore-devbox-and-claude = config core.excludesfile '~/.config/git/ignore-devbox-and-claude'
+  ignore-devbox-and-claude-and-zed = config core.excludesfile '~/.config/git/ignore-devbox-and-claude-and-zed'
   ignore-clear = config core.excludesfile ''
 
 
@@ -194,11 +195,10 @@
 ; GitHub's gh CLI adds this stuff without even asking
 
 [credential "https://github.com"]
-  helper =
   helper = !/run/current-system/sw/bin/gh auth git-credential
 [credential "https://gist.github.com"]
-  helper =
   helper = !/run/current-system/sw/bin/gh auth git-credential
 
 [url "ssh://git@github.com/"]
   insteadOf = https://github.com/
+

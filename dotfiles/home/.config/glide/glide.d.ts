@@ -1,5 +1,5 @@
 /* ======================================================
-                Glide version: 0.1.61a
+                Glide version: 0.1.63a
    ====================================================== */
 // 
 
@@ -495,6 +495,12 @@ declare const GLIDE_EXCOMMANDS: [
 				readonly position: 0;
 			};
 		};
+	},
+	{
+		readonly name: "mode_reset";
+		readonly description: "Reset the mode to whatever the currently focused element implies. Note this always applies, even from `ignore` mode";
+		readonly content: true;
+		readonly repeatable: false;
 	},
 	{
 		readonly name: "hint";
@@ -1572,14 +1578,36 @@ declare global {
 			 * }
 			 * glide.modes.register('leap', { caret: 'block' })
 			 * ```
+			 *
+			 * To define a mode that behaves like the builtin `ignore` mode, i.e.
+			 * one where Glide does not automatically switch modes, set
+			 * `switch_mode_on_focus` to `false`:
+			 *
+			 * ```typescript
+			 * glide.modes.register('leap', { caret: 'line', switch_mode_on_focus: false })
+			 * ```
 			 */
 			register<Mode extends keyof GlideModes>(mode: Mode, opts: {
 				caret: "block" | "line" | "underline";
+				/**
+				 * Override the global {@link glide.o.switch_mode_on_focus} option
+				 * for this mode.
+				 *
+				 * When `false`, Glide will not automatically switch modes while in this
+				 * mode (on focus, blur, etc), exactly like the builtin `ignore` mode.
+				 *
+				 * When not set, the global `switch_mode_on_focus` option is used.
+				 */
+				switch_mode_on_focus?: boolean;
 			}): void;
 			/**
 			 * List all registered modes.
 			 */
 			list(): GlideMode[];
+			/**
+			 * Returns the registered config for the given `mode`, or `undefined` if the mode has not been registered.
+			 */
+			get(mode: GlideMode): glide.ModeConfig | undefined;
 		};
 	};
 	/**
@@ -2383,6 +2411,13 @@ declare global {
 		export type ResolvedHint = glide.Hint & {
 			label: string;
 		};
+		/**
+		 * The config a mode was registered with, see {@link glide.modes.register}.
+		 */
+		export interface ModeConfig {
+			caret: "block" | "line" | "underline";
+			switch_mode_on_focus?: boolean;
+		}
 		export type HintLabelGenerator = (ctx: HintLabelGeneratorProps) => string[] | Promise<string[]>;
 		export type HintLabelGeneratorProps = {
 			hints: glide.Hint[];

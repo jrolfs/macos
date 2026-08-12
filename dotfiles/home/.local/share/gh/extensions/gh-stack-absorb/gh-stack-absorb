@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+json="$(gh stack view --json)" || {
+  echo "gh-stack-absorb: not in a gh stack (run from a stacked branch)" >&2
+  exit 1
+}
+parent="$(echo "$json" | jq -er '
+  (.branches | map(.name)) as $n
+  | (.branches | to_entries[] | select(.value.isCurrent) | .key) as $i
+  | if $i == 0 then .trunk else $n[$i-1] end')"
+
+# Fold fixup!/squash! commits into their targets, non-interactively
+# (GIT_SEQUENCE_EDITOR=true accepts the autosquash-generated todo without an editor).
+GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash "$parent"
+
+# Re-align the branches above this one, then force-push + resync the PRs.
+# NOTE: this rewrites history and force-pushes the stack's PRs.
+gh stack rebase --upstack
+gh stack submit --auto
