@@ -1,6 +1,6 @@
 cask "lingon-pro" do
-  version "10.2.2"
-  sha256 "dbb77bc399931b1e1634d5c2e446eb953193fee1355d8de0453a1dfea15071b8"
+  version "10.2.4"
+  sha256 "21d214de420d191b21413c53c2b50d8a5aef33fbc4c89dc0729faddc8064393b"
 
   url "https://www.peterborgapps.com/downloads/LingonPro#{version.major}.zip"
   name "Lingon Pro"

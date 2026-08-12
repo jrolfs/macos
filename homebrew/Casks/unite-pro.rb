@@ -1,6 +1,6 @@
 cask "unite-pro" do
-  version "1.4"
-  sha256 "eb52b515250ee178c389201b1c2820ce601309a845e5cd3afdab74ef1354c0e5"
+  version "1.5"
+  sha256 "3d6f92f8e96b1e0270cbd91da4eaaf09ca3faec55dbf9e833d51c1b9cd0cb7f0"
 
   url "https://bzgdownloads.s3.amazonaws.com/Unite/Unite+Pro.zip"
   name "Unite Pro"

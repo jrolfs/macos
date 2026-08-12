@@ -8,7 +8,9 @@ end)
 
 _.bindHyper("c", require("modules.finder").copyPath)
 
-require('modules.autohide').start({
+local autohide = require('modules.autohide')
+
+autohide.start({
   "1Password",
   "Dash",
   "DevDocs",
@@ -23,6 +25,7 @@ require('modules.autohide').start({
   "Reminders",
   "Resilio Sync",
   "Sirius",
+  -- { name = "Spotify", when = autohide.maxDisplays(1) },
   "Spotify",
   "Yaak",
   "YouTube",
@@ -37,11 +40,15 @@ local zed = require('modules.zed')
 _.bindHyper("z", zed.toast.view)
 _.bindHyper("x", zed.toast.dismiss)
 
+local displays = require('modules.displays')
+
+_.bindHyper("d", displays.choose)
+
 require("modules.notifications").bind({
   leader = { {"ctrl", "alt", "cmd", "shift"}, "n" },
   activate = "return",
-  details = "d",
-  close = "c",
+  details = "o",
+  close = "x",
   next = "k",
   previous = "j",
 })
