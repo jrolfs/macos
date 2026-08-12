@@ -32,6 +32,17 @@ in
 
   spicetify-cli = masterPkgs.spicetify-cli;
 
+  # mcp-nixos runs its pytest suite at build time. `test_read_text_file`
+  # picks an arbitrary small text file out of the live /nix/store, reads it,
+  # and asserts the output contains no "Error" — but plenty of store files
+  # legitimately contain that substring (e.g. highlight.pack.js's minified
+  # JS: SyntaxError, etc.), so the test fails non-deterministically depending
+  # on which store path it happens to land on. The read itself works fine;
+  # the assertion is just naive. Drop this once upstream fixes the test.
+  mcp-nixos = super.mcp-nixos.overridePythonAttrs (old: {
+    disabledTests = (old.disabledTests or [ ]) ++ [ "test_read_text_file" ];
+  });
+
   # zshcs — Zsh LSP server (github:yuys13/zshcs), not in nixpkgs. Pinned via
   # `pkgs.npins` (see npins/sources.json); update with `npins update zshcs`.
   # Reuses upstream flake.nix's build recipe: a plain buildRustPackage with
