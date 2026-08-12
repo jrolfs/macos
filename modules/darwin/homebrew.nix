@@ -20,8 +20,9 @@ in
 
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "zap";
-  # Homebrew 4.7+ requires explicit confirmation for `brew bundle --cleanup`.
-  homebrew.onActivation.extraFlags = [ "--force-cleanup" ];
+  # No --force-cleanup in extraFlags: nix-darwin passes it itself now (for
+  # Homebrew 4.7+), so setting it here produced `--force-cleanup
+  # --force-cleanup`. It was needed against the older pinned nix-darwin.
   homebrew.enable = true;
 
   # Clear immutable flags from any applications managed by

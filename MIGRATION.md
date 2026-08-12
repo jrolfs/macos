@@ -173,6 +173,12 @@ Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
    `mv ~/.homesick/repos/macos ~/.config/system`, add `hosts/newt/`, switch.
    Consider `cleanup = "uninstall"` (not `zap`) for the first switch.
 
+## Backporting fixes to the pre-migration setup
+
+`newt` runs the old setup until phase 3, so bugs found while migrating often
+still affect it. Candidates are tracked in [BACKPORT.md](BACKPORT.md) — with the
+`OP_CONFIG_DIR` device-local-state fix being the one that actively matters today.
+
 ## Keeping up with drift (until phase 3)
 
 The old `dot` / `macos` `master` branches are still edited via homeshick until
