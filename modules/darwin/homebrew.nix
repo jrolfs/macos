@@ -34,19 +34,6 @@ in
     ''
   );
 
-  # Temporarily remove the HTTPS→SSH git URL rewrite during brew
-  # activation — brew sanitizes SSH_AUTH_SOCK so gpg-agent SSH auth
-  # is unavailable, but the global insteadOf rewrites all HTTPS clones
-  # to SSH, causing formula fetches to fail.
-  system.activationScripts.homebrew.text = lib.mkMerge [
-    (lib.mkBefore ''
-      sudo -u ${config.homebrew.user} git config --file ~${config.homebrew.user}/.config/git/config --unset-all url.git@github.com:.insteadOf 2>/dev/null || true
-    '')
-    (lib.mkAfter ''
-      sudo -u ${config.homebrew.user} git config --file ~${config.homebrew.user}/.config/git/config url.git@github.com:.insteadOf https://github.com/
-    '')
-  ];
-
   homebrew.global.brewfile = true;
 
   homebrew.taps = [
@@ -57,14 +44,11 @@ in
       # GIT_TERMINAL_PROMPT=0 — so on a machine with no cached GitHub
       # credential the clone dies with "could not read Username". (It works on
       # a long-lived machine only because a credential is sitting in the
-      # keychain, which is not reproducible.) Note the activation script below
-      # deliberately unsets the global HTTPS→SSH `insteadOf` rewrite, so that
-      # can't rescue it either.
+      # keychain, which is not reproducible.)
       #
       # clone_target pins this tap to SSH, which authenticates with the
       # bootstrap-minted ~/.ssh/id_ed25519. That key is passphraseless, so it
-      # needs no agent — which is exactly why brew sanitizing SSH_AUTH_SOCK
-      # (the reason the insteadOf workaround exists) doesn't break it.
+      # needs no agent — brew sanitizing SSH_AUTH_SOCK doesn't affect it.
       name = "meterup/packages";
       clone_target = "git@github.com:meterup/homebrew-packages.git";
       trusted = true;
