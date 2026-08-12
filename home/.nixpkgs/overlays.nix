@@ -43,6 +43,19 @@ in
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_read_text_file" ];
   });
 
+  # worktrunk's test suite includes two tests that probe the OS process table
+  # (reading its own PID and a spawned child `sh`), which the Nix build sandbox
+  # on darwin doesn't expose — they panic with "own pid must be readable from
+  # the process table" / "child sh must be visible to the probe". The package
+  # already skips other sandbox-hostile tests via checkFlags; append these two.
+  # Drop once upstream gates them on process-table availability.
+  worktrunk = super.worktrunk.overrideAttrs (old: {
+    checkFlags = (old.checkFlags or [ ]) ++ [
+      "--skip=shell::utils::tests::test_process_name_and_ppid_self"
+      "--skip=shell::utils::tests::test_probe_reports_invoked_name_for_sh"
+    ];
+  });
+
   # zshcs — Zsh LSP server (github:yuys13/zshcs), not in nixpkgs. Pinned via
   # `pkgs.npins` (see npins/sources.json); update with `npins update zshcs`.
   # Reuses upstream flake.nix's build recipe: a plain buildRustPackage with
