@@ -69,7 +69,10 @@ export SKIM_DEFAULT_COMMAND="fd --type f --hidden"
 export NIXPKGS_ALLOW_UNFREE=1
 
 # 1Password
-export OP_CONFIG_DIR="${HOMESHICK_KINGDOM}/private/home/.config/op"
+# No OP_CONFIG_DIR override: op's config holds device-local state (account
+# registrations keyed to a per-device UUID), so pointing every machine at one
+# synced copy makes them fight — each signin invalidates the others. Let op use
+# its own per-machine ~/.config/op.
 
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 

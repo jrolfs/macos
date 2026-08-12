@@ -90,14 +90,15 @@ const accountLabel = (account: OpAccount): string =>
 /**
  * Environment for spawned `op` processes.
  *
- * macOS GUI apps don't inherit the shell environment, so `PATH` and the
- * non-standard `OP_CONFIG_DIR` (this repo keeps it in the encrypted `private`
- * kingdom) must be set explicitly. `extend_env` keeps `HOME` etc. so the
- * desktop-app/Touch ID integration still resolves.
+ * macOS GUI apps don't inherit the shell environment, so `PATH` must be set
+ * explicitly. `extend_env` keeps `HOME` etc. so the desktop-app/Touch ID
+ * integration still resolves — which also means `op` finds its own
+ * `~/.config/op`. No `OP_CONFIG_DIR` override: that config holds device-local
+ * state (account registrations keyed to a per-device UUID), so a synced copy
+ * shared between machines makes them fight.
  */
 const OP_ENV: Record<string, string> = {
   PATH: '/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin',
-  OP_CONFIG_DIR: `${glide.path.home_dir}/.homesick/repos/private/home/.config/op`,
 };
 
 /**
