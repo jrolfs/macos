@@ -52,7 +52,23 @@ in
   homebrew.taps = [
     { name = "jorgelbg/tap"; trusted = true; }
     { name = "jrolfs/tap"; trusted = true; }
-    { name = "meterup/packages"; trusted = true; }
+    {
+      # meterup/homebrew-packages is private, and brew taps over HTTPS with
+      # GIT_TERMINAL_PROMPT=0 — so on a machine with no cached GitHub
+      # credential the clone dies with "could not read Username". (It works on
+      # a long-lived machine only because a credential is sitting in the
+      # keychain, which is not reproducible.) Note the activation script below
+      # deliberately unsets the global HTTPS→SSH `insteadOf` rewrite, so that
+      # can't rescue it either.
+      #
+      # clone_target pins this tap to SSH, which authenticates with the
+      # bootstrap-minted ~/.ssh/id_ed25519. That key is passphraseless, so it
+      # needs no agent — which is exactly why brew sanitizing SSH_AUTH_SOCK
+      # (the reason the insteadOf workaround exists) doesn't break it.
+      name = "meterup/packages";
+      clone_target = "git@github.com:meterup/homebrew-packages.git";
+      trusted = true;
+    }
   ];
 
   homebrew.brews = [
