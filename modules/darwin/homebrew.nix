@@ -4,7 +4,9 @@ let
   # Per-host cask/masApps exclusions — typically apps installed by
   # organization device management. Keyed on the short hostname.
   excludeByHost = {
-    ala = [ ];
+    # Xcode is a many-GB mas install; skip it during provisioning and add it
+    # by hand (or drop this entry) when it's actually needed.
+    ala = [ "Xcode" ];
     newt = [ "Xcode" "zoom" ];
     orolo = [ "google-chrome" "Xcode" "zoom" ];
     yours-truly = [ "Xcode" ];
