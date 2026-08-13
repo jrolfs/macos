@@ -145,27 +145,40 @@ nix develop 'path:.'
 Also worth knowing: hardlinks silently break when an editor saves atomically
 (write-temp-then-rename), which makes `ln-h` fragile for actively edited files.
 
-## The CLI
+## The `secrets` CLI
 
-A small CLI to remove manual 1Password interaction where possible, and to give
-`op://` references a **committed source of truth**. References are not secrets,
-so the manifest can be reviewed and diffed — which is what makes `materialize`
-a single command, i.e. the `hs link private` equivalent.
+Built — lives in the **bootstrap repo** (`src/secrets.ts`), which already had the
+`op` plumbing, zod schemas, and phase logging, and is already cloned on every
+machine.
 
 ```
-secrets list                      # manifest: name → op:// ref → target path + mode
-secrets add <name> --file <path>  # create/update a 1Password item, record the ref
-secrets add <name> --note         # manual-entry items (e.g. Resilio linking code)
-secrets materialize [<name>…]     # write targets 0600, or op inject templates
-secrets gpg export                # secret key + ownertrust → documents, update manifest
-secrets gpg import                # what the gpg-imported bootstrap phase calls
-secrets check                     # every ref resolves, every target present
+secrets list                        # manifest: name → op:// ref → target, host-marked
+secrets check                       # every reference resolves
+secrets materialize [<name>…]       # write entries with a target to disk (0600)
+secrets add <name> --reference op://… [--target --mode --hosts --kind --description]
+secrets gpg export [<keyring>]      # capture a keyring → 1Password, record refs
+secrets gpg import                  # import every keyring for this host
 ```
 
-**Where it lives:** the code belongs in the **bootstrap repo** — it already has
-the `op` plumbing (`readSecret`, `readDocument`), zod schemas, and phase logging,
-and it's already cloned on every machine. The nix config then consumes that repo
-as a flake input and puts the CLI on `PATH`:
+The manifest is `secrets.json` in the bootstrap repo. It records `op://`
+references — **not secrets** — so it's committed and reviewable, and a lost
+reference is a `git log` away rather than a hunt through the vault. That's what
+makes `materialize` a single command, i.e. the `hs link private` equivalent.
+
+Each entry carries `hosts`, so a secret can be gated to specific machines
+(`["*"]` for all). `gnupgHome` routes GPG entries to the right keyring.
+
+**Two ways to run it**, which is what resolves the migration chicken-and-egg:
+
+```bash
+nix run github:jrolfs/bootstrap#secrets -- list   # no checkout needed
+nix run .#secrets -- gpg export                   # from a clone; required for
+                                                  # anything that writes the
+                                                  # manifest (store copy is
+                                                  # read-only)
+```
+
+Plus, once wired, on `PATH` via the system flake:
 
 ```nix
 inputs.bootstrap.url = "github:jrolfs/bootstrap";
@@ -173,8 +186,43 @@ inputs.bootstrap.url = "github:jrolfs/bootstrap";
 environment.systemPackages = [ inputs.bootstrap.packages.${system}.secrets ];
 ```
 
-One implementation, used by bootstrap phases *and* interactively. The existing
-`gpg-imported` phase becomes a caller of the same module as `secrets gpg import`.
+One implementation, used by bootstrap phases *and* interactively — the
+`gpg-imported` phase calls the same module as `secrets gpg import`.
+
+### The dedicated vault
+
+`onePassword.secretsVault` is where the CLI *creates* items, kept separate from
+`vault` (used to expand short-form references) so a dedicated vault doesn't break
+existing references pointing at the personal one.
+
+Worth having beyond tidiness: **1Password service accounts grant access per
+vault**, so a headless host can later be given a token scoped to just these
+secrets rather than a ~1300-item personal vault. Create it with
+`op vault create Infrastructure`.
+
+### Multiple keyrings
+
+`gpg.keyrings` in the bootstrap config lists keyrings, each with a name, an
+optional `GNUPGHOME`, an optional fingerprint, and `hosts`.
+
+This exists because **GnuPG does not partition secret keys by keyring**:
+`--keyring` selects a public keybox, but secret keys all live in one flat
+`private-keys-v1.d` per `GNUPGHOME`. So `gpg --keyring=fondo.kbx` cannot keep the
+fondo secret key off a work machine — only a separate home can.
+
+Configured today:
+
+| Keyring | GNUPGHOME | Hosts | Notes |
+|---|---|---|---|
+| `default` | `~/.gnupg` | all | fingerprint `91C155A7…762AC2F3` |
+| `fondo` | `~/.gnupg-fondo` | `newt`, `ala` | no fingerprint → exports every key in that home |
+
+Access the secondary one with `GNUPGHOME=~/.gnupg-fondo gpg …` (an alias is
+warranted). Don't put `keyring` in `gpg.conf` — that applies globally and
+defeats the separation.
+
+No `.kbx` handling is needed anywhere: an armored secret-key export embeds the
+public half, so `import` reconstructs the public keybox too.
 
 ## Sequencing
 
@@ -194,12 +242,49 @@ One implementation, used by bootstrap phases *and* interactively. The existing
 
 ## Status
 
-- **Done:** `gpg-imported` bootstrap phase — resolves `gpg`, skips when the
-  fingerprint is already present, pipes the armored key from a 1Password
-  document straight into `gpg --batch --import` on stdin (never a temp file,
-  never in argv), then imports ownertrust. Inert until the document references
-  are configured; it prints the exact `op document create` commands.
-- **Done:** `readDocument()` in the bootstrap's `onepassword.ts`, with the same
-  re-auth-and-retry behaviour as `readSecret`.
-- **Not started:** the manifest, the `secrets` CLI, the flake-input packaging,
-  and every migration step above.
+**Written and typechecked, but not yet exercised against a real vault.** Only
+`secrets help` has actually been run — the first `gpg export` is the real test.
+
+- **Done:** the `secrets` CLI (`list`, `check`, `materialize`, `add`,
+  `gpg export`, `gpg import`), the zod-validated `secrets.json` manifest with
+  per-entry `hosts` gating, and `secrets` exposed as both a flake package and app.
+- **Done:** `gpg-imported` bootstrap phase, now iterating `gpg.keyrings` and
+  skipping keyrings gated to other hosts. Key material is piped straight into
+  `gpg --batch --import` on stdin — never a temp file, never in argv.
+- **Done:** `readDocument()` and `createDocument()` in `onepassword.ts`, both with
+  re-auth-and-retry. `createDocument` writes via stdin and edits in place when the
+  title exists, so references (and therefore manifest entries) stay stable across
+  re-exports.
+- **Done:** `onePassword.secretsVault`, and the dead `darwin` input removed from
+  the bootstrap flake (it would have dragged an extra nix-darwin + nixpkgs into
+  any consumer's closure).
+- **Not started:** creating the `Infrastructure` vault, the first export, the
+  `fondo` home migration (see below), wiring the CLI onto `PATH` via the system
+  flake, migrating the remaining secrets, and the prune.
+
+### Migrating `fondo` into its own GNUPGHOME
+
+The config expects `~/.gnupg-fondo`, but the keys currently live in the default
+home, reachable via `--keyring=fondo.kbx`. One-time move, per fondo key:
+
+```bash
+export FONDO=<fondo-key-fingerprint>
+
+mkdir -p -m 700 ~/.gnupg-fondo
+
+# Move: export from the default home, import into the new one.
+gpg --armor --export-secret-keys "$FONDO" \
+  | GNUPGHOME=~/.gnupg-fondo gpg --batch --import
+
+# Verify it landed before removing anything.
+GNUPGHOME=~/.gnupg-fondo gpg -K
+
+# Only then remove from the default home (secret first, then public).
+gpg --delete-secret-keys "$FONDO"
+gpg --delete-keys "$FONDO"
+```
+
+Then `nix run .#secrets -- gpg export fondo` records it. Keep a backup of the
+original `fondo.kbx` until the new home is verified — `--delete-secret-keys` is
+not reversible.
+
