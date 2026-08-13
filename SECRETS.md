@@ -198,7 +198,7 @@ existing references pointing at the personal one.
 Worth having beyond tidiness: **1Password service accounts grant access per
 vault**, so a headless host can later be given a token scoped to just these
 secrets rather than a ~1300-item personal vault. Create it with
-`op vault create Infrastructure`.
+`op vault create Secrets`.
 
 ### Multiple keyrings
 
@@ -282,7 +282,7 @@ them.
 - **Done:** `onePassword.secretsVault`, and the dead `darwin` input removed from
   the bootstrap flake (it would have dragged an extra nix-darwin + nixpkgs into
   any consumer's closure).
-- **Not started:** creating the `Infrastructure` vault, the first export, the
+- **Not started:** creating the `Secrets` vault, the first export, the
   `fondo` home migration (see below), wiring the CLI onto `PATH` via the system
   flake, migrating the remaining secrets, and the prune.
 
