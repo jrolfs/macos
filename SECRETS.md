@@ -221,8 +221,32 @@ Access the secondary one with `GNUPGHOME=~/.gnupg-fondo gpg …` (an alias is
 warranted). Don't put `keyring` in `gpg.conf` — that applies globally and
 defeats the separation.
 
-No `.kbx` handling is needed anywhere: an armored secret-key export embeds the
-public half, so `import` reconstructs the public keybox too.
+### What a complete keyring capture requires
+
+Three distinct artifacts — this caught me out once, so it's worth being explicit.
+`--export-secret-keys` embeds only each secret key's *own* public half, and
+ownertrust is not key material at all:
+
+| Command | Contents | Backing file |
+|---|---|---|
+| `gpg --armor --export` | **all** public keys — yours *and* other people's | `pubring.kbx` |
+| `gpg --armor --export-secret-keys` | your secret keys | `private-keys-v1.d/` |
+| `gpg --export-ownertrust` | trust *assignments*: fingerprint → level | `trustdb.gpg` |
+
+Exporting only the last two silently drops every third-party public key, leaving
+a provisioned machine unable to encrypt to anyone. `secrets gpg export` captures
+all three, per keyring, as `<name>-{public-keys,secret-keys,ownertrust}`.
+
+Import order is public → secret → ownertrust, since ownertrust references keys by
+fingerprint. Public keys are re-imported on every run (idempotent) so a keyring
+that gains correspondents converges rather than being skipped forever.
+
+Not captured, deliberately: `gpg.conf` / `gpg-agent.conf` / `scdaemon.conf`
+(config — they belong in `dotfiles/home/.gnupg/`, delivered by home-manager),
+`sshcontrol` (keygrips, non-secret), and sockets / `random_seed` / lock files
+(machine-local runtime state, never sync). `openpgp-revocs.d/` revocation
+certificates are also not captured — worth a separate backup if you care about
+them.
 
 ## Sequencing
 
