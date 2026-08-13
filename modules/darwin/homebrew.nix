@@ -20,6 +20,16 @@ in
 
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "zap";
+  # nix-darwin defaults this false (so repeated switches are idempotent), which
+  # passes `--no-upgrade` to `brew bundle` — meaning an already-installed cask is
+  # never upgraded. That silently breaks the self-managed jrolfs/tap casks: bump
+  # the pinned version + sha256 in the .rb, re-switch, and nothing happens.
+  #
+  # Trade-off accepted here: switches are no longer version-idempotent, since
+  # every managed cask (Firefox, Chrome, …) may also upgrade on any switch. The
+  # narrower alternative is to leave this false and upgrade the two self-managed
+  # casks explicitly — see the note in tap.nix.
+  homebrew.onActivation.upgrade = true;
   # No --force-cleanup in extraFlags: nix-darwin passes it itself now (for
   # Homebrew 4.7+), so setting it here produced `--force-cleanup
   # --force-cleanup`. It was needed against the older pinned nix-darwin.
