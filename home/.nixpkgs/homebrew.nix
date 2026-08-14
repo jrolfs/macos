@@ -133,12 +133,18 @@ in
     "zoom"
 
     # Fonts
+
+    "font-atkinson-hyperlegible"
     "font-fira-code-nerd-font"
+    "font-geist"
     "font-hack-nerd-font"
     "font-ibm-plex"
+    "font-inter"
     "font-iosevka"
     "font-iosevka-slab"
     "font-jetbrains-mono"
     "font-jetbrains-mono-nerd-font"
+    "font-public-sans"
+
   ];
 }
