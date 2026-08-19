@@ -87,6 +87,8 @@
         ];
       };
 
+      forSystems = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ];
+
       mkNixos = hostname: system: nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs hostname userName; };
@@ -109,5 +111,21 @@
       # darwinConfigurations.newt = mkDarwin "newt" "aarch64-darwin";  # phase 3
 
       nixosConfigurations.irulan = mkNixos "irulan" "x86_64-linux";  # phase 2
+
+      # Node + pnpm for editing the Glide browser's TypeScript config in
+      # dotfiles/home/.config/glide, whose .envrc is `use flake .#glide` —
+      # nix searches up from there and finds this flake.
+      #
+      # Deliberately not a nested flake in that directory: nix resolves one to
+      # `git+file://…?dir=dotfiles/home/.config/glide`, so this whole repo gets
+      # copied to the store either way, and a second flake.lock and second
+      # nixpkgs would buy nothing for a two-package shell.
+      devShells = forSystems (system:
+        let pkgs = nixpkgs.legacyPackages.${system};
+        in {
+          glide = pkgs.mkShell {
+            packages = [ pkgs.nodejs_24 pkgs.pnpm ];
+          };
+        });
     };
 }

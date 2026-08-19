@@ -69,13 +69,18 @@ in
     "starship".source = "${dotfiles}/.config/starship";
     "starship.toml".source = "${dotfiles}/.config/starship.toml";
     "spicetify".source = "${dotfiles}/.config/spicetify";
-    "glide".source = "${dotfiles}/.config/glide";
 
     # zed writes back into its config dir (settings.json, keymap.json
     # change from the UI) — mkOutOfStoreSymlink points at the real
     # working copy so writes land in the repo where they can be committed.
     "zed".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/zed";
+
+    # Same as zed, three times over: Glide regenerates glide.d.ts into this
+    # directory, it's a pnpm project (node_modules), and its .envrc has direnv
+    # writing .direnv/ there. All three need a writable path.
+    "glide".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/glide";
 
     # nvim comes from the dedicated neovim flake input. recursive = true
     # makes each file an individual symlink so nvim can drop runtime
