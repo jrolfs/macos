@@ -192,7 +192,7 @@ Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
 ## Secrets & private configuration
 
 Getting off git-crypt, splitting genuine secrets (→ 1Password) from private
-non-secret overlays (→ plain symlinks), and a `secrets` CLI to manage the
+non-secret overlays (→ plain symlinks), and `bootstrap secrets` to manage the
 `op://` references. See [SECRETS.md](SECRETS.md) — independent of this
 migration; the prune and split steps can happen on either side of it.
 

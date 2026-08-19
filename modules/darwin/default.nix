@@ -9,7 +9,7 @@ in
 
   imports = [
 
-    ../secrets.nix
+    ../bootstrap.nix
 
     ./daemons.nix
     ./defaults.nix

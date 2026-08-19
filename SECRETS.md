@@ -145,19 +145,25 @@ nix develop 'path:.'
 Also worth knowing: hardlinks silently break when an editor saves atomically
 (write-temp-then-rename), which makes `ln-h` fragile for actively edited files.
 
-## The `secrets` CLI
+## The `bootstrap secrets` CLI
 
 Built — lives in the **bootstrap repo** (`src/secrets.ts`), which already had the
 `op` plumbing, zod schemas, and phase logging, and is already cloned on every
 machine.
 
+It's a subcommand tree under the one `bootstrap` binary rather than its own
+`secrets` binary: that keeps every generic name off `PATH`, most importantly
+`gpg`, which as a top-level command would shadow the real one.
+
 ```
-secrets list                        # manifest: name → op:// ref → target, host-marked
-secrets check                       # every reference resolves
-secrets materialize [<name>…]       # write entries with a target to disk (0600)
-secrets add <name> --reference op://… [--target --mode --hosts --kind --description]
-secrets gpg export [<keyring>]      # capture a keyring → 1Password, record refs
-secrets gpg import                  # import every keyring for this host
+bootstrap secrets list              # manifest: name → op:// ref → target, host-marked
+bootstrap secrets check             # every reference resolves
+bootstrap secrets materialize [<name>…]
+                                    # write entries with a target to disk (0600)
+bootstrap secrets add <name> --reference op://… [--target --mode --hosts --kind --description]
+bootstrap secrets gpg export [<keyring>]
+                                    # capture a keyring → 1Password, record refs
+bootstrap secrets gpg import        # import every keyring for this host
 ```
 
 The manifest is `secrets.json` in the bootstrap repo. It records `op://`
@@ -171,23 +177,23 @@ Each entry carries `hosts`, so a secret can be gated to specific machines
 **Two ways to run it**, which is what resolves the migration chicken-and-egg:
 
 ```bash
-nix run github:jrolfs/bootstrap#secrets -- list   # no checkout needed
-nix run .#secrets -- gpg export                   # from a clone; required for
-                                                  # anything that writes the
-                                                  # manifest (store copy is
-                                                  # read-only)
+nix run github:jrolfs/bootstrap#cli -- secrets list  # no checkout needed
+nix develop -c bootstrap secrets gpg export          # from a clone; required for
+                                                     # anything that writes the
+                                                     # manifest (store copy is
+                                                     # read-only)
 ```
 
-Plus, once wired, on `PATH` via the system flake:
+Plus, once wired, on `PATH` via the system flake — see `modules/bootstrap.nix`:
 
 ```nix
 inputs.bootstrap.url = "github:jrolfs/bootstrap";
 # …
-environment.systemPackages = [ inputs.bootstrap.packages.${system}.secrets ];
+environment.systemPackages = [ inputs.bootstrap.packages.${system}.bootstrap ];
 ```
 
 One implementation, used by bootstrap phases *and* interactively — the
-`gpg-imported` phase calls the same module as `secrets gpg import`.
+`gpg-imported` phase calls the same module as `bootstrap secrets gpg import`.
 
 ### The dedicated vault
 
@@ -254,8 +260,9 @@ ownertrust is not key material at all:
 | `gpg --export-ownertrust` | trust *assignments*: fingerprint → level | `trustdb.gpg` |
 
 Exporting only the last two silently drops every third-party public key, leaving
-a provisioned machine unable to encrypt to anyone. `secrets gpg export` captures
-all three, per keyring, as `<name>-{public-keys,secret-keys,ownertrust}`.
+a provisioned machine unable to encrypt to anyone. `bootstrap secrets gpg export`
+captures all three, per keyring, as
+`<name>-{public-keys,secret-keys,ownertrust}`.
 
 Import order is public → secret → ownertrust, since ownertrust references keys by
 fingerprint. Public keys are re-imported on every run (idempotent) so a keyring
@@ -274,9 +281,9 @@ them.
    `.travis/config.yml`. Independent, immediate, shrinks everything downstream.
 2. **Split** — even if only on paper at first: mark each remaining path as
    secret / private-not-secret / device-local.
-3. **GPG first** (priority). `secrets gpg export` → 1Password documents → set
-   `gpg.{secretKeyOpReference,ownertrustOpReference}` in the bootstrap config.
-   Half of this exists already (see Status).
+3. **GPG first** (priority). `bootstrap secrets gpg export` → 1Password documents
+   → set `gpg.{secretKeyOpReference,ownertrustOpReference}` in the bootstrap
+   config. Half of this exists already (see Status).
 4. **Migrate the remaining secrets one at a time**, with `materialize` proving
    each before removing it from the castle.
 5. **Then `op plugin`** for tools that support it — may eliminate several
@@ -287,11 +294,12 @@ them.
 ## Status
 
 **Written and typechecked, but not yet exercised against a real vault.** Only
-`secrets help` has actually been run — the first `gpg export` is the real test.
+`bootstrap help` has actually been run — the first `gpg export` is the real test.
 
-- **Done:** the `secrets` CLI (`list`, `check`, `materialize`, `add`,
+- **Done:** the `bootstrap secrets` CLI (`list`, `check`, `materialize`, `add`,
   `gpg export`, `gpg import`), the zod-validated `secrets.json` manifest with
-  per-entry `hosts` gating, and `secrets` exposed as both a flake package and app.
+  per-entry `hosts` gating, and one `bootstrap` binary exposed as both a flake
+  package (`modules/bootstrap.nix` puts it on `PATH`) and an app.
 - **Done:** `gpg-imported` bootstrap phase, now iterating `gpg.keyrings` and
   skipping keyrings gated to other hosts. Key material is piped straight into
   `gpg --batch --import` on stdin — never a temp file, never in argv.
@@ -328,7 +336,7 @@ gpg --delete-secret-keys "$FONDO"
 gpg --delete-keys "$FONDO"
 ```
 
-Then `nix run .#secrets -- gpg export fondo` records it. Keep a backup of the
+Then `bootstrap secrets gpg export fondo` records it. Keep a backup of the
 original `fondo.kbx` until the new home is verified — `--delete-secret-keys` is
 not reversible.
 
