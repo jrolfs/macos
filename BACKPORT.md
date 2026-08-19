@@ -24,6 +24,20 @@ created `~/.config/op/config` with a symlink to newt's state and broke `op`.
 This is live on `newt` right now, and it gets worse with each additional
 machine.
 
+Confirmed broken on `newt`, not merely untidy — against the redirected config
+`op` cannot resolve its own session:
+
+```
+$ op whoami
+[ERROR] multiple accounts found. Use the --account flag or …
+$ OP_CONFIG_DIR=~/.config/op op whoami
+URL: https://rolfers.1password.com/   # works
+```
+
+Both configs register the same two accounts, so what the redirect loses is the
+desktop-app integration state that lets `op` pick one. Any tool shelling out to
+`op` without an explicit account fails here today.
+
 **Backport to:**
 - `dot`: drop `export OP_CONFIG_DIR=...` from `home/.zshenv`
 - `dot`: drop the `OP_CONFIG_DIR` entry from

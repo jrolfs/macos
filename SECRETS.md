@@ -200,6 +200,26 @@ vault**, so a headless host can later be given a token scoped to just these
 secrets rather than a ~1300-item personal vault. Create it with
 `op vault create Secrets`.
 
+### `op` CLI quirks worth not rediscovering
+
+Both of these were found verifying the first real export, and both fail in ways
+that look like something else.
+
+**`op document get` does not accept `op://` references.** It wants a UUID, name,
+or domain, and rejects a reference with `"op://…" isn't an item`. Only `op read`
+parses that syntax, and only for *field* references. The manifest still stores
+`op://Vault/Item` — opaque UUIDs would defeat the point of a reviewable file —
+so `readDocument` splits it back into `<item> --vault <vault>`.
+
+**`--account` must not be passed to `op whoami`.** Data commands take it fine,
+and it's needed: without it `op` can fail with `multiple accounts found` on a
+machine signed into a personal *and* a work account, and vault names aren't
+unique across accounts. But `whoami` reports the session the **desktop app** is
+providing, and the flag makes `op` look for an `op signin` session instead — so
+it returns `account is not signed in` on a perfectly healthy machine. Since
+`whoami` is the auth probe, passing it there makes bootstrap conclude `op` is
+unauthenticated and throw after its guided retries.
+
 ### Multiple keyrings
 
 `gpg.keyrings` in the bootstrap config lists keyrings, each with a name, an
