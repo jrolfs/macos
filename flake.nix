@@ -19,6 +19,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Bootstrap repo — provisions a new machine, and provides the `secrets`
+    # CLI that reads the committed `op://` manifest. A real flake (not
+    # `flake = false`) because we consume its `packages.secrets` output.
+    #
+    # Note the manifest is baked into the store copy, so the `secrets` on PATH
+    # carries the manifest as of this input's lock. Run it from inside a
+    # bootstrap checkout to use that working tree's manifest instead; otherwise
+    # `nix flake update bootstrap` to pick up new references.
+    bootstrap = {
+      url = "github:jrolfs/bootstrap/flake-migration";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Neovim config — separate repo, consumed as a source tree.
     neovim-config = {
       url = "github:jrolfs/neovim";

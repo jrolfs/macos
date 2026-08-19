@@ -4,6 +4,8 @@
 # flake.nix's mkNixos. Host-specific bits live in hosts/<hostname>/.
 
 {
+  imports = [ ../secrets.nix ];
+
   system.stateVersion = "24.05";
 
   # Nix daemon settings — keep parity with the darwin module so

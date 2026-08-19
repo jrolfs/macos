@@ -9,6 +9,8 @@ in
 
   imports = [
 
+    ../secrets.nix
+
     ./daemons.nix
     ./defaults.nix
     ./fileicon.nix

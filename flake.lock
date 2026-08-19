@@ -1,5 +1,45 @@
 {
   "nodes": {
+    "bootstrap": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787129706,
+        "narHash": "sha256-fazeY5ziADZ3DE7FK820JtzblYeChFmW+A456Ef9cYE=",
+        "owner": "jrolfs",
+        "repo": "bootstrap",
+        "rev": "7c3e9e2ee4b67d8a48e9a501bc318e99692d8267",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jrolfs",
+        "ref": "flake-migration",
+        "repo": "bootstrap",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1726560853,
+        "narHash": "sha256-X6rJYSESBVr3hBoH0WbKE5KvhPU5bloyZ2L4K60/fPQ=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "c1dfcf08411b08f6b8615f7d8971a2bfa81d5e8a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -105,6 +145,7 @@
     },
     "root": {
       "inputs": {
+        "bootstrap": "bootstrap",
         "home-manager": "home-manager",
         "kitty-gruvbox-material": "kitty-gruvbox-material",
         "neovim-config": "neovim-config",
@@ -130,6 +171,21 @@
       "original": {
         "owner": "whiterqbbit",
         "repo": "spicetify-gruvbox-material",
+        "type": "github"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
         "type": "github"
       }
     },
