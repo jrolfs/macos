@@ -53,7 +53,6 @@
     bottom
     coreutils
     curl
-    direnv
     eza
     fd
     git

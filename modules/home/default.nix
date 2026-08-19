@@ -17,6 +17,19 @@ in
 
   programs.home-manager.enable = true;
 
+  # nix-direnv replaces direnv's built-in `use flake` with a version that
+  # caches the dev shell and keeps a GC root, so entering a project is instant
+  # after the first time instead of re-evaluating the flake on every cd.
+  #
+  # The zsh hook stays in .zshrc under zinit's `nocd` (home-manager's would go
+  # into programs.zsh.initContent, which is inert while .zshrc is a lifted
+  # dotfile) — enabling both would just eval the hook twice.
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+    enableZshIntegration = false;
+  };
+
   # Top-level shell dotfiles. The .zshrc still has its
   # `source ~/.zshrc.<platform>` lookup; modules/home/darwin.nix provides
   # ~/.zshrc.darwin so that path resolves on macOS, nothing on linux.
@@ -43,7 +56,10 @@ in
     "git".source = "${dotfiles}/.config/git";
     "atuin".source = "${dotfiles}/.config/atuin";
     "bat".source = "${dotfiles}/.config/bat";
-    "direnv".source = "${dotfiles}/.config/direnv";
+    # Only the toml, not the whole dir — programs.direnv.nix-direnv writes
+    # direnv/lib/hm-nix-direnv.sh into this same tree, and a single symlink
+    # for the directory would collide with it.
+    "direnv/direnv.toml".source = "${dotfiles}/.config/direnv/direnv.toml";
     "kitty".source = "${dotfiles}/.config/kitty";
     "mise".source = "${dotfiles}/.config/mise";
     "k9s".source = "${dotfiles}/.config/k9s";

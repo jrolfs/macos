@@ -36,7 +36,6 @@ in
     pkgs.atuin
     pkgs.bat
     pkgs.bottom
-    pkgs.direnv
     pkgs.eza
     pkgs.fasd
     pkgs.fd
