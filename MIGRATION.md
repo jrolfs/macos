@@ -56,8 +56,19 @@ MIGRATION.md
   derivation is named `cache-status-${hash}` so it re-runs when the pinned
   package's current build changes — the right time to re-check anyway.
 - **`nix.package = pkgs.lixPackageSets.lix_2_94.lix`** — Lix 2.95 dropped
-  `builtins.fetchClosure`, which devbox needs. Revert to `pkgs.lix` once devbox
-  repos move to devenv.
+  `builtins.fetchClosure`, which devbox needs. Revert to `pkgs.lix` (2.95.2)
+  once nothing uses devbox. `bootstrap` is converted (its `.envrc` is `use
+  flake` against `devShells.default`); still on devbox: `.config/glide`,
+  `jrolfs/{website,gruvbox-material-firefox,gruvbox-material-tridactyl}`, and
+  the Hover repos that the private-castle prune will take out. Every one of
+  those `devbox.json`s is `devbox init` boilerplate plus a package list, so
+  they're ~12-line devShells when the time comes. `pkgs.devenv` is installed
+  but unused — no `devenv.nix` in any of Jamie's own repos.
+- **`.config/glide` needs `mkOutOfStoreSymlink`** (not yet done). It's lifted
+  as a whole-directory store symlink, but Glide regenerates `glide.d.ts` into
+  it and it's a pnpm project, so `pnpm install` and any `.direnv/` write will
+  hit a read-only store path. Same treatment `zed` already has. Works today
+  only because homeshick symlinks it to a writable castle.
 - **`tap.nix`** cask-updater writes to the working tree → uses `$NIX_CONFIG_DIR`
   (set via `home.sessionVariables`), never `${self}` (read-only store path).
 - **icon-customizer FDA**: `/usr/local/bin/icon-customizer` is a stable-path
