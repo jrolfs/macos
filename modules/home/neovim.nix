@@ -12,8 +12,6 @@
 # below be a single emptiness check.
 
 let
-  packDirectory = "${config.xdg.dataHome}/nvim/site/pack/core/opt";
-
   entryPoints = [ "init.vim" "init-kitty.vim" ];
 
   warmUp = pkgs.writeShellScript "neovim-pack-warmup" ''
@@ -57,10 +55,13 @@ let
   '';
 in
 {
+  # Runs on every activation rather than only when the pack directory is empty.
+  # `vim.pack.add` is a no-op for plugins that are already cloned, so the cost
+  # of the warm case is two nvim boots — and gating on emptiness would mean a
+  # plugin added to the config after the first switch never got installed by
+  # one, which is the case this module exists to cover.
   home.activation.neovimPack = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ -z "$(ls -A "${packDirectory}" 2>/dev/null)" ]; then
-      run ${warmUp} \
-        || warnEcho "neovim: plugin install did not complete — :checkhealth vim.pack in an interactive session"
-    fi
+    run ${warmUp} \
+      || warnEcho "neovim: plugin install did not complete — :checkhealth vim.pack in an interactive session"
   '';
 }
