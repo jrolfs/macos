@@ -115,6 +115,18 @@ in
       fi
     '';
 
+  # kitty.conf sets `listen_on unix:~/.local/share/kitty/socket`, and kitty
+  # bind()s that socket while starting up without creating the directory it
+  # lives in. Boss.__init__ wraps the call in a bare `except Exception`, so a
+  # missing parent comes out as ENOENT and gets reported as
+  # "Invalid listen_on=…-<pid>, ignoring" in the config-error dialog on every
+  # launch — with the socket never created, which takes `kitty @ --to` with it
+  # (the set-font-size helper in zsh/init/functions.zsh and the stay/ action
+  # scripts both locate it by globbing this directory).
+  home.activation.kittySocketDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run mkdir -p "${config.xdg.dataHome}/kitty"
+  '';
+
   # gpg refuses to use a home directory that is readable by anyone else, and
   # the one home-manager creates on its way to linking gpg.conf gets the
   # default 755.
@@ -149,7 +161,29 @@ in
     # direnv/lib/hm-nix-direnv.sh into this same tree, and a single symlink
     # for the directory would collide with it.
     "direnv/direnv.toml".source = "${dotfiles}/.config/direnv/direnv.toml";
-    "kitty".source = "${dotfiles}/.config/kitty";
+    # Not a bare link to the dotfiles tree, because themes/current.conf is a
+    # *relative* symlink to gruvbox-material/colors/gruvbox-material-dark-soft.conf
+    # and the gruvbox-material directory it points into was a submodule of the
+    # old `dot` castle. Nothing in the flake ever put it back, so the link has
+    # been dangling on every machine provisioned from this repo: kitty silently
+    # skips the failed `include themes/current.conf` and applies only
+    # themes/customizations.conf, which is why the colours were wrong rather
+    # than absent.
+    #
+    # A relative symlink resolves against the directory holding it, so the
+    # theme has to end up in the *same* store path as current.conf — hence the
+    # copy-and-merge rather than an extra xdg.configFile entry beside this one
+    # (which would land in ~/.config/kitty/themes while current.conf kept
+    # resolving inside /nix/store). recursive = true has the same problem for
+    # the same reason.
+    #
+    # Keeping current.conf as the switch means changing variants stays a
+    # one-symlink edit in the tracked tree, as it was before.
+    "kitty".source = pkgs.runCommandLocal "kitty-config" { } ''
+      cp -R ${dotfiles}/.config/kitty $out
+      chmod -R u+w $out
+      ln -s ${inputs.kitty-gruvbox-material} $out/themes/gruvbox-material
+    '';
     "mise".source = "${dotfiles}/.config/mise";
     "k9s".source = "${dotfiles}/.config/k9s";
     "tridactyl".source = "${dotfiles}/.config/tridactyl";
