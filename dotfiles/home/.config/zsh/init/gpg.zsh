@@ -8,6 +8,17 @@ function gpgp { echo $1 | gpg-preset-passphrase --preset 91C155A78968EEE863ED8B2
 # fine anywhere else.
 export GPG_TTY=$TTY
 
+# Tell the pinentry dispatcher (modules/home/darwin.nix) that this session has
+# a terminal, so it may honour the toggle below. gpg forwards this to the agent
+# per invocation, which is the only channel available — by the time pinentry is
+# exec'd it has no tty of its own to look at, and the client's real one is sent
+# afterwards.
+#
+# The path is included so the dispatcher can check it: a GUI app launched from
+# here inherits this variable, and once the terminal is gone the pty node goes
+# with it.
+export PINENTRY_USER_DATA=tty=$TTY
+
 # Toggle between the macOS GUI pinentry and the curses one.
 #
 # gpg-agent execs pinentry-program fresh for every prompt, and what it execs
@@ -16,7 +27,9 @@ export GPG_TTY=$TTY
 # and gpg-agent.conf stays declarative instead of being rewritten in place —
 # which it cannot be anyway, now that it is a read-only store symlink.
 #
-# Anything that is not "mac" means curses, so no file at all means curses.
+# Anything that is not "mac" means curses, so no file at all means curses. This
+# only decides what *terminal* sessions get; anything without a live terminal
+# gets the GUI dialog regardless, since curses has nowhere to draw.
 function pin() {
     local state="${XDG_STATE_HOME:-$HOME/.local/state}/pinentry"
     local mode=curses

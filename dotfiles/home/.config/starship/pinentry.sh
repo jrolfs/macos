@@ -5,6 +5,9 @@
 # in gpg-agent.conf because that file is declarative — pinentry-program there
 # points at a dispatcher which reads this. Anything that is not "mac" means
 # curses, so no file at all means curses.
+#
+# Accurate for this prompt's own session, which is what it is describing — a
+# terminal is exactly the case where the dispatcher honours the state file.
 
 state="${XDG_STATE_HOME:-$HOME/.local/state}/pinentry"
 

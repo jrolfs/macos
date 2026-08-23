@@ -12,22 +12,54 @@ let
   # no agent reload — and lets gpg-agent.conf stay a read-only store symlink
   # rather than something sed rewrites in place, which is what it used to be.
   #
-  # Curses is the default, and it is the default by omission: anything other
-  # than "mac" selects it, so there is nothing to initialize and an empty or
-  # truncated state file degrades to the terminal prompt rather than to nothing.
+  # Curses only works if there is a terminal to draw in, which rules it out for
+  # anything a GUI starts — Zed's built-in git, say. That can't be detected
+  # here: pinentry is a child of the daemon, so it has no tty of its own,
+  # /dev/tty won't open, TERM is always "dumb", and the client's real tty
+  # arrives over assuan as `OPTION ttyname` only *after* this has already
+  # exec'd. The one thing gpg does put in the environment beforehand is
+  # PINENTRY_USER_DATA, forwarded per-invocation as `OPTION putenv=`, so the
+  # client has to say what it is rather than be sniffed.
+  #
+  # Interactive zsh sets `tty=<path>`; the path is checked instead of trusted
+  # because a GUI app launched from a terminal inherits that terminal's
+  # environment, and a long-lived agent keeps the environment of whichever
+  # client happened to start it. macOS frees the pty node outright when a
+  # terminal closes, so a marker that has outlived its terminal fails -c.
+  #
+  # Everything else — no marker, an unknown one, a terminal that has since gone
+  # away — falls through to the GUI dialog, which is the direction that always
+  # works: mac in a terminal is merely surprising, curses without one cannot
+  # prompt at all.
   #
   # XDG_STATE_HOME is honoured if gpg-agent happens to have it, but the fallback
   # is an absolute path rather than $HOME/… — gpg-agent hands its child a
   # controlled environment, and a missing HOME here would silently mean "not
   # mac" forever.
   pinentry = pkgs.writeShellScript "pinentry-dispatch" ''
+    mac=${pkgs.pinentry_mac}/bin/pinentry-mac
+    curses=${pkgs.pinentry-curses}/bin/pinentry-curses
     state="''${XDG_STATE_HOME:-${config.home.homeDirectory}/.local/state}/pinentry"
 
-    if [ "$(cat "$state" 2>/dev/null)" = mac ]; then
-      exec ${pkgs.pinentry_mac}/bin/pinentry-mac "$@"
-    fi
+    case "''${PINENTRY_USER_DATA-}" in
+      # Per-invocation override, for a one-off `PINENTRY_USER_DATA=mac git push`.
+      mac) exec "$mac" "$@" ;;
+      curses) exec "$curses" "$@" ;;
 
-    exec ${pkgs.pinentry-curses}/bin/pinentry-curses "$@"
+      tty=*)
+        terminal=''${PINENTRY_USER_DATA#tty=}
+
+        if [ -c "$terminal" ] && [ -w "$terminal" ]; then
+          if [ "$(cat "$state" 2>/dev/null)" = mac ]; then
+            exec "$mac" "$@"
+          fi
+
+          exec "$curses" "$@"
+        fi
+        ;;
+    esac
+
+    exec "$mac" "$@"
   '';
 in
 {
