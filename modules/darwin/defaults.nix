@@ -175,4 +175,26 @@
   # visited System Settings — provisioning a new machine needs it before there
   # is anyone at the keyboard to turn it on.
   services.openssh.enable = true;
+
+  # On by default on newt, off on a fresh install — a default that points the
+  # wrong way is worth pinning even when the value looks unremarkable.
+  networking.applicationFirewall = {
+    enable = true;
+    allowSigned = true;
+    allowSignedApp = true;
+    enableStealthMode = false;
+  };
+
+  time.timeZone = "America/Los_Angeles";
+
+  system.startup.chime = false;
+
+  # systemsetup writes these to both power sources at once, so only the values
+  # newt uses for both can move over. Its computer-sleep setting differs by
+  # source — never on AC, but not on battery — which this cannot express, so it
+  # stays out rather than getting flattened into a laptop that never sleeps.
+  power.sleep = {
+    display = 45;
+    harddisk = 10;
+  };
 }
