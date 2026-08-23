@@ -91,6 +91,30 @@ in
     ".local/share/zinit/zinit.git".source = inputs.zinit;
   };
 
+  # Migration guard for machines that switched while the entry above was
+  # `.local/share/zinit` rather than `.local/share/zinit/zinit.git`, which is
+  # every machine provisioned between a669185 and cafbe20.
+  #
+  # home-manager's orphan cleanup cannot make that transition. It walks the old
+  # generation's links and deletes the ones whose path is absent from the new
+  # generation — but `.local/share/zinit` is *present* there, as a directory, so
+  # the stale link is left in place. linkGeneration then resolves the new
+  # zinit.git through it into /nix/store/…-zinit, which is mode 555 and owned by
+  # root, and `ln` fails with EACCES. Activation runs under `set -eu`, so that
+  # takes the rest of it with it — the neovim warm-up, the font sync and every
+  # launchd agent.
+  #
+  # Only a symlink is removed, never a directory: once the transition has
+  # happened this is a real directory that zinit owns, holding the plugin,
+  # snippet and completion caches it clones at runtime. Safe to delete this
+  # block once no machine is still on a pre-cafbe20 generation.
+  home.activation.zinitHomeDirectory =
+    lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] ''
+      if [ -L "${config.xdg.dataHome}/zinit" ]; then
+        run rm $VERBOSE_ARG "${config.xdg.dataHome}/zinit"
+      fi
+    '';
+
   # gpg refuses to use a home directory that is readable by anyone else, and
   # the one home-manager creates on its way to linking gpg.conf gets the
   # default 755.
