@@ -38,7 +38,6 @@ in
     pkgs.bat
     pkgs.bottom
     pkgs.eza
-    pkgs.fasd
     pkgs.fd
     pkgs.jq
     pkgs.miller
