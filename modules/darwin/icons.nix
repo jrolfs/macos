@@ -1,8 +1,22 @@
 { config, lib, pkgs, userName, ... }:
 let
   # Hardcoded because builtins.getEnv returns "" under pure flake eval.
-  xdgDataHome = "/Users/${userName}/.local/share";
-  assetsDir = "${xdgDataHome}/icons/assets";
+  #
+  # The asset tree is read out of the deployed configuration rather than
+  # ~/.local/share/icons, which is where homeshick used to put it — and only
+  # ever as a symlink chain that ended in this same repo. Nothing else refers to
+  # that path (the `icn` alias in modules/home/darwin.nix already points here),
+  # and depending on it meant depending on a link that no longer gets created,
+  # so fd had no search path and every run was a no-op.
+  #
+  # It also has to be a writable directory, not a store path: apply.log and
+  # launchd.log are written alongside the assets, and icons/.gitignore covers
+  # both. And it has to exist before home-manager activation runs, since the
+  # LaunchAgent below watches it and glide-developer.nix invokes the script
+  # during system activation — which the repo itself does, being the thing
+  # darwin-rebuild was pointed at.
+  configDirectory = "/Users/${userName}/.config/system";
+  assetsDir = "${configDirectory}/icons/assets";
 
   # A small C tool that sets custom icons on macOS app bundles via direct
   # POSIX file I/O — writing the Icon\r resource fork and FinderInfo xattr
@@ -88,7 +102,7 @@ let
     '';
   };
   wrapperPath = "/usr/local/bin/icon-customizer";
-  logPath = "${xdgDataHome}/icons/launchd.log";
+  logPath = "${configDirectory}/icons/launchd.log";
 in
 {
   environment.systemPackages = [ script ];
