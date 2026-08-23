@@ -1,10 +1,24 @@
-{ lib, pkgs, config, userName, ... }:
+{ lib, pkgs, config, userName, hostname, ... }:
 
 # Darwin-only home-manager shared module. Loaded automatically for every
 # darwinConfiguration via home-manager.sharedModules in flake.nix.
 
 let
   dotfiles = ../../dotfiles/home;
+
+  # Baked in rather than read from $NIX_CONFIG_DIR and $(hostname -s) when the
+  # shell starts. That variable is a home.sessionVariables entry, which lands in
+  # hm-session-vars.sh, which nothing here sources — nix-darwin's /etc/zshenv
+  # reads only its own set-environment, and home-manager's zsh integration is
+  # inert while .zshrc is a lifted dotfile. The aliases were expanding to
+  # `--flake #ala`.
+  #
+  # The hostname is the one this configuration was evaluated for, and it is what
+  # selected this configuration in the first place, so asking the running system
+  # was only ever a slower route to the same answer — and a wrong one if the
+  # machine is mid-rename.
+  configDirectory = "${config.home.homeDirectory}/.config/system";
+  flake = "${configDirectory}#${hostname}";
 
   # gpg-agent execs pinentry-program fresh for every passphrase prompt, so
   # dispatching at that moment is what lets the `pin` toggle
@@ -76,10 +90,10 @@ in
     alias mkbk="mackup backup -f && mackup uninstall -f"
     alias mkrs="mackup restore -f && mackup uninstall -f"
 
-    alias icn="(cd $NIX_CONFIG_DIR/icons && sudo ./apply.sh)"
+    alias icn="(cd ${configDirectory}/icons && sudo ./apply.sh)"
 
-    alias nix-switch="sudo -E darwin-rebuild switch --flake $NIX_CONFIG_DIR#$(hostname -s) --show-trace"
-    alias nix-rebuild="sudo -E darwin-rebuild build --flake $NIX_CONFIG_DIR#$(hostname -s) --show-trace"
+    alias nix-switch="sudo -E darwin-rebuild switch --flake ${flake} --show-trace"
+    alias nix-rebuild="sudo -E darwin-rebuild build --flake ${flake} --show-trace"
     alias nix-search="nix search nixpkgs"
 
     alias spoon="$(brew --prefix)/bin/hs"

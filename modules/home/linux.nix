@@ -1,4 +1,4 @@
-{ lib, pkgs, config, userName, ... }:
+{ lib, pkgs, config, userName, hostname, ... }:
 
 # Linux-only home-manager shared module. Loaded automatically for every
 # nixosConfiguration via home-manager.sharedModules in flake.nix.
@@ -7,6 +7,12 @@
 # environment tweaks; the bulk of the shell config is shared via
 # modules/home/default.nix and works on both OSes.
 
+let
+  # Baked in for the same reason as the darwin counterpart: $NIX_CONFIG_DIR
+  # comes from home.sessionVariables and nothing sources hm-session-vars.sh, so
+  # the alias was expanding to `--flake #irulan`.
+  flake = "${config.home.homeDirectory}/.config/system#${hostname}";
+in
 {
   # ~/.zshrc.linux is sourced by ~/.zshrc when uname is Linux.
   # Mirrors the .zshrc.darwin pattern from darwin.nix; the existing
@@ -17,8 +23,8 @@
     #
     # Aliases ----------------------------------------------------------------------
 
-    alias nix-switch="sudo -E nixos-rebuild switch --flake $NIX_CONFIG_DIR#$(hostname -s) --show-trace"
-    alias nix-rebuild="sudo -E nixos-rebuild build --flake $NIX_CONFIG_DIR#$(hostname -s) --show-trace"
+    alias nix-switch="sudo -E nixos-rebuild switch --flake ${flake} --show-trace"
+    alias nix-rebuild="sudo -E nixos-rebuild build --flake ${flake} --show-trace"
     alias nix-search="nix search nixpkgs"
   '';
 
