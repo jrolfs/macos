@@ -71,6 +71,12 @@ in
     ".agignore".source = "${dotfiles}/.agignore";
     ".editorconfig".source = "${dotfiles}/.editorconfig";
 
+    # default-key, keyserver and no-emit-version say nothing about the
+    # platform, and irulan needs them to sign commits as the same identity.
+    # gpg-agent.conf is the part that differs, so each platform module declares
+    # its own.
+    ".gnupg/gpg.conf".source = "${dotfiles}/.gnupg/gpg.conf";
+
     # zinit comes from the flake input, not from the old
     # $HOMESHICK_KINGDOM/dot/zinit submodule path.
     #
@@ -84,6 +90,13 @@ in
     # plugin cache already lives).
     ".local/share/zinit/zinit.git".source = inputs.zinit;
   };
+
+  # gpg refuses to use a home directory that is readable by anyone else, and
+  # the one home-manager creates on its way to linking gpg.conf gets the
+  # default 755.
+  home.activation.gnupgPermissions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run chmod 700 "${config.home.homeDirectory}/.gnupg"
+  '';
 
   # XDG config directories. Each lifts an entire subtree from
   # dotfiles/home/.config/ except where the app writes back to its dir

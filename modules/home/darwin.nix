@@ -92,13 +92,13 @@ in
     recursive = true;
   };
 
-  # gnupg: gpg-agent.conf + scdaemon.conf + gpg.conf. recursive = true
-  # because the user's gnupg dir also holds keys/state at runtime
-  # alongside these config files.
-  home.file.".gnupg" = {
-    source = "${dotfiles}/.gnupg";
-    recursive = true;
-  };
+  # The two gnupg files that are macOS-specific: pinentry-mac only exists
+  # here, and scdaemon is about a smartcard reader. gpg.conf is shared, in
+  # modules/home/default.nix. Declared per file rather than as a directory so
+  # that ~/.gnupg stays writable for the keyrings and agent sockets that live
+  # alongside them.
+  home.file.".gnupg/gpg-agent.conf".source = "${dotfiles}/.gnupg/gpg-agent.conf";
+  home.file.".gnupg/scdaemon.conf".source = "${dotfiles}/.gnupg/scdaemon.conf";
 
   # Raycast scripts (the personal "scripts" folder Raycast users
   # register). Preferences are untouched — those live in Library and

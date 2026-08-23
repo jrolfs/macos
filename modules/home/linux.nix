@@ -22,19 +22,21 @@
     alias nix-search="nix search nixpkgs"
   '';
 
-  # GPG agent on Linux uses pinentry-curses (or pinentry-gnome3 if
-  # there's a desktop). Irulan is a headless server, so curses is fine.
-  # The ~/.gnupg/gpg-agent.conf rsync'd from the dotfiles tree currently
-  # sets pinentry-program for macOS (pinentry-mac); on Linux that path
-  # doesn't exist. Home-manager doesn't override the rsync'd file, so
-  # we declare it inline here to take precedence.
-  home.file.".gnupg/gpg-agent.conf" = lib.mkForce {
-    text = ''
-      pinentry-program ${pkgs.pinentry-curses}/bin/pinentry-curses
-      default-cache-ttl 60480000
-      max-cache-ttl 60480000
-    '';
-  };
+  # Declared inline rather than lifted from the dotfiles tree because the
+  # macOS copy names pinentry-mac, which doesn't exist here. Irulan is
+  # headless, so curses is the only pinentry that can work.
+  #
+  # enable-ssh-support is not optional on this host: the shared git config
+  # rewrites every github.com URL to SSH via insteadOf, and the shared .zshenv
+  # points SSH_AUTH_SOCK at ~/.gnupg/S.gpg-agent.ssh — a socket gpg-agent only
+  # creates when asked. Without it there is no agent and no key on disk, so
+  # every fetch fails.
+  home.file.".gnupg/gpg-agent.conf".text = ''
+    enable-ssh-support
+    pinentry-program ${pkgs.pinentry-curses}/bin/pinentry-curses
+    default-cache-ttl 60480000
+    max-cache-ttl 60480000
+  '';
 
   # Linux-side packages on top of the system-wide environment.systemPackages
   # in modules/nixos/default.nix. User-installed via home-manager profile.
