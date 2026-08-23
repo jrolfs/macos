@@ -189,6 +189,14 @@ Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
    `mv ~/.homesick/repos/macos ~/.config/system`, add `hosts/newt/`, switch.
    Consider `cleanup = "uninstall"` (not `zap`) for the first switch.
 
+   `hosts/newt/` needs `ids.gids.nixbld`, which nothing in the flake sets
+   because Ala's Nix install uses the current group ID. Newt's predates the
+   change, so nix-darwin's assertion fails unless the real one is read off the
+   machine — `macos` master carries this as a `dscl . -read /Groups/nixbld
+   PrimaryGroupID` lookup in `darwin-configuration.nix` (restored in `1b52045`
+   after an attempt to drop it). Host-local, so it belongs in `hosts/newt/`
+   rather than a shared module.
+
 ## Secrets & private configuration
 
 Getting off git-crypt, splitting genuine secrets (→ 1Password) from private
