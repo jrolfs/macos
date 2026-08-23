@@ -94,7 +94,16 @@
     # fullscreen window doesn't blank the other monitor.
     spaces.spans-displays = true;
 
-    universalaccess.closeViewScrollWheelToggle = true;
+    # universalaccess is deliberately absent. com.apple.universalaccess is
+    # TCC-protected, and activation writes it via `launchctl asuser … sudo
+    # --user=jamie -- defaults write`, which detaches the write from any process
+    # holding Full Disk Access — so it fails with "Could not write domain"
+    # regardless of what the terminal is granted. activate runs under `set -e`,
+    # so that one failure aborted every remaining step: the rest of the user
+    # defaults, the Dock restart, launchd services, the Homebrew bundle and the
+    # home-manager activation. Zoom's scroll-gesture toggle is a one-time click
+    # in System Settings → Accessibility → Zoom; it is not worth an FDA-granted
+    # wrapper binary, which is the only thing that would make the write land.
 
     ActivityMonitor.ShowCategory = 100;
 
