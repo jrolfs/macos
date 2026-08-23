@@ -133,11 +133,19 @@ but the neovim config moved to `vim.pack`, which installs into
 more, so `ctrl+s>]`, `ctrl+s>[` and the ctrl+shift+right mouse map all fail on a
 fresh machine.
 
+`zsh/init/neovim.zsh` has the same stale path in `$VISUAL` for the ctrl+e
+command-line editing integration.
+
 It still works on `newt` only by accident: a March vim-plug leftover is sitting
 in `plugged-kitty`, and its kitten is byte-identical to the current one. It
 breaks there the moment `plugged*` gets cleaned up.
 
-**Backport to:** `dot`, `home/.config/kitty/bindings.conf`.
+Neither path needs a home baked into it. kitty expands `~` in kitten paths
+(verified against 0.47.2's `AliasMap`), and the zsh one takes
+`${XDG_DATA_HOME:-$HOME/.local/share}`.
+
+**Backport to:** `dot`, `home/.config/kitty/bindings.conf` and
+`home/.config/zsh/init/neovim.zsh`.
 
 ---
 

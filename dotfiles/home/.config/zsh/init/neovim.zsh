@@ -6,7 +6,9 @@ autoload -Uz edit-command-line
 zle -N edit-command-line
 
 function kitty_scrollback_edit_command_line() {
-  local VISUAL='/Users/jamie/.local/share/nvim/plugged-kitty/kitty-scrollback.nvim/scripts/edit_command_line.sh'
+  # Generated absolute, then de-hardcoded: vim.pack's opt dir, not the vim-plug
+  # plugged-kitty one the generator emitted.
+  local VISUAL="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/pack/core/opt/kitty-scrollback.nvim/scripts/edit_command_line.sh"
   zle edit-command-line
   zle kill-whole-line
 }
