@@ -3,8 +3,6 @@ alias vim=nvim
 
 alias hs=homeshick
 
-alias J=fasd_cd
-alias jj="fasd_cd -tdi"
 alias zz=__zoxide_zi
 
 # Git
@@ -60,3 +58,7 @@ alias gpgr="gpg-connect-agent reloadagent /bye"
 # Node
 
 alias update-node-version="node --version | tr -d v >! .node-version"
+
+# HTTPie
+
+alias dl="http --download"

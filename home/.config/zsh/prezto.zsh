@@ -12,7 +12,6 @@ zstyle ':prezto:load' pmodule \
   'node' \
   'python' \
   'utility' \
-  'fasd' \
   'autosuggestions' \
   'history-substring-search' \
   'syntax-highlighting' \

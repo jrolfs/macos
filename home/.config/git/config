@@ -31,7 +31,6 @@
 
 [core]
   commentchar = "#"
-  askpass = git-gui--askpass
 
 [pager]
   diff = delta
@@ -195,8 +194,10 @@
 ; GitHub's gh CLI adds this stuff without even asking
 
 [credential "https://github.com"]
+  helper =
   helper = !/run/current-system/sw/bin/gh auth git-credential
 [credential "https://gist.github.com"]
+  helper =
   helper = !/run/current-system/sw/bin/gh auth git-credential
 
 [url "ssh://git@github.com/"]

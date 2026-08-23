@@ -61,11 +61,35 @@ _ktt_detect_project() {
 
 typeset -g _ktt_max_title_len=24
 
+# OSC 2 only sets the *window* title, and kitty refuses to derive a tab's title
+# from its window once that tab's title has been set explicitly — which every
+# session-file `new_tab <title>` line and every use of the set_tab_title action
+# does (it shows up as `title_overridden` in `kitty @ ls`). Reaching the tab bar
+# in those tabs requires remote control. An empty title clears the override and
+# hands the tab back to tracking its active window.
+typeset -g _ktt_pushed_title=""
+
+_ktt_push_tab_title() {
+  (( $+commands[kitty] )) || return 1
+  kitty @ set-tab-title -- "$1" >/dev/null 2>&1 && _ktt_pushed_title="$1"
+}
+
+# A remote control round trip costs ~150ms, far too much to pay on every prompt,
+# so skip pushes that would be no-ops and don't make the prompt wait on the rest
+# (which means assuming success — the interactive paths push synchronously).
+_ktt_push_tab_title_async() {
+  [[ "$1" == "$_ktt_pushed_title" ]] && return
+  (( $+commands[kitty] )) || return
+  _ktt_pushed_title="$1"
+  kitty @ set-tab-title -- "$1" >/dev/null 2>&1 &!
+}
+
 _ktt_set_title() {
   # A pinned title for this directory wins over the automatic one.
   local REPLY
   if _ktt_lookup_override; then
     print -n "\e]2;${REPLY}\a"
+    _ktt_push_tab_title_async "$REPLY"
     return
   fi
 
@@ -84,6 +108,10 @@ _ktt_set_title() {
 
   (( ${#title} > _ktt_max_title_len )) && title="${title:0:$((_ktt_max_title_len - 1))} "
   print -n "\e]2;${_ktt_icon}${title}\a"
+
+  # Only relinquishes a tab this shell had pinned; a no-op otherwise, so tabs
+  # titled by a session file keep that title until something pins over it.
+  _ktt_push_tab_title_async ""
 }
 
 autoload -Uz add-zsh-hook
@@ -117,6 +145,7 @@ tab-title() {
     -c | --clear)
       _ktt_write_override ""
       _ktt_cached_dir=""   # force the auto title to recompute
+      _ktt_push_tab_title ""
       _ktt_set_title
       ;;
     "")
@@ -130,6 +159,8 @@ tab-title() {
     *)
       _ktt_write_override "$*"
       print -n "\e]2;$*\a"
+      _ktt_push_tab_title "$*" ||
+        print -u2 -r -- "tab-title: pinned for $PWD, but kitty remote control failed — tab bar not updated"
       ;;
   esac
 }
