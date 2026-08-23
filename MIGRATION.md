@@ -219,7 +219,12 @@ Newt migrates, so periodic forward-ports are needed:
 - **dot** (content, no moves): merge `master` into the `audit-cleanup` branch,
   then `git subtree pull --prefix=dotfiles <dot> audit-cleanup`. Expect a
   `.zshrc` conflict on the zinit source line — keep `$XDG_DATA_HOME/zinit/…`,
-  take dot's other additions.
+  take dot's other additions. The `master` merge also hits a modify/delete
+  conflict on any submodule `master` bumps and `audit-cleanup` deleted
+  (`kitty-grab`, `zinit`, the theme trees): resolve by keeping them deleted —
+  `git rm --cached <path> && rm -rf <path>` — and, if the bump matters, move the
+  new revision into the matching flake input instead. This recurs on every pull
+  for as long as dot `master` carries the submodules.
 - **macos**: the migration *moved* these files, so don't cherry-pick — re-derive
   `modules/darwin/*` from `home/.nixpkgs/*` and re-apply the transforms above,
   and copy changed dotfiles from `home/*` into `dotfiles/home/*` and
