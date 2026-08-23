@@ -3,9 +3,38 @@
 let
   dotfiles = ../../dotfiles/home;
   repoRoot = ../..;
+
+  # The working tree as it exists on the machine, as opposed to the store copy
+  # of it that `dotfiles` refers to.
+  live = "${config.home.homeDirectory}/.config/system/dotfiles/home";
+
+  # Per-file out-of-store symlinks mirroring the structure of a directory under
+  # dotfiles/home/.config. Two properties a single directory symlink can't
+  # have at once: edits land in the next shell rather than the next switch, and
+  # the directory stays a real one, so the private castle's files (zsh/keys.zsh,
+  # zsh/init/keys.zsh) can sit alongside the managed ones.
+  #
+  # Adding a *new* file still needs a switch, since the tree is walked at
+  # evaluation time — only the contents of existing files are live.
+  liveConfig = name:
+    let
+      walk = relative:
+        lib.concatMapAttrs
+          (entry: type:
+            let path = "${relative}/${entry}"; in
+            if type == "directory" then
+              walk path
+            else {
+              "${name}${path}".source =
+                config.lib.file.mkOutOfStoreSymlink "${live}/.config/${name}${path}";
+            })
+          (builtins.readDir "${dotfiles}/.config/${name}${relative}");
+    in
+    walk "";
 in
 {
-  imports = lib.optional (builtins.pathExists ./hosts/${hostname}.nix) ./hosts/${hostname}.nix;
+  imports = [ ./neovim.nix ]
+    ++ lib.optional (builtins.pathExists ./hosts/${hostname}.nix) ./hosts/${hostname}.nix;
 
   home.username = userName;
   home.stateVersion = "24.05";
@@ -43,26 +72,35 @@ in
     ".editorconfig".source = "${dotfiles}/.editorconfig";
 
     # zinit comes from the flake input, not from the old
-    # $HOMESHICK_KINGDOM/dot/zinit submodule path. The .zshrc was updated
-    # to source $XDG_DATA_HOME/zinit/zinit.zsh accordingly.
-    ".local/share/zinit".source = inputs.zinit;
+    # $HOMESHICK_KINGDOM/dot/zinit submodule path.
+    #
+    # The zinit.git/ subdirectory is not cosmetic: zinit resolves
+    # ZINIT[HOME_DIR] to $XDG_DATA_HOME/zinit whenever that exists and writes
+    # plugins/, snippets/, completions/ and polaris/ into it. Linking the
+    # source there directly makes the directory zinit wants to own read-only,
+    # so every plugin install fails. Upstream's own install puts the checkout
+    # in a zinit.git/ subdirectory for exactly this reason, which leaves
+    # ~/.local/share/zinit a real directory (and matches where newt's existing
+    # plugin cache already lives).
+    ".local/share/zinit/zinit.git".source = inputs.zinit;
   };
 
   # XDG config directories. Each lifts an entire subtree from
   # dotfiles/home/.config/ except where the app writes back to its dir
   # — those use mkOutOfStoreSymlink so the link target stays mutable.
-  xdg.configFile = {
-    # zsh and git are recursive because the private homeshick castle plants
-    # files *inside* these two directories (git/authors.yml, zsh/keys.zsh,
-    # zsh/init/keys.zsh) and bootstrap links the castle before the first
-    # switch. A single directory symlink would mean the castle's files are in
-    # the way of it on every fresh machine, and once the store link won that
-    # fight there'd be nowhere writable for homeshick to put them back.
-    "zsh" = {
-      source = "${dotfiles}/.config/zsh";
-      recursive = true;
-    };
+  xdg.configFile = lib.mkMerge [
+    # Edited far too often to want a rebuild in the loop: prompt, aliases,
+    # functions and the zinit snippets under init/ are all sourced fresh by
+    # every new shell, so a live link means editing one is just editing a file.
+    (liveConfig "zsh")
 
+    {
+    # git is recursive rather than a single directory symlink because the
+    # private homeshick castle plants git/authors.yml inside it and bootstrap
+    # links the castle before the first switch. A directory symlink would put
+    # that file in the way on every fresh machine, and once the store link won
+    # that fight there'd be nowhere writable for homeshick to put it back.
+    # (zsh has the same overlap, handled by liveConfig above.)
     "git" = {
       source = "${dotfiles}/.config/git";
       recursive = true;
@@ -109,5 +147,6 @@ in
       source = "${inputs.neovim-config}/home/.config/nvim";
       recursive = true;
     };
-  };
+    }
+  ];
 }

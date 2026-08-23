@@ -16,7 +16,7 @@ declare -A ZINIT
 
 ZINIT[NO_ALIASES]=1
 
-source "$XDG_DATA_HOME/zinit/zinit.zsh"
+source "$XDG_DATA_HOME/zinit/zinit.git/zinit.zsh"
 
 # Prezto (synchronous — must load before interactive features)
 zinit ice pick"init.zsh" \
