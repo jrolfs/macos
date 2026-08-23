@@ -94,6 +94,34 @@ Removed the `ssh://` form, kept the documented scp-form one.
 
 ---
 
+## 4. Two inert lines in the kitty config
+
+**Commit here:** (this commit)
+
+Both are live on `newt` today, and both fail silently.
+
+`kitty.conf`'s `symbol_map` had its value on the following line. kitty has no
+line continuation, so the key parsed with an empty value and the codepoints
+parsed as a key of their own — `Ignoring invalid config line` twice, mapping
+inert. Nerd Font glyphs still render because kitty falls back to any installed
+font that has them, so the only symptom is that *which* font supplies them is
+whatever Core Text picks. Joining the line also needed the family name fixed
+(`JetbrainsMono Nerd Font` matches nothing; the cask installs
+`JetBrainsMono Nerd Font Mono`) and three ranges trimmed to what that font's
+cmap actually covers — Nerd Fonts v3 moved Material Design Icons out of
+`U+F500-U+FD46` to the `U+F0001-U+F1AF0` plane.
+
+`sessions/startup.conf`'s `source ~/.config/zsh/init/keys.zsh` is not a kitty
+session directive — the parser has no `source` (checked in 0.47.2 and on kitty
+master), so it's rejected with `Unknown command in session file`. It's also
+unnecessary: `.zshrc` snippets every `$XDG_CONFIG_HOME/zsh/init/*.zsh`, which is
+where `private` plants `keys.zsh`.
+
+**Backport to:** `dot`, `home/.config/kitty/kitty.conf` and
+`home/.config/kitty/sessions/startup.conf`.
+
+---
+
 ## Explicitly *not* backport candidates
 
 - **Dropping `homebrew.onActivation.extraFlags = [ "--force-cleanup" ]`.** On
