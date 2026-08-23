@@ -5,6 +5,30 @@
 
 let
   dotfiles = ../../dotfiles/home;
+
+  # gpg-agent execs pinentry-program fresh for every passphrase prompt, so
+  # dispatching at that moment is what lets the `pin` toggle
+  # (dotfiles/home/.config/zsh/init/gpg.zsh) be a one-line state file write with
+  # no agent reload — and lets gpg-agent.conf stay a read-only store symlink
+  # rather than something sed rewrites in place, which is what it used to be.
+  #
+  # Curses is the default, and it is the default by omission: anything other
+  # than "mac" selects it, so there is nothing to initialize and an empty or
+  # truncated state file degrades to the terminal prompt rather than to nothing.
+  #
+  # XDG_STATE_HOME is honoured if gpg-agent happens to have it, but the fallback
+  # is an absolute path rather than $HOME/… — gpg-agent hands its child a
+  # controlled environment, and a missing HOME here would silently mean "not
+  # mac" forever.
+  pinentry = pkgs.writeShellScript "pinentry-dispatch" ''
+    state="''${XDG_STATE_HOME:-${config.home.homeDirectory}/.local/state}/pinentry"
+
+    if [ "$(cat "$state" 2>/dev/null)" = mac ]; then
+      exec ${pkgs.pinentry_mac}/bin/pinentry-mac "$@"
+    fi
+
+    exec ${pkgs.pinentry-curses}/bin/pinentry-curses "$@"
+  '';
 in
 {
   # Provide ~/.zshrc.darwin — sourced by ~/.zshrc when uname is Darwin.
@@ -92,12 +116,22 @@ in
     recursive = true;
   };
 
-  # The two gnupg files that are macOS-specific: pinentry-mac only exists
-  # here, and scdaemon is about a smartcard reader. gpg.conf is shared, in
-  # modules/home/default.nix. Declared per file rather than as a directory so
+  # The two gnupg files that are macOS-specific: the pinentry choice only
+  # arises here, and scdaemon is about a smartcard reader. gpg.conf is shared,
+  # in modules/home/default.nix. Declared per file rather than as a directory so
   # that ~/.gnupg stays writable for the keyrings and agent sockets that live
   # alongside them.
-  home.file.".gnupg/gpg-agent.conf".source = "${dotfiles}/.gnupg/gpg-agent.conf";
+  #
+  # Generated rather than lifted from the dotfiles tree because
+  # pinentry-program has to name a store path; the other four lines are
+  # verbatim from the dotfile this replaced.
+  home.file.".gnupg/gpg-agent.conf".text = ''
+    enable-ssh-support
+    default-cache-ttl 600
+    max-cache-ttl 7200
+    pinentry-program ${pinentry}
+    allow-preset-passphrase
+  '';
   home.file.".gnupg/scdaemon.conf".source = "${dotfiles}/.gnupg/scdaemon.conf";
 
   # Raycast scripts (the personal "scripts" folder Raycast users

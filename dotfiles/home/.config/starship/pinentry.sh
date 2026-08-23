@@ -1,15 +1,16 @@
-function check_pinentry_mode() {
-    local gpg_agent_conf="$HOME/.gnupg/gpg-agent.conf"
-    local pinentry_program_mac="pinentry-mac"
+#!/bin/sh
+#
+# Prompt indicator for the current pinentry mode, read from the same state
+# file the `pin` function writes (.config/zsh/init/gpg.zsh). The mode is not
+# in gpg-agent.conf because that file is declarative — pinentry-program there
+# points at a dispatcher which reads this. Anything that is not "mac" means
+# curses, so no file at all means curses.
 
-    local current_pinentry_program
-    current_pinentry_program=$(grep "^pinentry-program" "$gpg_agent_conf")
+state="${XDG_STATE_HOME:-$HOME/.local/state}/pinentry"
 
-    if [[ "$current_pinentry_program" == *"$pinentry_program_mac"* ]]; then
-        echo "󰌋"
-    else
-        echo ""
-    fi
-}
+if [ "$(cat "$state" 2>/dev/null)" = mac ]; then
+    echo "󰌋"
+else
+    echo ""
+fi
 
-check_pinentry_mode

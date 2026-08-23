@@ -195,35 +195,6 @@ function kfs {
   /opt/homebrew/bin/kitty @ --to unix:$(/run/current-system/sw/bin/fd socket ~/.local/share/kitty | tail -1) set-font-size $1
 }
 
-#
-# GPG
-
-function gpgp { echo $1 | gpg-preset-passphrase --preset 91C155A78968EEE863ED8B22626AE770762AC2F3 }
-
-function pin() {
-    local gpg_agent_conf="$HOME/.gnupg/gpg-agent.conf"
-    local pinentry_program_mac="/run/current-system/sw/bin/pinentry-mac"
-    local pinentry_program_default="/run/current-system/sw/bin/pinentry"
-    local temp_file="/tmp/gpg-agent.conf.tmp"
-
-    local current_pinentry_program
-    current_pinentry_program=$(grep "^pinentry-program" "$gpg_agent_conf")
-
-    if [[ "$current_pinentry_program" == *"$pinentry_program_mac"* ]]; then
-        sed "s|$pinentry_program_mac|$pinentry_program_default|g" "$gpg_agent_conf" > "$temp_file"
-        echo -ne "\033[1;33m\033[0m Using \033[1mdefault\033[0m pinentry"
-    else
-        sed "s|$pinentry_program_default|$pinentry_program_mac|g" "$gpg_agent_conf" > "$temp_file"
-        echo -ne "\033[1;33m󰌋\033[0m Using \033[1mmacOS\033[0m pinentry"
-    fi
-
-    mv "$temp_file" "$gpg_agent_conf"
-
-    # Restart gpg-agent
-    echo -n ". Restarting \033[1mgpg-agent\033[0m... \033[32m󱎝 \033[0m"
-    gpg-connect-agent reloadagent /bye
-}
-
 
 
 #
