@@ -92,8 +92,8 @@ in
 
     alias icn="(cd ${configDirectory}/icons && sudo ./apply.sh)"
 
-    alias nix-switch="sudo -E darwin-rebuild switch --flake "${flake}" --show-trace"
-    alias nix-rebuild="sudo -E darwin-rebuild build --flake "${flake}" --show-trace"
+    alias nix-switch='sudo -E darwin-rebuild switch --flake "${flake}" --show-trace'
+    alias nix-rebuild='sudo -E darwin-rebuild build --flake "${flake}" --show-trace'
     alias nix-search="nix search nixpkgs"
 
     alias spoon="$(brew --prefix)/bin/hs"
