@@ -4,7 +4,7 @@
 # flake.nix's mkNixos. Host-specific bits live in hosts/<hostname>/.
 
 {
-  imports = [ ../bootstrap.nix ];
+  imports = [ ../bootstrap.nix ../home-backup.nix ];
 
   system.stateVersion = "24.05";
 

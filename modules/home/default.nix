@@ -52,8 +52,22 @@ in
   # dotfiles/home/.config/ except where the app writes back to its dir
   # — those use mkOutOfStoreSymlink so the link target stays mutable.
   xdg.configFile = {
-    "zsh".source = "${dotfiles}/.config/zsh";
-    "git".source = "${dotfiles}/.config/git";
+    # zsh and git are recursive because the private homeshick castle plants
+    # files *inside* these two directories (git/authors.yml, zsh/keys.zsh,
+    # zsh/init/keys.zsh) and bootstrap links the castle before the first
+    # switch. A single directory symlink would mean the castle's files are in
+    # the way of it on every fresh machine, and once the store link won that
+    # fight there'd be nowhere writable for homeshick to put them back.
+    "zsh" = {
+      source = "${dotfiles}/.config/zsh";
+      recursive = true;
+    };
+
+    "git" = {
+      source = "${dotfiles}/.config/git";
+      recursive = true;
+    };
+
     "atuin".source = "${dotfiles}/.config/atuin";
     "bat".source = "${dotfiles}/.config/bat";
     # Only the toml, not the whole dir — programs.direnv.nix-direnv writes
@@ -68,13 +82,18 @@ in
     "tabtab".source = "${dotfiles}/.config/tabtab";
     "starship".source = "${dotfiles}/.config/starship";
     "starship.toml".source = "${dotfiles}/.config/starship.toml";
-    "spicetify".source = "${dotfiles}/.config/spicetify";
 
     # zed writes back into its config dir (settings.json, keymap.json
     # change from the UI) — mkOutOfStoreSymlink points at the real
     # working copy so writes land in the repo where they can be committed.
     "zed".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/zed";
+
+    # Same as zed: the spicetify-watcher agent runs `spicetify backup apply`
+    # on every Spotify update, which rewrites config-xpui.ini (and creates
+    # CustomApps/ and Extensions/) in this directory.
+    "spicetify".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/spicetify";
 
     # Same as zed, three times over: Glide regenerates glide.d.ts into this
     # directory, it's a pnpm project (node_modules), and its .envrc has direnv

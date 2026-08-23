@@ -10,6 +10,7 @@ in
   imports = [
 
     ../bootstrap.nix
+    ../home-backup.nix
 
     ./daemons.nix
     ./defaults.nix
