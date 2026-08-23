@@ -47,6 +47,26 @@ in
 
   homebrew.global.brewfile = true;
 
+  # `brew bundle` runs during activation *before* home-manager links
+  # ~/.config/git/config, so on a first switch git has no HTTPS→SSH rewrite and
+  # no credential helper. The meterup `--HEAD` brews below build from
+  # https://github.com/meterup/api.git — private — and die under Homebrew's
+  # GIT_TERMINAL_PROMPT=0 with "could not read Username".
+  #
+  # /etc/gitconfig is the only config in place that early, and it is read by the
+  # git Homebrew actually shells out to (`brew --config` reports the Command
+  # Line Tools git, not the nix one, whose system config lives inside its store
+  # path). nix-darwin writes /etc at activation line ~2318, brew bundle runs at
+  # ~2855.
+  #
+  # Scoped to the meterup org rather than all of github.com because
+  # /etc/gitconfig applies to every user including root, which has no key — a
+  # blanket rewrite would send root's public HTTPS fetches over SSH and fail.
+  environment.etc."gitconfig".text = ''
+    [url "git@github.com:meterup/"]
+    	insteadOf = https://github.com/meterup/
+  '';
+
   homebrew.taps = [
     { name = "jorgelbg/tap"; trusted = true; }
     { name = "jrolfs/tap"; trusted = true; }
