@@ -53,6 +53,14 @@ in
     source "$XDG_CONFIG_HOME/zsh/github-to-raycast.zsh"
   '';
 
+  # system.defaults.screencapture.location points here, and screencapture
+  # silently falls back to the desktop if the directory is missing — as it is on
+  # a fresh machine. The dock also carries a tile for it, which would render as
+  # a "?" placeholder.
+  home.activation.screenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run mkdir -p "$HOME/Images/Screenshots"
+  '';
+
   # karabiner writes back to its config dir (and we want the file
   # editable via the Karabiner-Elements UI too) — point at the live
   # working tree via an out-of-store symlink.
