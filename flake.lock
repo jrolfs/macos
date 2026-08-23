@@ -60,6 +60,22 @@
         "type": "github"
       }
     },
+    "kitty-grab": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1759138937,
+        "narHash": "sha256-DamZpYkyVjxRKNtW5LTLX1OU47xgd/ayiimDorVSamE=",
+        "owner": "yurikhan",
+        "repo": "kitty_grab",
+        "rev": "969e363295b48f62fdcbf29987c77ac222109c41",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yurikhan",
+        "repo": "kitty_grab",
+        "type": "github"
+      }
+    },
     "kitty-gruvbox-material": {
       "flake": false,
       "locked": {
@@ -73,6 +89,22 @@
       "original": {
         "owner": "jrolfs",
         "repo": "gruvbox-material-kitty",
+        "type": "github"
+      }
+    },
+    "kitty-smart-scroll": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1641475108,
+        "narHash": "sha256-QqNYi5s7VqOj0LBCaZKVHe65j75NBs3WYPdeGbYYXVo=",
+        "owner": "yurikhan",
+        "repo": "kitty-smart-scroll",
+        "rev": "8aaa91b9f52527c3dbe395a79a90aea4a879857a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yurikhan",
+        "repo": "kitty-smart-scroll",
         "type": "github"
       }
     },
@@ -147,7 +179,9 @@
       "inputs": {
         "bootstrap": "bootstrap",
         "home-manager": "home-manager",
+        "kitty-grab": "kitty-grab",
         "kitty-gruvbox-material": "kitty-gruvbox-material",
+        "kitty-smart-scroll": "kitty-smart-scroll",
         "neovim-config": "neovim-config",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",

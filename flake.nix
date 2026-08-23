@@ -45,6 +45,19 @@
       url = "github:jrolfs/gruvbox-material-kitty";
       flake = false;
     };
+    # kitty kittens, bound in kitty/bindings.conf: grab on ctrl+s>} (vim-modal
+    # scrollback selection, configured by kitty/grab.conf) and smart-scroll on
+    # ctrl+shift+{k,j,u,d} (scrolls the pager when one is running, the buffer
+    # otherwise). Both were `dot` castle submodules and are pinned here at the
+    # same upstream commits that castle carried — no local patches.
+    kitty-grab = {
+      url = "github:yurikhan/kitty_grab";
+      flake = false;
+    };
+    kitty-smart-scroll = {
+      url = "github:yurikhan/kitty-smart-scroll";
+      flake = false;
+    };
     tridactyl-gruvbox-material = {
       url = "github:jrolfs/gruvbox-material-tridactyl";
       flake = false;

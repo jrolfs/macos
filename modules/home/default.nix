@@ -179,10 +179,18 @@ in
     #
     # Keeping current.conf as the switch means changing variants stays a
     # one-symlink edit in the tracked tree, as it was before.
+    #
+    # kittens/{grab,smart-scroll} are the same story: castle submodules that
+    # bindings.conf loads by relative path (`kitten kittens/grab/grab.py`), so
+    # they have to resolve inside this store path too. The tracked tree still
+    # carries them as the old dangling submodule symlinks, hence the rm.
     "kitty".source = pkgs.runCommandLocal "kitty-config" { } ''
       cp -R ${dotfiles}/.config/kitty $out
       chmod -R u+w $out
       ln -s ${inputs.kitty-gruvbox-material} $out/themes/gruvbox-material
+      rm -f $out/kittens/grab $out/kittens/smart-scroll
+      ln -s ${inputs.kitty-grab} $out/kittens/grab
+      ln -s ${inputs.kitty-smart-scroll} $out/kittens/smart-scroll
     '';
     "mise".source = "${dotfiles}/.config/mise";
     "k9s".source = "${dotfiles}/.config/k9s";
