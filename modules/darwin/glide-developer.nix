@@ -40,8 +40,17 @@ in
       codesign --force --deep --sign - "${targetApp}"
       echo "Created ${targetApp} (${bundleIdentifier})"
 
-      # Apply custom icon if available (icon-customizer is built by icons.nix)
-      /run/current-system/sw/bin/icon-customizer || true
+      # Apply custom icon if available (icon-customizer is built by icons.nix).
+      #
+      # $systemConfig, not /run/current-system: that symlink is not re-pointed
+      # until the very end of activation, so resolving through it here runs the
+      # *previous* generation's script. Any change to icon-customizer would then
+      # appear to have no effect until the switch after the one that made it.
+      # (The LaunchAgent wrapper is the opposite case and correctly keeps
+      # /run/current-system — it runs after activation, and its content has to
+      # stay byte-identical across rebuilds or the Full Disk Access grant on
+      # /usr/local/bin/icon-customizer is invalidated.)
+      "$systemConfig/sw/bin/icon-customizer" || true
     else
       echo "Skipping Glide Developer: ${sourceApp} not found"
     fi
