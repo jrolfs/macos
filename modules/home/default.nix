@@ -33,7 +33,7 @@ let
     walk "";
 in
 {
-  imports = [ ./neovim.nix ]
+  imports = [ ./neovim.nix ./ssh.nix ]
     ++ lib.optional (builtins.pathExists ./hosts/${hostname}.nix) ./hosts/${hostname}.nix;
 
   home.username = userName;
