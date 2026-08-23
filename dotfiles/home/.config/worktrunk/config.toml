@@ -244,8 +244,23 @@ exclude = ["node_modules/"]
 copy = "wt step copy-ignored"
 
 [projects."github.com/meterup/frontends"]
-post-create.direnv = "direnv allow"
-post-create.deps = "pnpm install"
+post-start.direnv = "direnv allow && direnv exec . true"
+post-start.deps = "pnpm install"
+
+[projects."github.com/meterup/api"]
+post-start.direnv = "direnv allow && direnv exec . true"
+
+# Appended to the global excludes above, not a replacement.
+step.copy-ignored.exclude = [
+  # 2.4G / 31k files of devenv service state (postgres, clickhouse, kafka, redis)
+  # plus gcroot and run-dir symlinks pointing back at the source worktree.
+  ".devenv/",
+  # Nix profile gcroot only — `source_url` caches in ~/.cache/direnv/cas and the
+  # allow token is keyed per path, so there's nothing here worth carrying over.
+  ".direnv/",
+  # air's rebuilt binary (369M) and its build log.
+  "tmp/",
+]
 
 # [projects."github.com/meterup/frontends".post-start]
 # direnv = "direnv allow"

@@ -1,4 +1,5 @@
 {
+  "document_symbols": "on",
   "close_on_file_delete": false,
   "seed_search_query_from_cursor": "selection",
   "use_smartcase_search": false,
@@ -140,11 +141,17 @@
     },
     "Claude Foundry": {
       "type": "custom",
-      "command": "npx",
-      "args": ["@zed-industries/claude-code-acp"],
+      "command": "/bin/zsh",
+      "args": [
+        "-c",
+        "source ~/.config/zsh/init/keys.zsh && exec npx -y @agentclientprotocol/claude-agent-acp"
+      ],
+      "default_config_options": {
+        "effort": "xhigh",
+        "mode": "auto"
+      },
       "env": {
-        "CLAUDE_CODE_USE_FOUNDRY": "1",
-        "ANTHROPIC_FOUNDRY_RESOURCE": "abhijeet-3779"
+        "ANTHROPIC_MODEL": "claude-opus-5"
       }
     }
   },
@@ -154,9 +161,9 @@
     "dark": "Gruvbox Material Custom Dark"
   },
   "vim_mode": true,
-  "ui_font_size": 15,
-  "buffer_font_size": 13.0,
-  "ui_font_family": "IBM Plex Sans",
+  "ui_font_size": 13,
+  "buffer_font_size": 12.0,
+  "ui_font_family": "Geist",
   "buffer_font_family": "JetBrains Mono",
   "format_on_save": "off",
   "relative_line_numbers": "enabled",
