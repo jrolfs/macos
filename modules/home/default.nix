@@ -184,6 +184,12 @@ in
     # bindings.conf loads by relative path (`kitten kittens/grab/grab.py`), so
     # they have to resolve inside this store path too. The tracked tree still
     # carries them as the old dangling submodule symlinks, hence the rm.
+    #
+    # kitty-scrollback.nvim is the exception. Its kitten ships alongside the
+    # neovim plugin, which vim.pack clones into $XDG_DATA_HOME at runtime
+    # (packages/kitty.lua) rather than arriving as an input here, so the alias in
+    # bindings.conf has to stay an absolute path — rewritten off the tracked one
+    # so it isn't pinned to a /Users/jamie home.
     "kitty".source = pkgs.runCommandLocal "kitty-config" { } ''
       cp -R ${dotfiles}/.config/kitty $out
       chmod -R u+w $out
@@ -191,6 +197,9 @@ in
       rm -f $out/kittens/grab $out/kittens/smart-scroll
       ln -s ${inputs.kitty-grab} $out/kittens/grab
       ln -s ${inputs.kitty-smart-scroll} $out/kittens/smart-scroll
+
+      substituteInPlace $out/bindings.conf \
+        --replace-fail /Users/jamie/.local/share/nvim ${config.xdg.dataHome}/nvim
     '';
     "mise".source = "${dotfiles}/.config/mise";
     "k9s".source = "${dotfiles}/.config/k9s";

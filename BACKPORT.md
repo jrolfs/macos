@@ -122,6 +122,25 @@ where `private` plants `keys.zsh`.
 
 ---
 
+## 5. kitty-scrollback.nvim alias pointed at the vim-plug plugin dir
+
+**Commit here:** (this commit)
+
+`bindings.conf`'s `action_alias` named
+`~/.local/share/nvim/plugged-kitty/kitty-scrollback.nvim/python/kitty_scrollback_nvim.py`,
+but the neovim config moved to `vim.pack`, which installs into
+`~/.local/share/nvim/site/pack/core/opt/`. Nothing creates `plugged-kitty` any
+more, so `ctrl+s>]`, `ctrl+s>[` and the ctrl+shift+right mouse map all fail on a
+fresh machine.
+
+It still works on `newt` only by accident: a March vim-plug leftover is sitting
+in `plugged-kitty`, and its kitten is byte-identical to the current one. It
+breaks there the moment `plugged*` gets cleaned up.
+
+**Backport to:** `dot`, `home/.config/kitty/bindings.conf`.
+
+---
+
 ## Explicitly *not* backport candidates
 
 - **Dropping `homebrew.onActivation.extraFlags = [ "--force-cleanup" ]`.** On
