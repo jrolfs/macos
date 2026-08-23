@@ -48,22 +48,31 @@ in
   homebrew.global.brewfile = true;
 
   # `brew bundle` runs during activation *before* home-manager links
-  # ~/.config/git/config, so on a first switch git has no HTTPS→SSH rewrite and
-  # no credential helper. The meterup `--HEAD` brews below build from
-  # https://github.com/meterup/api.git — private — and die under Homebrew's
+  # ~/.config/git/config, so on a first switch git has no credential helper and
+  # no URL rewrites. The private meterup tap and the `--HEAD` brews below (which
+  # build from https://github.com/meterup/api.git) then die under Homebrew's
   # GIT_TERMINAL_PROMPT=0 with "could not read Username".
   #
-  # /etc/gitconfig is the only config in place that early, and it is read by the
-  # git Homebrew actually shells out to (`brew --config` reports the Command
+  # /etc/gitconfig is the only git config in place that early, and it is read by
+  # the git Homebrew actually shells out to (`brew --config` reports the Command
   # Line Tools git, not the nix one, whose system config lives inside its store
-  # path). nix-darwin writes /etc at activation line ~2318, brew bundle runs at
+  # path). nix-darwin writes /etc at activation line ~2318; brew bundle runs at
   # ~2855.
   #
-  # Scoped to the meterup org rather than all of github.com because
-  # /etc/gitconfig applies to every user including root, which has no key — a
-  # blanket rewrite would send root's public HTTPS fetches over SSH and fail.
+  # `store` reads ~/.git-credentials, which `bootstrap` materializes from
+  # 1Password before the first switch. SSH is not usable here: keys minted by
+  # bootstrap's OAuth App are barred from organization resources, so a fresh
+  # machine's key can read personal private repos but not meterup's.
+  #
+  # The second rule looks like a no-op but isn't. Once home-manager has run, the
+  # user config rewrites all of https://github.com/ to SSH; git resolves
+  # insteadOf by *longest* matching prefix, so this pins meterup to HTTPS and
+  # keeps the token path working on later switches.
   environment.etc."gitconfig".text = ''
-    [url "git@github.com:meterup/"]
+    [credential "https://github.com"]
+    	helper = store
+
+    [url "https://github.com/meterup/"]
     	insteadOf = https://github.com/meterup/
   '';
 
@@ -71,17 +80,12 @@ in
     { name = "jorgelbg/tap"; trusted = true; }
     { name = "jrolfs/tap"; trusted = true; }
     {
-      # meterup/homebrew-packages is private, and brew taps over HTTPS with
-      # GIT_TERMINAL_PROMPT=0 — so on a machine with no cached GitHub
-      # credential the clone dies with "could not read Username". (It works on
-      # a long-lived machine only because a credential is sitting in the
-      # keychain, which is not reproducible.)
-      #
-      # clone_target pins this tap to SSH, which authenticates with the
-      # bootstrap-minted ~/.ssh/id_ed25519. That key is passphraseless, so it
-      # needs no agent — brew sanitizing SSH_AUTH_SOCK doesn't affect it.
+      # Private, so the clone needs a credential. It comes over HTTPS from
+      # ~/.git-credentials via the helper configured above, rather than over
+      # SSH with a clone_target: brew sanitizes SSH_AUTH_SOCK during
+      # activation, and the on-disk key bootstrap mints can't reach org repos
+      # anyway.
       name = "meterup/packages";
-      clone_target = "git@github.com:meterup/homebrew-packages.git";
       trusted = true;
     }
   ];
