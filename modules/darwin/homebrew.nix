@@ -66,8 +66,14 @@ in
   #
   # The second rule looks like a no-op but isn't. Once home-manager has run, the
   # user config rewrites all of https://github.com/ to SSH; git resolves
-  # insteadOf by *longest* matching prefix, so this pins meterup to HTTPS and
-  # keeps the token path working on later switches.
+  # insteadOf by *longest* matching prefix, so this pins meterup to HTTPS.
+  #
+  # The helper below only covers the *first* switch, though. The user config's
+  # [credential "https://github.com"] section sets `helper =` (empty) before
+  # adding gh's, and an empty value resets the accumulated list — verified with
+  # `git credential fill` against a two-file config, where the system helper is
+  # not consulted at all. So from the second switch on, the HTTPS path is served
+  # by `gh auth git-credential` and needs `gh auth login` to have happened.
   environment.etc."gitconfig".text = ''
     [credential "https://github.com"]
     	helper = store
