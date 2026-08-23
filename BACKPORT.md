@@ -94,22 +94,9 @@ Removed the `ssh://` form, kept the documented scp-form one.
 
 ---
 
-## 4. Two inert lines in the kitty config
+## 4. A dead `source` line in the kitty startup session
 
 **Commit here:** (this commit)
-
-Both are live on `newt` today, and both fail silently.
-
-`kitty.conf`'s `symbol_map` had its value on the following line. kitty has no
-line continuation, so the key parsed with an empty value and the codepoints
-parsed as a key of their own — `Ignoring invalid config line` twice, mapping
-inert. Nerd Font glyphs still render because kitty falls back to any installed
-font that has them, so the only symptom is that *which* font supplies them is
-whatever Core Text picks. Joining the line also needed the family name fixed
-(`JetbrainsMono Nerd Font` matches nothing; the cask installs
-`JetBrainsMono Nerd Font Mono`) and three ranges trimmed to what that font's
-cmap actually covers — Nerd Fonts v3 moved Material Design Icons out of
-`U+F500-U+FD46` to the `U+F0001-U+F1AF0` plane.
 
 `sessions/startup.conf`'s `source ~/.config/zsh/init/keys.zsh` is not a kitty
 session directive — the parser has no `source` (checked in 0.47.2 and on kitty
@@ -117,8 +104,11 @@ master), so it's rejected with `Unknown command in session file`. It's also
 unnecessary: `.zshrc` snippets every `$XDG_CONFIG_HOME/zsh/init/*.zsh`, which is
 where `private` plants `keys.zsh`.
 
-**Backport to:** `dot`, `home/.config/kitty/kitty.conf` and
-`home/.config/kitty/sessions/startup.conf`.
+The same commit originally joined `kitty.conf`'s two-line `symbol_map` as well.
+That part was a regression and is reverted — see the last entry under *not
+backport candidates*.
+
+**Backport to:** `dot`, `home/.config/kitty/sessions/startup.conf`.
 
 ---
 
@@ -164,3 +154,16 @@ Neither path needs a home baked into it. kitty expands `~` in kitten paths
   (`getEnv` → `specialArgs`, `builtins.currentTime` in `pin.nix`),
   `$NIX_CONFIG_DIR` in `tap.nix`, registry pins. These are migration artifacts,
   meaningless pre-migration.
+- **Joining `kitty.conf`'s two-line `symbol_map`** (`f708bf3`, reverted in
+  `a6eb730`). The mapping has never parsed, so every Nerd Font glyph has always
+  come from kitty's fallback — and that fallback is what makes the tab icons look
+  right. Measured with `get_fallback_font` at `font_size 13.0`: the private-use
+  codepoints in the tab templates (U+E606, U+E69D, U+EDAF, …) resolve to the
+  `Symbols Nerd Font Mono` kitty bundles in its own app bundle, and the Material
+  Design Icons plane (U+F0001+) to the natural-width `FiraCode Nerd Font`. Making
+  the mapping live pins all of them to `JetBrainsMono Nerd Font Mono`, a patched
+  single-cell face, which renders them noticeably smaller and inconsistently —
+  only two of the ten tab icons were even inside the mapped ranges. kitty's own
+  FAQ says not to use patched fonts for this. `kitty.conf` now comments the
+  mapping out with that reasoning rather than leaving two lines kitty rejects on
+  every launch.
