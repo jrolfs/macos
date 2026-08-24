@@ -27,7 +27,12 @@ owning the dotfiles.
   (`inputs.neovim-config`), symlinked with `recursive = true` so runtime state
   can live beside the config.
 - **`private`** stays a homeshick castle (git-crypt). `$HOMESHICK_KINGDOM` is
-  still exported so `OP_CONFIG_DIR` etc. resolve.
+  still exported so `OP_CONFIG_DIR` etc. resolve. bootstrap clones, links,
+  pulls *and* — since `castle-unlocked` — unlocks it; before that phase existed
+  a provisioned machine got the castle as ciphertext, `keys.zsh` included. Two
+  places in `modules/home/default.nix` exist for it: `liveConfig "zsh"` and
+  `git` with `recursive = true`, both so homeshick can plant a file inside a
+  directory home-manager also manages.
 - **Submodules dropped.** nix-darwin / nixpkgs are flake inputs pinned to
   upstream; the custom Homebrew tap lives in-repo as plain files (`homebrew/`).
 

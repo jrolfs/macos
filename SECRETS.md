@@ -66,6 +66,19 @@ it. That's why the `gpg-imported` bootstrap phase sources it from 1Password, and
 it's a good argument for 1Password as the root of trust generally: it's the one
 store that needs nothing else to already work.
 
+The last step is the `castle-unlocked` phase, immediately after `gpg-imported`.
+It was missing until now, and the failure mode is worse than "secrets aren't
+available": every encrypted path is *ciphertext sitting where a real file
+should be*, and `.config/zsh/init/keys.zsh` is one of them, so `.zshrc` snippets
+binary into every shell. The phase is not recorded unless the unlock succeeds,
+so a re-run retries it — useful, because `git-crypt unlock` refuses a dirty
+working tree and needs a passphrase prompt to get through.
+
+Two details that only bite inside bootstrap: `git-crypt` and `gpg` are resolved
+by absolute path (the flake wrapper sets `PATH` to nix store bins only), and
+gpg's directory is prepended to `PATH` for the call because git-crypt shells out
+to `gpg` by name.
+
 ## Target design: three categories, three homes
 
 | Category | Home | Mechanism |
@@ -303,6 +316,9 @@ them.
 - **Done:** `gpg-imported` bootstrap phase, now iterating `gpg.keyrings` and
   skipping keyrings gated to other hosts. Key material is piped straight into
   `gpg --batch --import` on stdin — never a temp file, never in argv.
+- **Done:** `castle-unlocked` phase (`git-crypt unlock`), and the castle pull +
+  link moved out of the `private-cloned` phase gate so a re-run actually
+  updates the castle instead of skipping it as cached.
 - **Done:** `readDocument()` and `createDocument()` in `onepassword.ts`, both with
   re-auth-and-retry. `createDocument` writes via stdin and edits in place when the
   title exists, so references (and therefore manifest entries) stay stable across
