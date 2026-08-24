@@ -3,40 +3,40 @@
 # Pre-start gpg-agent so parallel shells don't race to start it, then load other sessions
 launch /run/current-system/sw/bin/zsh --login -c "gpgconf --launch gpg-agent 2>/dev/null; sleep 1 && kitty @ action goto_session $HOME/.config/kitty/sessions/work.kitty-session && kitty @ action goto_session $HOME/.config/kitty/sessions/personal.kitty-session && kitty @ action goto_session $HOME/.config/kitty/sessions/dotfiles.kitty-session && kitty @ close-window --self"
 
-# Dot
+# System
+#
+# One tab where there used to be two: the `dot` and `macos` castles are the same
+# repo now, and a second tab would open the same file list. Telescope's git_files
+# resolves to the repo root (use_git_root defaults on), so even lcd'ing one tab
+# into dotfiles/ and the other at the root picks from the same set.
 
-new_tab  dot
+new_tab  system
 layout splits
 
-cd ~/.homesick/repos/dot
+cd ~/.config/system
 
-launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/dot--dot.vim"
-launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "claude"
-launch --location=hsplit /run/current-system/sw/bin/zsh --login
-
-# macOS
-
-new_tab  macos
-layout splits
-
-cd ~/.homesick/repos/macos
-
-launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/dot--macos.vim"
+launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/system.vim"
 launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "claude"
 launch --location=hsplit /run/current-system/sw/bin/zsh --login
 
 # Neovim
+#
+# The neovim config is a flake input now, so ~/.config/nvim is a tree of store
+# symlinks — unwritable, and not a git repo, which the session's closing
+# `Telescope git_files` needs. The tab wants the clone instead.
 
 new_tab  neovim
 layout splits
 
-cd ~/.homesick/repos/neovim
+cd ~/Developer/Sources/jrolfs/neovim
 
-launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/dot--neovim.vim"
+launch /run/current-system/sw/bin/zsh --login -c "/run/current-system/sw/bin/nvim -S $HOME/.config/nvim/sessions/neovim.vim"
 launch --location=vsplit /run/current-system/sw/bin/zsh --login -c "claude"
 launch --location=hsplit /run/current-system/sw/bin/zsh --login
 
 # Private
+#
+# Still a homeshick castle, so still where it always was.
 
 new_tab  private
 layout splits

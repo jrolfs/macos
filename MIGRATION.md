@@ -102,6 +102,12 @@ MIGRATION.md
   # xdg.configFile keys to absolute paths, so normalize before diffing
   ```
 
+  A prefix match against that list has a blind spot: a directory declared with
+  `recursive = true` covers its own files, not files the tree adds beside them.
+  `.config/nvim` is the one that bit — sourced recursively from the neovim
+  input, so every session file under `dotfiles/home/.config/nvim/sessions`
+  looked declared and none of them were.
+
   - `.config/gh/config.yml`, `.config/op/plugins.sh` — both rewritten by their
     own tool; nothing sources `plugins.sh` yet either (see SECRETS.md).
   - `.config/stay/action-*.{sh,applescript}` — invoked by Stay, whose own config
@@ -112,6 +118,36 @@ MIGRATION.md
   - `Documents/Obsidian/Brain/.obsidian/*`, `Library/…/Firefox/…/user.js`,
     `Library/…/Plex/{input,mpv}.conf` — app-managed, and the Obsidian vault is a
     Resilio share on the machines that have it.
+
+- **The kitty dotfiles layout follows the repo consolidation.** It opened a tab
+  per castle, each loading a matching nvim session; two of those castles are one
+  repo now. `sessions/dotfiles.kitty-session`:
+
+  | tab | was | is |
+  | --- | --- | --- |
+  | `system` | `dot` + `macos` tabs, `dot--{dot,macos}.vim` | `~/.config/system`, `system.vim` |
+  | `neovim` | `~/.homesick/repos/neovim`, `dot--neovim.vim` | `~/Developer/Sources/jrolfs/neovim`, `neovim.vim` |
+  | `private` | `~/.homesick/repos/private`, `dot--private.vim` | unchanged — still a castle |
+
+  Two tabs on one repo would have bought nothing: the sessions end in
+  `Telescope git_files`, whose `use_git_root` defaults on, so a tab lcd'd into
+  `dotfiles/` picks from the same list as one at the root.
+
+  The neovim tab needs a clone, and it can't be `~/.config/nvim`: that's the
+  input's tree of store symlinks — unwritable, and not a git repo, so
+  `git_files` errors there (`… is not a git directory`). Nothing clones it yet;
+  bootstrap only clones this repo and the private castle.
+
+  `neovim.vim` moved *into* this repo rather than staying in the neovim one for
+  the same reason: `:mksession!` rewrites the file it was loaded from, which a
+  store path can't be. The stale `sessions/dot--neovim.vim` still ships in the
+  input and can go next time that repo is touched.
+
+  Two files left alone because nothing reads them, both still on castle paths:
+  `kitty/sessions/startup.conf` (a superseded copy of the whole multi-window
+  layout — `kitty.conf`'s `startup_session` names `dotfiles.kitty-session`) and
+  `nvim/sessions/dot.vim` (the pre-split session that held all four repos as
+  tabs in one nvim). Deletion candidates rather than things to keep in sync.
 
 ## Pinning / overlays
 

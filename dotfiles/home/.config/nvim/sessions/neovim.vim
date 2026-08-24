@@ -50,7 +50,7 @@ let EasyMotion_landing_highlight =  0
 silent only
 silent tabonly
 
-cd ~/.homesick/repos/macos
+cd ~/Developer/Sources/jrolfs/neovim
 
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
@@ -78,10 +78,9 @@ setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldenable
 
-lcd ~/.homesick/repos/macos
+lcd ~/Developer/Sources/jrolfs/neovim
 
 tabnext 1
-
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif
