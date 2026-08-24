@@ -158,7 +158,10 @@
     # they are ByHost, which CustomUserPreferences writes past for the same
     # reason it can't reach the menu bar items below. nix-darwin's two options
     # here (askForPassword, askForPasswordDelay) are about the lock screen, not
-    # about which saver runs, and are left at their defaults.
+    # about which saver runs, and are left at their defaults. Hammerspoon is no
+    # help either, which is where the wallpaper half went: hs.caffeinate can
+    # start a screen saver and nothing more — there is no API for choosing one
+    # or for the idle time before it runs.
 
     ActivityMonitor.ShowCategory = 100;
 

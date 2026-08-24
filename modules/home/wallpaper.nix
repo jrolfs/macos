@@ -7,89 +7,77 @@
 # *choice* — a machine with the entire library still had to be told which
 # picture to use, by hand, in System Settings. That is what this declares.
 #
-# It has to be done through NSWorkspace (which is all desktoppr is) rather than
-# by writing the preference. macOS keeps the answer in
+# It cannot be declared as a preference. macOS keeps the answer in
 # ~/Library/Application Support/com.apple.wallpaper/Store/Index.plist, and
 # WallpaperAgent owns that file rather than reading it: writing the new picture
 # in by hand changes nothing on screen, and the agent overwrites the file from
 # its own state the next time Dock restarts. Measured on macOS 26.
+#
+# So the picture is set through NSWorkspace, the only public way in, and the
+# work of doing that lives in Hammerspoon — see
+# dotfiles/home/.hammerspoon/modules/wallpaper.lua. Hammerspoon is already the
+# place this config keeps the macOS APIs that have no declarative surface, it
+# exposes NSWorkspace as hs.screen:desktopImageURL, and it is the only thing
+# here that can walk the spaces, which is what makes the picture reach more than
+# the one space that happens to be active.
 
 let
   wallpaper = "${config.home.homeDirectory}/Images/Wallpapers/BLACK/BLACK II - Gruvbox Material.png";
 
-  # Hammerspoon's CLI, which is what makes the per-space loop below possible.
-  # It lives inside the cask rather than in $(brew --prefix)/bin, which is only
-  # a symlink Hammerspoon offers to create.
+  # Hammerspoon's CLI. It ships inside the cask; $(brew --prefix)/bin/hs is only
+  # a symlink Hammerspoon offers to create, so it can't be relied on.
   hs = "/Applications/Hammerspoon.app/Contents/Frameworks/hs/hs";
 
-  spaceIds = ''local ids = {} for _, list in pairs(hs.spaces.allSpaces()) do for _, id in ipairs(list) do if hs.spaces.spaceType(id) == "user" then ids[#ids+1] = id end end end return "spaces:" .. table.concat(ids, " ")'';
+  # `require` caches, and home-manager has just relinked the module, so a
+  # Hammerspoon that has applied a wallpaper on an earlier switch would
+  # otherwise go on running the copy it loaded then.
+  call = ''
+    package.loaded["modules.wallpaper"] = nil
+    local ok, wallpaper = pcall(require, "modules.wallpaper")
+    if not ok then return "wallpaper:unavailable" end
+    return "wallpaper:" .. wallpaper.apply("${wallpaper}")
+  '';
 
   apply = pkgs.writeShellScript "wallpaper-apply" ''
     set -uo pipefail
 
-    export PATH=${lib.makeBinPath [ pkgs.desktoppr pkgs.coreutils pkgs.gnugrep ]}:$PATH
-
-    image=${lib.escapeShellArg wallpaper}
-
-    # A machine outside the share, or one where Resilio hasn't caught up yet.
-    # Pointing the desktop at a file that isn't there paints it black.
-    if [ ! -f "$image" ]; then
-      echo "wallpaper: $image has not synced yet, leaving the desktop alone" >&2
-      exit 0
-    fi
-
-    current=$(desktoppr) || current=
-
-    # Both the idempotence guard and the reason for everything below it:
-    # NSWorkspace reads and writes the *active* space only.
-    [ "$current" = "$image" ] && exit 0
-
-    desktoppr all "$image"
-
-    # Every other space is still on the old picture. System Settings writes an
-    # "all spaces and displays" scope that no public API reaches, so the only
-    # way to the rest of them is to go there. Hammerspoon drives that through
-    # Mission Control, so it needs Accessibility — if the hop fails, that space
-    # keeps its old picture and the rest still get done.
-    #
-    # This runs only when the declared picture actually changed, which is the
-    # one moment a switch is allowed to move the screen around. A display that
-    # isn't plugged in at that moment is out of reach the same way and keeps its
-    # old picture until the next change lands while it is attached.
     if [ ! -x ${hs} ]; then
-      echo "wallpaper: no Hammerspoon CLI, so only the active space changed" >&2
+      echo "wallpaper: Hammerspoon is not installed yet, leaving the desktop alone" >&2
       exit 0
     fi
 
-    # Sentinel-prefixed because `hs -c` interleaves its own "-- Loading
-    # extension: spaces" line on the first call after Hammerspoon starts.
-    spaces=$(${hs} -c ${lib.escapeShellArg spaceIds} 2>/dev/null | grep '^spaces:' | head -1)
-    spaces=''${spaces#spaces:}
+    # Answers are sentinel-prefixed and matched loosely because `hs -c`
+    # interleaves its own "-- Loading extension: fs" lines on the first call
+    # after Hammerspoon starts. The timeout is because this call is what a
+    # switch waits on, and a Hammerspoon whose main thread is wedged would
+    # otherwise hold the whole activation open.
+    result=$(${pkgs.coreutils}/bin/timeout 20 ${hs} -c ${lib.escapeShellArg call} 2>/dev/null)
 
-    origin=$(${hs} -c 'return "focused:" .. tostring(hs.spaces.focusedSpace())' 2>/dev/null | grep '^focused:' | head -1)
-    origin=''${origin#focused:}
-
-    for space in $spaces; do
-      [ "$space" = "$origin" ] && continue
-
-      ${hs} -c "hs.spaces.gotoSpace($space)" >/dev/null 2>&1 || continue
-      sleep 2
-
-      desktoppr all "$image"
-    done
-
-    if [ -n "$origin" ]; then
-      ${hs} -c "hs.spaces.gotoSpace($origin)" >/dev/null 2>&1 || true
-    fi
+    case "$result" in
+      *wallpaper:unchanged*)
+        ;;
+      # The walk across the other spaces carries on inside Hammerspoon after
+      # this returns, about a second a space.
+      *wallpaper:walking*)
+        echo "wallpaper: setting ${builtins.baseNameOf wallpaper}" >&2
+        ;;
+      *wallpaper:missing*)
+        echo "wallpaper: ${wallpaper} has not synced yet, leaving the desktop alone" >&2
+        ;;
+      *wallpaper:unavailable*)
+        echo "wallpaper: Hammerspoon has no wallpaper module — reload its config" >&2
+        ;;
+      *)
+        echo "wallpaper: no answer from Hammerspoon, so the desktop is untouched" >&2
+        ;;
+    esac
 
     exit 0
   '';
 in
 {
-  home.packages = [ pkgs.desktoppr ];
-
   home.activation.wallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run ${apply} \
-      || warnEcho "wallpaper: could not set the desktop picture — run desktoppr by hand to see why"
+      || warnEcho "wallpaper: could not set the desktop picture — see the Hammerspoon console"
   '';
 }

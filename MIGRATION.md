@@ -106,17 +106,29 @@ MIGRATION.md
   nothing on screen, and the agent overwrites the file from its own state the
   next time Dock restarts — so `CustomUserPreferences` is not a route, and
   neither is any amount of plist surgery. The only public way in is
-  `NSWorkspace.setDesktopImageURL`, i.e. `pkgs.desktoppr`, which is what
-  `modules/home/wallpaper.nix` uses. Two consequences worth knowing:
+  `NSWorkspace.setDesktopImageURL`, so the work lives in Hammerspoon, which is
+  where this config keeps the macOS APIs that have no declarative surface:
+  `dotfiles/home/.hammerspoon/modules/wallpaper.lua` does it through
+  `hs.screen:desktopImageURL`, and `modules/home/wallpaper.nix` declares the
+  path and calls into it from activation. Three consequences worth knowing:
   - It reaches the **active space only**. System Settings writes an "all spaces
     and displays" scope that no public API touches, so the module walks the
-    spaces with Hammerspoon (`hs.spaces.gotoSpace`) and sets each one. That only
-    happens when the declared picture actually changed — it guards on
-    `desktoppr` reading back the same path — and it costs ~13s across six
-    spaces. A display that isn't attached at that moment keeps its old picture.
+    spaces (`hs.spaces.gotoSpace`, which needs Accessibility) and paints each
+    one. That only happens when the declared picture actually changed — it
+    guards on reading the same URL back off every attached screen, which costs
+    16ms — and the walk then runs on a timer inside Hammerspoon rather than
+    holding the switch open, about a second a space. A display that isn't
+    attached at the time keeps its old picture; its entry in the store is
+    regenerated even if deleted by hand.
+  - `hs.screen:desktopImageURL` wants a percent-encoded `file://` URL and
+    raises an Obj-C exception on a bare path. `hs.fs.urlFromPath` builds one
+    through NSURL, so it compares equal to what the getter returns, and is
+    `nil` for a file that isn't there — which doubles as the check for a
+    library Resilio hasn't synced yet.
   - The **screen saver** is the other half of the same store, so it is not
-    declarable at all. `modules/darwin/defaults.nix` says so where the option
-    would otherwise go.
+    declarable at all, and Hammerspoon doesn't rescue it either —
+    `hs.caffeinate` can start a saver but not choose one.
+    `modules/darwin/defaults.nix` says so where the option would otherwise go.
 - **Registry + NIX_PATH**: `nix.registry.nixpkgs.flake = inputs.nixpkgs` and a
   flake-pinned `nix.nixPath` keep both `nix shell nixpkgs#foo` and
   `nix-shell -p foo` working.
@@ -244,6 +256,8 @@ Phases, in order:
 Post-switch, by hand:
 
 - Grant Full Disk Access to `/usr/local/bin/icon-customizer`.
+- Grant Accessibility to Hammerspoon. Half its modules need it, and without it
+  the wallpaper reaches the active space only.
 - Add `~/Images` as a Resilio share, the same way phase 5 does `~/Configuration`
   — the wallpaper library lives in it. Until it syncs, `modules/home/
   wallpaper.nix` leaves the stock desktop alone rather than pointing at a file
