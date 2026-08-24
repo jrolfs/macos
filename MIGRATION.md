@@ -91,8 +91,8 @@ MIGRATION.md
 - **A file in `dotfiles/` is not a linked file.** homeshick linked whatever was
   in the castle; here every path needs a declaration, and a tracked file nobody
   declared is simply absent on the machine — which looks like a broken feature,
-  not a missing symlink (`exa-wrapper.sh` was one: `ls` aliased to a path that
-  didn't exist). What's still unlinked, as of the exa-wrapper fix:
+  not a missing symlink (`eza-wrapper.sh` was one: `ls` aliased to a path that
+  didn't exist). What's still unlinked, as of that fix:
 
   ```
   nix eval --raw \

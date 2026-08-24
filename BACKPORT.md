@@ -146,7 +146,10 @@ Neither path needs a home baked into it. kitty expands `~` in kitten paths
 `ls` is this wrapper. It ends in `exa …`, and exa has been unmaintained and gone
 from nixpkgs for years — the name only resolves because nixpkgs' `eza` ships a
 `bin/exa` compat symlink, which is also the only reason `aliases.zsh`'s
-`command -v exa` guard still defines the alias at all. Both now name `eza`.
+`command -v exa` guard still defines the alias at all. Both now name `eza`, as
+does the file itself: `eza-wrapper.sh`, with `exa_opts` renamed to match. The
+rename is the one part that has to land atomically — the script and the alias
+that points at it are both in `dot`, so that's one commit there.
 
 Two flags the wrapper's own `--help` advertises have never worked, in any
 version: `-I GLOBS` and `-L DEPTH` are missing their colons in the `getopts`
@@ -167,8 +170,8 @@ one nonexistent path. Only `--git` auto-detection rode on it, and only for a
 directory argument: `git -C ""` is a documented no-op, so the no-argument case
 worked by accident, while `ls -l some-file` in a repo never got the git column.
 
-**Backport to:** `dot`, `home/.local/share/exa-wrapper.sh` and
-`home/.config/zsh/init/aliases.zsh`.
+**Backport to:** `dot`, `home/.local/share/exa-wrapper.sh` (renamed to
+`eza-wrapper.sh`) and `home/.config/zsh/init/aliases.zsh`.
 
 Not applicable to master: the "never linked" half of this (see MIGRATION.md) is a
 flake-only defect. On newt homeshick links both files out of `dot`.
