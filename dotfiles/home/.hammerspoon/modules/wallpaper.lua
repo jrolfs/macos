@@ -69,14 +69,23 @@ end
 
 -- Paint on arrival. The watcher fires as the new space becomes active, so a
 -- beat's delay keeps the paint off the space being left; and paint() is a
--- no-op for a space that is already right, which every space is once this has
--- caught up.
+-- no-op for a space that is already right (1.4ms a screen, against 64ms for a
+-- write), which every space is once this has caught up.
+--
+-- Only the newest event is worth acting on, so an outstanding paint is dropped
+-- rather than left to stack up: paint() works on whatever space is current when
+-- it fires, not the one the event was about, so switching quickly through four
+-- spaces would otherwise paint the fourth one four times.
 local function watch()
   if watcher then
     return
   end
 
   watcher = hs.spaces.watcher.new(function()
+    if pending then
+      pending:stop()
+    end
+
     pending = hs.timer.doAfter(0.3, paint)
   end):start()
 end
