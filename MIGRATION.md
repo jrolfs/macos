@@ -23,9 +23,15 @@ owning the dotfiles.
   tree into `$HOME` (lift-and-shift by default; `programs.git`/`direnv`/
   `starship`/`atuin` translated where it paid off; `zed`/`karabiner`/`vscode`/
   `cursor` via `mkOutOfStoreSymlink` so the apps can write back).
-- **`neovim`** stays its own repo, consumed as a `flake = false` input
-  (`inputs.neovim-config`), symlinked with `recursive = true` so runtime state
-  can live beside the config.
+- **`neovim`** stays its own repo, but the config is edited from a clone at
+  `~/Developer/Sources/jrolfs/neovim`, not from the pinned input. `modules/home/
+  neovim.nix` owns all of `~/.config/nvim`: it links each *top-level* entry of
+  the config to the clone via `mkOutOfStoreSymlink`, clones the repo on
+  activation if it isn't there, and warms the plugin set. So a lua tweak is
+  live, and `inputs.neovim-config` (`flake = false`) is down to supplying the
+  list of top-level names — an absolute path can't be read under pure eval —
+  which makes a new top-level entry the one change still needing
+  `nix flake update neovim-config`.
 - **`private`** stays a homeshick castle (git-crypt). `$HOMESHICK_KINGDOM` is
   still exported so `OP_CONFIG_DIR` etc. resolve. bootstrap clones, links,
   pulls *and* — since `castle-unlocked` — unlocks it; before that phase existed
@@ -133,15 +139,16 @@ MIGRATION.md
   `Telescope git_files`, whose `use_git_root` defaults on, so a tab lcd'd into
   `dotfiles/` picks from the same list as one at the root.
 
-  The neovim tab needs a clone, and it can't be `~/.config/nvim`: that's the
-  input's tree of store symlinks — unwritable, and not a git repo, so
-  `git_files` errors there (`… is not a git directory`). Nothing clones it yet;
-  bootstrap only clones this repo and the private castle.
+  The neovim tab needs the clone, and it can't be `~/.config/nvim`: that's a
+  tree of symlinks, and it wasn't a git repo at all while it pointed into the
+  store, so `git_files` errored there (`… is not a git directory`).
+  `home.activation.neovimConfigClone` now makes the clone on every machine.
 
-  `neovim.vim` moved *into* this repo rather than staying in the neovim one for
-  the same reason: `:mksession!` rewrites the file it was loaded from, which a
-  store path can't be. The stale `sessions/dot--neovim.vim` still ships in the
-  input and can go next time that repo is touched.
+  `neovim.vim` moved *into* this repo rather than staying in the neovim one:
+  `:mksession!` rewrites the file it was loaded from, and `sessions/` is the one
+  part of the config tree that isn't linked to the clone, so a session there
+  would have nowhere to land. The neovim repo's own `sessions/dot--neovim.vim`
+  is no longer linked anywhere and can go next time that repo is touched.
 
   Two files left alone because nothing reads them, both still on castle paths:
   `kitty/sessions/startup.conf` (a superseded copy of the whole multi-window
@@ -250,9 +257,15 @@ Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
    replicated in cleartext across devices and Resilio relays. The git-crypt'd
    `private` castle may be the better home for those two specifically.
 3. **Newt** (daily driver) — migrated last, once Ala + Irulan are proven.
-   Back up `~/.homesick`, `homeshick unlink dot macos` (leave `private`),
-   `mv ~/.homesick/repos/macos ~/.config/system`, add `hosts/newt/`, switch.
-   Consider `cleanup = "uninstall"` (not `zap`) for the first switch.
+   Back up `~/.homesick`, `homeshick unlink dot macos neovim` (leave
+   `private`), `mv ~/.homesick/repos/macos ~/.config/system`, add
+   `hosts/newt/`, switch. Consider `cleanup = "uninstall"` (not `zap`) for the
+   first switch.
+
+   Push the neovim castle's working copy *first* — the switch clones a fresh
+   `~/Developer/Sources/jrolfs/neovim` from the remote and nothing carries local
+   commits or dirty files across (there are 5 modified nvim files sitting in
+   `~/.homesick/repos/neovim` as of this writing).
 
    `hosts/newt/` needs `ids.gids.nixbld`, which nothing in the flake sets
    because Ala's Nix install uses the current group ID. Newt's predates the
@@ -280,7 +293,11 @@ still affect it. Candidates are tracked in [BACKPORT.md](BACKPORT.md) — with t
 The old `dot` / `macos` `master` branches are still edited via homeshick until
 Newt migrates, so periodic forward-ports are needed:
 
-- **neovim**: `nix flake update neovim-config`.
+- **neovim**: nothing, as long as the clone is what you edit — the links are
+  live. `nix flake update neovim-config` is only for a new *top-level* entry in
+  that repo (see the architecture note). Newt is the exception until phase 3:
+  it still edits the castle at `~/.homesick/repos/neovim`, so push from there
+  and the clone on the other machines picks it up with a `git pull`.
 - **dot** (content, no moves): merge `master` into the `audit-cleanup` branch,
   then `git subtree pull --prefix=dotfiles <dot> audit-cleanup`. Expect a
   `.zshrc` conflict on the zinit source line — keep `$XDG_DATA_HOME/zinit/…`,

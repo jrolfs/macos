@@ -266,30 +266,8 @@ in
     "glide".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/glide";
 
-    # nvim comes from the dedicated neovim flake input. recursive = true
-    # makes each file an individual symlink so nvim can drop runtime
-    # files (lazy-lock.json, shada, vim.pack state, …) alongside the
-    # config without the whole dir being read-only.
-    "nvim" = {
-      source = "${inputs.neovim-config}/home/.config/nvim";
-      recursive = true;
-    };
-
-    # The two nvim sessions the kitty dotfiles layout opens (the third,
-    # dot--private.vim, comes from the private castle). Tracked here rather
-    # than in the neovim repo because they describe *this* repo's layout, and
-    # because a session in the neovim input would be a read-only store path —
-    # :mksession! writes back to the file it was loaded from, so out of store
-    # is what makes saving a rearranged layout work at all.
-    #
-    # Nothing linked these before, which is why a fresh machine got the two
-    # tabs from the layout with no session to load. The recursive nvim entry
-    # above hid them from the unlinked-file audit: every path under
-    # .config/nvim looked covered by it.
-    "nvim/sessions/system.vim".source =
-      config.lib.file.mkOutOfStoreSymlink "${live}/.config/nvim/sessions/system.vim";
-    "nvim/sessions/neovim.vim".source =
-      config.lib.file.mkOutOfStoreSymlink "${live}/.config/nvim/sessions/neovim.vim";
+    # ~/.config/nvim is neovim.nix's — config tree, sessions and the clone it
+    # all points at.
     }
   ];
 }
