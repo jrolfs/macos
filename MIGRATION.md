@@ -32,6 +32,14 @@ owning the dotfiles.
   list of top-level names — an absolute path can't be read under pure eval —
   which makes a new top-level entry the one change still needing
   `nix flake update neovim-config`.
+- **The desktop** is split between the two places macOS keeps it.
+  `modules/darwin/defaults.nix` has the parts that are preferences: widgets off
+  (`WindowManager.Standard/StageManagerHideWidgets`), which volumes get an icon,
+  and the desktop's own icon-view options as a
+  `CustomUserPreferences."com.apple.finder".DesktopViewSettings` dictionary —
+  nix-darwin has no structured option for that one because it's a nested dict,
+  not a flat key. The picture itself is `modules/home/wallpaper.nix`, because it
+  isn't a preference at all: see the gotcha below.
 - **`private`** stays a homeshick castle (git-crypt). `$HOMESHICK_KINGDOM` is
   still exported so `OP_CONFIG_DIR` etc. resolve. bootstrap clones, links,
   pulls *and* — since `castle-unlocked` — unlocks it; before that phase existed
@@ -91,6 +99,24 @@ MIGRATION.md
   Mach-O wrapper so the Full Disk Access grant survives rebuilds. Sudoers rule
   for `icon-setter` is now declared via `environment.etc` (nix-darwin keeps it
   in lockstep with the store path). Grant FDA once after the first switch.
+- **The wallpaper is not a preference.** macOS 26 keeps the desktop picture and
+  the screen saver together in `~/Library/Application Support/
+  com.apple.wallpaper/Store/Index.plist`, and `WallpaperAgent` *owns* that file
+  rather than reading it. Measured: writing the new picture into it changes
+  nothing on screen, and the agent overwrites the file from its own state the
+  next time Dock restarts — so `CustomUserPreferences` is not a route, and
+  neither is any amount of plist surgery. The only public way in is
+  `NSWorkspace.setDesktopImageURL`, i.e. `pkgs.desktoppr`, which is what
+  `modules/home/wallpaper.nix` uses. Two consequences worth knowing:
+  - It reaches the **active space only**. System Settings writes an "all spaces
+    and displays" scope that no public API touches, so the module walks the
+    spaces with Hammerspoon (`hs.spaces.gotoSpace`) and sets each one. That only
+    happens when the declared picture actually changed — it guards on
+    `desktoppr` reading back the same path — and it costs ~13s across six
+    spaces. A display that isn't attached at that moment keeps its old picture.
+  - The **screen saver** is the other half of the same store, so it is not
+    declarable at all. `modules/darwin/defaults.nix` says so where the option
+    would otherwise go.
 - **Registry + NIX_PATH**: `nix.registry.nixpkgs.flake = inputs.nixpkgs` and a
   flake-pinned `nix.nixPath` keep both `nix shell nixpkgs#foo` and
   `nix-shell -p foo` working.
@@ -215,7 +241,20 @@ Phases, in order:
    `~/Configuration/mackup` (mackup is installed by the switch). Skips cleanly if
    not ready; `mkrs` remains available.
 
-Post-switch: grant Full Disk Access to `/usr/local/bin/icon-customizer`.
+Post-switch, by hand:
+
+- Grant Full Disk Access to `/usr/local/bin/icon-customizer`.
+- Add `~/Images` as a Resilio share, the same way phase 5 does `~/Configuration`
+  — the wallpaper library lives in it. Until it syncs, `modules/home/
+  wallpaper.nix` leaves the stock desktop alone rather than pointing at a file
+  that isn't there (which paints it black).
+- System Settings → Wallpaper → **Add Folder…** → `~/Images/Wallpapers`, if you
+  want to browse the library in the picker. Deliberately not declared: the
+  entry macOS stores (`com.apple.wallpaper.extension.image` →
+  `ChoiceRequests.ImageFolders`) is a security-scoped bookmark carrying the
+  volume UUID plus a path into the extension's own container cache, so it is
+  machine-specific by construction. Picking the wallpaper is declared instead,
+  which is the part that mattered.
 
 ## Phases
 

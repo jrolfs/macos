@@ -62,6 +62,48 @@
       FXPreferredViewStyle = "Nlsv";
       NewWindowTarget = "Home";
       ShowPathbar = true;
+
+      # What the desktop is allowed to hold. The internal disk is reachable
+      # from anywhere and only ever in the way; anything plugged in or mounted
+      # is worth an icon precisely because it is temporary.
+      CreateDesktop = true;
+      ShowHardDrivesOnDesktop = false;
+      ShowExternalHardDrivesOnDesktop = true;
+      ShowRemovableMediaOnDesktop = true;
+      ShowMountedServersOnDesktop = false;
+    };
+
+    # The desktop's own view options — Finder's View → Show View Options when
+    # the desktop has focus. nix-darwin has no structured option for it because
+    # it isn't a flat key: it's one nested dictionary per view style, and a
+    # write replaces the whole thing rather than merging into it, so every key
+    # Finder expects has to be here (which is why the untouched defaults are
+    # spelled out alongside the two settings that aren't).
+    #
+    # Finder reads this rather than owning it, so the write sticks — but it
+    # picks the value up when it next launches, not while it is running. On a
+    # fresh machine that means the first login; on a running one, `killall
+    # Finder`.
+    CustomUserPreferences."com.apple.finder".DesktopViewSettings = {
+      GroupBy = "None";
+
+      IconViewSettings = {
+        arrangeBy = "dateCreated";
+        iconSize = 96.0;
+        gridSpacing = 100.0;
+
+        backgroundType = 0;
+        backgroundColorRed = 1.0;
+        backgroundColorGreen = 1.0;
+        backgroundColorBlue = 1.0;
+        gridOffsetX = 0.0;
+        gridOffsetY = 0.0;
+        labelOnBottom = true;
+        showIconPreview = true;
+        showItemInfo = false;
+        textSize = 12.0;
+        viewOptionsVersion = 1;
+      };
     };
 
     screencapture.location = "~/Images/Screenshots";
@@ -105,6 +147,19 @@
     # in System Settings → Accessibility → Zoom; it is not worth an FDA-granted
     # wrapper binary, which is the only thing that would make the write land.
 
+    # screensaver is deliberately absent too. The picture and the screen saver
+    # are two halves of one store now — Desktop and Idle under the same scope in
+    # com.apple.wallpaper — and WallpaperAgent owns it, so the module choice
+    # (Drift, here) is no more declarable than the wallpaper was; see
+    # modules/home/wallpaper.nix, which reaches the wallpaper half through
+    # NSWorkspace because that is the only public way in. The legacy
+    # com.apple.screensaver keys still exist and are still populated, but they
+    # are a mirror the store writes to rather than the thing being read, and
+    # they are ByHost, which CustomUserPreferences writes past for the same
+    # reason it can't reach the menu bar items below. nix-darwin's two options
+    # here (askForPassword, askForPasswordDelay) are about the lock screen, not
+    # about which saver runs, and are left at their defaults.
+
     ActivityMonitor.ShowCategory = 100;
 
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
@@ -116,14 +171,20 @@
 
     # Stage Manager stays off, and clicking the wallpaper must not shove every
     # window aside to reveal the desktop.
+    #
+    # The two HideWidgets options are the whole of System Settings → Desktop &
+    # Dock → Widgets → "Show widgets", and turning them on is what gets rid of
+    # the clock and calendar macOS seeds a new desktop with. It is all or
+    # nothing: which widgets are on the desktop, and where, is held in
+    # com.apple.chronod's own store, so there is no declaring a subset.
     WindowManager = {
       AutoHide = false;
       EnableStandardClickToShowDesktop = false;
       AppWindowGroupingBehavior = true;
       HideDesktop = true;
-      StageManagerHideWidgets = false;
+      StageManagerHideWidgets = true;
       StandardHideDesktopIcons = false;
-      StandardHideWidgets = false;
+      StandardHideWidgets = true;
     };
 
     # Only the menu bar items whose visibility nix-darwin can express: the

@@ -77,6 +77,8 @@ let
   '';
 in
 {
+  imports = [ ./wallpaper.nix ];
+
   # Provide ~/.zshrc.darwin — sourced by ~/.zshrc when uname is Darwin.
   # NIX_PATH export is gone (the flake handles that via the system
   # nix.nixPath + registry entries in modules/darwin/default.nix).
