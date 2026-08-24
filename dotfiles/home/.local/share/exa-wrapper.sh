@@ -47,7 +47,7 @@ EOF
 
 exa_opts=()
 
-while getopts ':aAt1lFRrdIiTkLsuUSrghxXG' arg; do
+while getopts ':aAt1lFRrdI:iTkL:suUSrghxXG' arg; do
   case $arg in
     a) (( dot == 1 )) && exa_opts+=(-a) || exa_opts+=(-a -a) ;;
     A) exa_opts+=(-a) ;;
@@ -62,7 +62,10 @@ while getopts ':aAt1lFRrdIiTkLsuUSrghxXG' arg; do
     g) exa_opts+=(--git) ;;
     s) exa_opts+=(-S) ;;
     X) exa_opts+=(-s extension) ;;
-    1|l|F|R|d|I|i|T|L|x) exa_opts+=(-"$arg") ;;
+    # -I GLOBS and -L DEPTH take a value, as the help above says; without one
+    # eza rejects the flag outright ("a value is required for --level").
+    I|L) exa_opts+=(-"$arg" "$OPTARG") ;;
+    1|l|F|R|d|i|T|x) exa_opts+=(-"$arg") ;;
     *) printf "Error: ${0##*/}\n       --help for help\n" >&2; exit 1
        ;;
   esac
@@ -75,7 +78,17 @@ shift "$((OPTIND - 1))"
 (( fgp == 0 )) && exa_opts+=(-g)
 (( lnk == 0 )) && exa_opts+=(-H)
 
-dir="$@" || dir=.
+# git -C wants a directory, and the first argument is as likely to be a file as
+# a directory — or absent, which the old `dir="$@" || dir=.` never actually
+# defaulted, since an assignment always succeeds.
+dir="${1:-.}"
+[[ -d $dir ]] || dir=$(dirname -- "$dir")
 [[ $(git -C "$dir" rev-parse --is-inside-work-tree) == true ]] 2> /dev/null && exa_opts+=(--git)
 
-exa --color-scale --color=always --icons "${exa_opts[@]}" "$@"
+# --color-scale and --icons both take an *optional* value in eza, and clap
+# swallows the next token as that value unless it starts with a dash. Nothing is
+# eaten today only because exa_opts always ends up non-empty; attaching the
+# values means a bare `ls` can't lose its first path the day that stops being
+# true. `all` and `auto` are what the bare forms resolve to, so nothing about
+# the output changes.
+eza --color-scale=all --color=always --icons=auto "${exa_opts[@]}" "$@"

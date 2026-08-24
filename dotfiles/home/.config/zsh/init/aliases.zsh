@@ -23,7 +23,11 @@ if command -v bat >&/dev/null 2>&1; then
   alias cat=bat
 fi
 
-if command -v exa >&/dev/null 2>&1; then
+# exa is unmaintained and gone from nixpkgs; eza is the fork that replaced it.
+# The name still resolves — nixpkgs' eza ships a bin/exa compat symlink — but
+# guarding on the binary that's actually installed means this doesn't quietly
+# stop aliasing ls the day that symlink goes away.
+if command -v eza >&/dev/null 2>&1; then
   alias ls="$XDG_DATA_HOME/exa-wrapper.sh"
 fi
 

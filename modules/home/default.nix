@@ -31,6 +31,21 @@ let
           (builtins.readDir "${dotfiles}/.config/${name}${relative}");
     in
     walk "";
+
+  # The hand-written gh extensions under dotfiles/home/.local/share/gh. Walked
+  # rather than listed so adding one to the tree doesn't also need an entry
+  # here, and linked file-by-file rather than as the directory above them:
+  # `gh extension install` writes its own subdirectories into extensions/ (the
+  # gh-stack binary is one), so that has to stay a real directory. gh finds
+  # each extension by directory name and runs the like-named executable inside,
+  # which is why both halves of the path repeat the name.
+  ghExtensions = lib.concatMapAttrs
+    (name: type:
+      if type == "directory" then {
+        ".local/share/gh/extensions/${name}/${name}".source =
+          "${dotfiles}/.local/share/gh/extensions/${name}/${name}";
+      } else { })
+    (builtins.readDir "${dotfiles}/.local/share/gh/extensions");
 in
 {
   imports = [ ./neovim.nix ./ssh.nix ]
@@ -89,7 +104,13 @@ in
     # ~/.local/share/zinit a real directory (and matches where newt's existing
     # plugin cache already lives).
     ".local/share/zinit/zinit.git".source = inputs.zinit;
-  };
+
+    # `ls` is aliased to this wrapper (zsh/init/aliases.zsh), which is why it
+    # can't just be a script nobody linked: without it every ls in every shell
+    # is a "no such file or directory". It came over from the dot castle, where
+    # homeshick had been linking it — nothing in the flake picked it up.
+    ".local/share/exa-wrapper.sh".source = "${dotfiles}/.local/share/exa-wrapper.sh";
+  } // ghExtensions;
 
   # Migration guard for machines that switched while the entry above was
   # `.local/share/zinit` rather than `.local/share/zinit/zinit.git`, which is

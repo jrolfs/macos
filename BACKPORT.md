@@ -139,6 +139,42 @@ Neither path needs a home baked into it. kitty expands `~` in kitten paths
 
 ---
 
+## 6. `exa-wrapper.sh` still calls `exa`, and two of its flags never worked
+
+**Commit here:** (this commit)
+
+`ls` is this wrapper. It ends in `exa …`, and exa has been unmaintained and gone
+from nixpkgs for years — the name only resolves because nixpkgs' `eza` ships a
+`bin/exa` compat symlink, which is also the only reason `aliases.zsh`'s
+`command -v exa` guard still defines the alias at all. Both now name `eza`.
+
+Two flags the wrapper's own `--help` advertises have never worked, in any
+version: `-I GLOBS` and `-L DEPTH` are missing their colons in the `getopts`
+optstring, so the value is left in `$@` as a path and the flag reaches eza bare
+— `a value is required for '--level <DEPTH>'`, and the same for `--ignore-glob`.
+`ls -T -L 2` and `ls -I '*.o'` are hard errors today.
+
+Also `--color-scale` and `--icons` take *optional* values in eza, and clap
+swallows the following token as the value unless it starts with a dash. The
+invocation only survives that because two unconditional flags are appended after
+them; `--color-scale=all --icons=auto` is what the bare forms already resolve to
+(verified byte-for-byte, so nothing about the output changes) and it doesn't
+depend on argument order.
+
+`dir="$@" || dir=.` is dead as written — an assignment always succeeds, so the
+`.` fallback never happened, and multiple arguments were joined with spaces into
+one nonexistent path. Only `--git` auto-detection rode on it, and only for a
+directory argument: `git -C ""` is a documented no-op, so the no-argument case
+worked by accident, while `ls -l some-file` in a repo never got the git column.
+
+**Backport to:** `dot`, `home/.local/share/exa-wrapper.sh` and
+`home/.config/zsh/init/aliases.zsh`.
+
+Not applicable to master: the "never linked" half of this (see MIGRATION.md) is a
+flake-only defect. On newt homeshick links both files out of `dot`.
+
+---
+
 ## Explicitly *not* backport candidates
 
 - **Dropping `homebrew.onActivation.extraFlags = [ "--force-cleanup" ]`.** On

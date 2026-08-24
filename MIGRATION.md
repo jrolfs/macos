@@ -88,6 +88,30 @@ MIGRATION.md
 - **Registry + NIX_PATH**: `nix.registry.nixpkgs.flake = inputs.nixpkgs` and a
   flake-pinned `nix.nixPath` keep both `nix shell nixpkgs#foo` and
   `nix-shell -p foo` working.
+- **A file in `dotfiles/` is not a linked file.** homeshick linked whatever was
+  in the castle; here every path needs a declaration, and a tracked file nobody
+  declared is simply absent on the machine — which looks like a broken feature,
+  not a missing symlink (`exa-wrapper.sh` was one: `ls` aliased to a path that
+  didn't exist). What's still unlinked, as of the exa-wrapper fix:
+
+  ```
+  nix eval --raw \
+    .#darwinConfigurations.ala.config.home-manager.users.jamie.home.file \
+    --apply 'f: builtins.concatStringsSep "\n" (builtins.attrNames f)'
+  # compare against `git ls-files dotfiles/home` — note the xdg module rewrites
+  # xdg.configFile keys to absolute paths, so normalize before diffing
+  ```
+
+  - `.config/gh/config.yml`, `.config/op/plugins.sh` — both rewritten by their
+    own tool; nothing sources `plugins.sh` yet either (see SECRETS.md).
+  - `.config/stay/action-*.{sh,applescript}` — invoked by Stay, whose own config
+    lives in `Library`. Still carrying `/Users/jamie` hardcodes.
+  - `.skhdrc` — `services.skhd.enable = false`, so this is dead weight until it
+    isn't.
+  - `.terminfo/*` — compiled entries; nix's ncurses covers `tmux-256color`.
+  - `Documents/Obsidian/Brain/.obsidian/*`, `Library/…/Firefox/…/user.js`,
+    `Library/…/Plex/{input,mpv}.conf` — app-managed, and the Obsidian vault is a
+    Resilio share on the machines that have it.
 
 ## Pinning / overlays
 
