@@ -38,11 +38,12 @@ in
   # Clear immutable flags from any applications managed by
   # self-service tools so Homebrew can manage all applications.
   system.activationScripts.extraActivation.text = lib.mkIf config.homebrew.enable (
-    lib.mkAfter ''
-      if [ -d /Applications ]; then
-        chflags -R noschg,nouchg /Applications 2>/dev/null || true
-      fi
-    ''
+    lib.mkAfter # bash
+      ''
+        if [ -d /Applications ]; then
+          chflags -R noschg,nouchg /Applications 2>/dev/null || true
+        fi
+      ''
   );
 
   homebrew.global.brewfile = true;

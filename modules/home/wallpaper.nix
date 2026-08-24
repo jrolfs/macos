@@ -32,12 +32,13 @@ let
   # `require` caches, and home-manager has just relinked the module, so a
   # Hammerspoon that has applied a wallpaper on an earlier switch would
   # otherwise go on running the copy it loaded then.
-  call = ''
-    package.loaded["modules.wallpaper"] = nil
-    local ok, wallpaper = pcall(require, "modules.wallpaper")
-    if not ok then return "wallpaper:unavailable" end
-    return "wallpaper:" .. wallpaper.apply("${wallpaper}")
-  '';
+  call = # lua
+    ''
+      package.loaded["modules.wallpaper"] = nil
+      local ok, wallpaper = pcall(require, "modules.wallpaper")
+      if not ok then return "wallpaper:unavailable" end
+      return "wallpaper:" .. wallpaper.apply("${wallpaper}")
+    '';
 
   apply = pkgs.writeShellScript "wallpaper-apply" ''
     set -uo pipefail
