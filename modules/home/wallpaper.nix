@@ -18,8 +18,9 @@
 # dotfiles/home/.hammerspoon/modules/wallpaper.lua. Hammerspoon is already the
 # place this config keeps the macOS APIs that have no declarative surface, it
 # exposes NSWorkspace as hs.screen:desktopImageURL, and it is the only thing
-# here that can walk the spaces, which is what makes the picture reach more than
-# the one space that happens to be active.
+# here that can see the other spaces at all — which is how the picture reaches
+# more than the one space that happens to be active, without a switch ever
+# taking the screen to do it.
 
 let
   wallpaper = "${config.home.homeDirectory}/Images/Wallpapers/BLACK/BLACK II - Gruvbox Material.png";
@@ -56,10 +57,11 @@ let
     case "$result" in
       *wallpaper:unchanged*)
         ;;
-      # The walk across the other spaces carries on inside Hammerspoon after
-      # this returns, about a second a space.
-      *wallpaper:walking*)
-        echo "wallpaper: setting ${builtins.baseNameOf wallpaper}" >&2
+      # Only the space in front of you. The others are painted as you arrive at
+      # them, because the alternative is Mission Control taking the screen in
+      # the middle of a switch.
+      *wallpaper:set*)
+        echo "wallpaper: ${builtins.baseNameOf wallpaper}, and the other spaces as you visit them" >&2
         ;;
       *wallpaper:missing*)
         echo "wallpaper: ${wallpaper} has not synced yet, leaving the desktop alone" >&2

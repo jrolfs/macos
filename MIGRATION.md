@@ -110,16 +110,24 @@ MIGRATION.md
   where this config keeps the macOS APIs that have no declarative surface:
   `dotfiles/home/.hammerspoon/modules/wallpaper.lua` does it through
   `hs.screen:desktopImageURL`, and `modules/home/wallpaper.nix` declares the
-  path and calls into it from activation. Three consequences worth knowing:
-  - It reaches the **active space only**. System Settings writes an "all spaces
-    and displays" scope that no public API touches, so the module walks the
-    spaces (`hs.spaces.gotoSpace`, which needs Accessibility) and paints each
-    one. That only happens when the declared picture actually changed — it
-    guards on reading the same URL back off every attached screen, which costs
-    16ms — and the walk then runs on a timer inside Hammerspoon rather than
-    holding the switch open, about a second a space. A display that isn't
-    attached at the time keeps its old picture; its entry in the store is
-    regenerated even if deleted by hand.
+  path and calls into it from activation. Four consequences worth knowing:
+  - It reaches the **active space only**, and the other spaces are reached *on
+    arrival*, not by a switch going and getting them. System Settings writes an
+    "all spaces and displays" scope no public API touches, and the only way to
+    paint a space you aren't on is `hs.spaces.gotoSpace`, which works by
+    driving the Mission Control UI — it takes the screen for about a second a
+    space, and keystrokes during the hop land wherever it went. That is not
+    something a `nix-switch` should do to you unasked, so activation paints the
+    space you are on and leaves an `hs.spaces.watcher` armed to catch the rest
+    as you visit them. `M.walk()` is the impatient version, by hand. Either way
+    it does nothing at all unless the declared picture changed: the guard reads
+    the URL back off every attached screen, 16ms. A display that isn't attached
+    keeps its old picture until a space change happens while it is plugged in;
+    its entry in the store is regenerated even if deleted by hand.
+  - The watcher is armed for the **Hammerspoon session**, not persisted. Reload
+    the config before you have visited every space and the stragglers wait for
+    the next switch to re-arm it — which is why activation arms it on every
+    run, whatever the guard decided.
   - `hs.screen:desktopImageURL` wants a percent-encoded `file://` URL and
     raises an Obj-C exception on a bare path. `hs.fs.urlFromPath` builds one
     through NSURL, so it compares equal to what the getter returns, and is
@@ -256,8 +264,8 @@ Phases, in order:
 Post-switch, by hand:
 
 - Grant Full Disk Access to `/usr/local/bin/icon-customizer`.
-- Grant Accessibility to Hammerspoon. Half its modules need it, and without it
-  the wallpaper reaches the active space only.
+- Grant Accessibility to Hammerspoon. Half its modules need it (the wallpaper
+  only needs it for `M.walk()`, not for the watcher).
 - Add `~/Images` as a Resilio share, the same way phase 5 does `~/Configuration`
   — the wallpaper library lives in it. Until it syncs, `modules/home/
   wallpaper.nix` leaves the stock desktop alone rather than pointing at a file

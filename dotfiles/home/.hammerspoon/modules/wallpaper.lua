@@ -5,24 +5,51 @@
 -- writing the preference does nothing: the only public way in is NSWorkspace,
 -- which is hs.screen:desktopImageURL here. That paints the *active* space of
 -- each screen and nothing else — System Settings writes an "all spaces and
--- displays" scope no public API reaches — so covering the rest means going to
--- each space in turn, which is what hs.spaces is for.
+-- displays" scope no public API reaches.
+--
+-- Reaching a space you are not on means hs.spaces.gotoSpace, and that works by
+-- driving the Mission Control UI: it takes over the screen, and keystrokes
+-- during the hop land wherever it went. Fine when you ask for it (M.walk),
+-- not fine unprompted from a darwin-rebuild switch, when you may well be
+-- typing. So M.apply paints the space you are on and arms a watcher, and the
+-- rest are corrected as you arrive at them, invisibly.
 --
 -- Driven from home-manager activation (modules/home/wallpaper.nix), which is
 -- where the path is declared.
 
 local M = {}
 
+-- The URL every space should be showing once it has been visited. Set by
+-- M.apply; nil until then, which is what disarms the watcher's work.
+M.target = nil
+
 -- gotoSpace returns as soon as it has pressed the Mission Control button, not
--- when the switch has landed. Painting before it lands repaints the space we
--- came from and leaves the new one alone.
+-- when the switch has landed, so M.walk has to wait before painting.
 M.settleTime = 1.0
 
--- Held so the one-shot timer driving the walk can't be collected mid-walk.
-local walking = nil
+local watcher = nil
+local pending = nil
 
-local function screens()
-  return hs.screen.allScreens()
+local function paint()
+  if not M.target then
+    return
+  end
+
+  for _, screen in ipairs(hs.screen.allScreens()) do
+    if screen:desktopImageURL() ~= M.target then
+      screen:desktopImageURL(M.target)
+    end
+  end
+end
+
+local function painted()
+  for _, screen in ipairs(hs.screen.allScreens()) do
+    if screen:desktopImageURL() ~= M.target then
+      return false
+    end
+  end
+
+  return true
 end
 
 local function userSpaces()
@@ -40,27 +67,27 @@ local function userSpaces()
   return spaces
 end
 
-local function paint(url)
-  for _, screen in ipairs(screens()) do
-    screen:desktopImageURL(url)
-  end
-end
-
-local function painted(url)
-  for _, screen in ipairs(screens()) do
-    if screen:desktopImageURL() ~= url then
-      return false
-    end
+-- Paint on arrival. The watcher fires as the new space becomes active, so a
+-- beat's delay keeps the paint off the space being left; and paint() is a
+-- no-op for a space that is already right, which every space is once this has
+-- caught up.
+local function watch()
+  if watcher then
+    return
   end
 
-  return true
+  watcher = hs.spaces.watcher.new(function()
+    pending = hs.timer.doAfter(0.3, paint)
+  end):start()
 end
 
--- Point every space on every attached screen at `path`.
+-- Point the desktop at `path`, here and from now on.
 --
--- Returns immediately: "missing" if the file isn't there, "unchanged" if every
--- attached screen already shows it, otherwise "walking" — the remaining spaces
--- are painted on a timer from here, taking about a second each.
+-- Returns "missing" if the file isn't there, "unchanged" if the spaces in front
+-- of you already show it, or "set". In all three cases the other spaces are
+-- left to the watcher, which is armed for the rest of this Hammerspoon session
+-- — a reload before you have visited them all means they wait for the next
+-- switch to re-arm it.
 function M.apply(path)
   -- Percent-encoded file:// URL via NSURL, so it compares equal to what the
   -- getter hands back. Nil for a path that doesn't exist, which is the check we
@@ -71,8 +98,34 @@ function M.apply(path)
     return "missing"
   end
 
-  if painted(url) then
+  M.target = url
+  watch()
+
+  if painted() then
     return "unchanged"
+  end
+
+  paint()
+
+  return "set"
+end
+
+-- Paint every space now, rather than as you get to them. Drives Mission
+-- Control, so it takes the screen for about a second a space.
+function M.walk(path)
+  if path then
+    local url = hs.fs.urlFromPath(path)
+
+    if not url then
+      return "missing"
+    end
+
+    M.target = url
+    watch()
+  end
+
+  if not M.target then
+    return "no picture declared yet"
   end
 
   local origin = hs.spaces.focusedSpace()
@@ -84,7 +137,7 @@ function M.apply(path)
     end
   end
 
-  paint(url)
+  paint()
 
   local index = 0
 
@@ -93,7 +146,7 @@ function M.apply(path)
     local id = remaining[index]
 
     if not id then
-      walking = nil
+      pending = nil
 
       if hs.spaces.focusedSpace() ~= origin then
         hs.spaces.gotoSpace(origin)
@@ -102,8 +155,8 @@ function M.apply(path)
       return
     end
 
-    -- Needs Accessibility, since it drives Mission Control. A space we can't
-    -- reach keeps its old picture; the rest still get painted.
+    -- Needs Accessibility. A space we can't reach keeps its old picture until
+    -- the watcher catches it; the rest still get painted.
     local ok, err = hs.spaces.gotoSpace(id)
 
     if not ok then
@@ -111,15 +164,15 @@ function M.apply(path)
       return step()
     end
 
-    walking = hs.timer.doAfter(M.settleTime, function()
-      paint(url)
+    pending = hs.timer.doAfter(M.settleTime, function()
+      paint()
       step()
     end)
   end
 
   step()
 
-  return "walking"
+  return "walking " .. #remaining .. " space(s)"
 end
 
 return M
