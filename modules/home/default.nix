@@ -110,6 +110,27 @@ in
     # is a "no such file or directory". It came over from the dot castle, where
     # homeshick had been linking it — nothing in the flake picked it up.
     ".local/share/exa-wrapper.sh".source = "${dotfiles}/.local/share/exa-wrapper.sh";
+
+    # ~/.claude is Claude Code's own state directory — projects/, todos/,
+    # history.jsonl, a dozen caches — so the tracked entries inside it are
+    # linked individually and the directory itself stays real. Without these
+    # the global conventions in CLAUDE.md simply aren't in effect on a
+    # provisioned machine, and `resume-zed` (zsh/init/claude.zsh) has no script
+    # to run.
+    #
+    # Out of store because these are written back to: `#` appends to CLAUDE.md,
+    # settings.json is rewritten whenever a permission is granted, and a saved
+    # slash command or a new helper lands in commands/ or bin/. On newt all four
+    # were symlinks into the dot castle's working tree, which is the same shape
+    # — edits and additions are a git diff, not a rebuild.
+    ".claude/CLAUDE.md".source =
+      config.lib.file.mkOutOfStoreSymlink "${live}/.claude/CLAUDE.md";
+    ".claude/settings.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${live}/.claude/settings.json";
+    ".claude/bin".source =
+      config.lib.file.mkOutOfStoreSymlink "${live}/.claude/bin";
+    ".claude/commands".source =
+      config.lib.file.mkOutOfStoreSymlink "${live}/.claude/commands";
   } // ghExtensions;
 
   # Migration guard for machines that switched while the entry above was
