@@ -20,6 +20,51 @@ let
     '';
   };
 
+  # Electron apps that call app.dock.setIcon() paint their own Dock tile at
+  # runtime from a PNG inside the bundle.  That is NSApplication's
+  # applicationIconImage, which the Dock prefers over anything LaunchServices
+  # knows about — so the Icon\r resource fork only wins while the app is *not*
+  # running.  Overwriting the PNGs the app hands to setIcon() covers the
+  # running case too.  Keys are asset names (see the mapping below), values
+  # are bundle-relative paths.
+  #
+  # This invalidates the bundle's code signature seal — `codesign --verify`
+  # and `spctl` both fail afterwards.  AMFI only validates the Mach-O, so the
+  # app still launches, but an app update restores the vendor art, which is
+  # why this re-applies on every run rather than being a one-shot.
+  runtimeIconOverrides = {
+    "Superhuman" = [
+      "Contents/Resources/assets/app.png"
+      "Contents/Resources/assets/app-origin.png"
+    ];
+  };
+
+  # Split into its own script so the case statement's quoting doesn't have to
+  # survive nesting inside fd's single-quoted --exec string.
+  runtimeOverrider = pkgs.writeShellScript "runtime-icon-override" ''
+    app="$1"
+    name="$2"
+    icon="$3"
+
+    # nativeImage.createFromPath is fed a PNG; .icns assets have no analogue.
+    [[ "''${icon##*.}" == "png" ]] || exit 0
+
+    case "$name" in
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (name: paths: ''
+      ${lib.escapeShellArg name})
+        targets=(${lib.escapeShellArgs paths})
+        ;;
+    '') runtimeIconOverrides)}
+      *) exit 0 ;;
+    esac
+
+    for target in "''${targets[@]}"; do
+      [[ -f "$app/$target" && -w "$app/$target" ]] || continue
+      cmp -s "$icon" "$app/$target" && continue
+      cp "$icon" "$app/$target" && echo "  dock override: $name/$target"
+    done
+  '';
+
   script = pkgs.writeShellScriptBin "icon-customizer" ''
     echo ""
     echo "[$(date -u '+%Y-%m-%d %H:%M:%S UTC')] run started"
@@ -60,6 +105,8 @@ let
         else
           echo "[$ts] FAILED: $name"
         fi
+
+        ${runtimeOverrider} "$app" "$name" "$icon"
       ' zsh {}
 
     count=$(wc -l < "$results" 2>/dev/null | tr -d ' ')
