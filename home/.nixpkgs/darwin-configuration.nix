@@ -45,7 +45,6 @@ in
     pkgs.bottom
     pkgs.direnv
     pkgs.eza
-    pkgs.fasd
     pkgs.fd
     pkgs.jq
     pkgs.miller
@@ -94,7 +93,6 @@ in
 
     pkgs.ffmpeg
     pkgs.imagemagick
-    pkgs.yt-dlp
 
     #
     # Git
