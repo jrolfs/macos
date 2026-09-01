@@ -110,6 +110,7 @@ in
     "moom"
     "obsidian"
     "orbstack"
+    "pixelsnap"
     "plex"
     "plexamp"
     "proxyman"
