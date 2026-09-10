@@ -119,6 +119,7 @@ in
     pkgs.mise
 
     # Language servers
+    pkgs.actions-languageserver
     pkgs.nixd
     pkgs.yaml-language-server
     pkgs.zshcs

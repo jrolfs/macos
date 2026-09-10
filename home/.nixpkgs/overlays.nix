@@ -55,6 +55,44 @@ in
     ];
   });
 
+  # actions-languageserver — the official GitHub Actions LSP server
+  # (github:actions/languageservices), not in nixpkgs. Its npm package publishes
+  # a self-contained CommonJS bundle depending only on node builtins, so there's
+  # nothing to compile and no node_modules to assemble: unpack the tarball and
+  # point node at the bundle. Pinned by version + tarball hash rather than npins
+  # because the npm registry serves immutable, content-addressed tarballs.
+  actions-languageserver = super.stdenvNoCC.mkDerivation rec {
+    pname = "actions-languageserver";
+    version = "0.3.61";
+
+    src = super.fetchurl {
+      url = "https://registry.npmjs.org/@actions/languageserver/-/languageserver-${version}.tgz";
+      hash = "sha256-0VJyUGTGT4YtpRWM1jDUxnlz7ftYvauqRAVP/vA7nQM=";
+    };
+
+    dontConfigure = true;
+    dontBuild = true;
+
+    nativeBuildInputs = [ super.makeWrapper ];
+
+    installPhase = ''
+      runHook preInstall
+
+      install -Dm444 dist/cli.bundle.cjs $out/lib/cli.bundle.cjs
+      makeWrapper ${super.nodejs}/bin/node $out/bin/actions-languageserver \
+        --add-flags $out/lib/cli.bundle.cjs
+
+      runHook postInstall
+    '';
+
+    meta = with super.lib; {
+      description = "Language server for GitHub Actions workflow files";
+      homepage = "https://github.com/actions/languageservices";
+      license = licenses.mit;
+      mainProgram = "actions-languageserver";
+    };
+  };
+
   # zshcs — Zsh LSP server (github:yuys13/zshcs), not in nixpkgs. Pinned via
   # `pkgs.npins` (see npins/sources.json); update with `npins update zshcs`.
   # Reuses upstream flake.nix's build recipe: a plain buildRustPackage with
