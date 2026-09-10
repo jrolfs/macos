@@ -85,7 +85,6 @@ in
     "1password-cli"
     "acorn"
     "arq"
-    "aws-vpn-client"
     "claude"
     "cleanshot"
     "cursor"
