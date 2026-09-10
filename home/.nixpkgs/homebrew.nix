@@ -85,6 +85,7 @@ in
     "1password-cli"
     "acorn"
     "arq"
+    "chatgpt"
     "claude"
     "cleanshot"
     "cursor"
