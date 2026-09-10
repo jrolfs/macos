@@ -120,6 +120,7 @@ in
 
     # Language servers
     pkgs.nixd
+    pkgs.yaml-language-server
     pkgs.zshcs
 
     #
