@@ -143,7 +143,6 @@ in
     "kitty"
     "linear"
     "loom"
-    "maxon"
     "moom"
     "obsidian"
     "orbstack"
