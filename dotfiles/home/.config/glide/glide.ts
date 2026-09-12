@@ -10,6 +10,7 @@ glide.include('keymaps.ts');
 // Commands
 
 glide.include('settings.ts');
+glide.include('toolbar.ts');
 glide.include('tabs.ts');
 glide.include('tab-activity.ts');
 glide.include('tab-pip.ts');
