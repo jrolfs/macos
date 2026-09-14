@@ -8,7 +8,6 @@ alias mkrs="mackup restore -f && mackup uninstall -f"
 
 alias icn="(cd $HOMESHICK_KINGDOM/macos/icons && sudo ./apply.sh)"
 
-alias nix-switch="sudo -E darwin-rebuild switch --show-trace"
 alias nix-rebuild="sudo -E darwin-rebuild build --show-trace"
 alias nix-search="nix search nixpkgs"
 
@@ -18,6 +17,30 @@ alias spoon="$(brew --prefix)/bin/hs"
 #
 #
 # Functions --------------------------------------------------------------------
+
+# A switch routinely outruns sudo's five minute timestamp_timeout, and
+# nix-darwin runs `brew bundle` back through `sudo --user` on the same tty, so
+# the ticket lapses mid-rebuild and Touch ID prompts again. Refresh it in the
+# background for the life of the rebuild rather than widening the timeout for
+# every sudo on the system. The `repeat` bound caps the refresher in case the
+# `always` kill is ever missed.
+function nix-switch {
+  sudo -v || return 1
+
+  local keepalive rc
+
+  { repeat 120 { sleep 60; sudo -n true 2>/dev/null || break } } &!
+  keepalive=$!
+
+  {
+    sudo -E darwin-rebuild switch --show-trace "$@"
+    rc=$?
+  } always {
+    kill $keepalive 2>/dev/null
+  }
+
+  return $rc
+}
 
 function reset-host {
   host=$(hostname -s)
