@@ -166,7 +166,7 @@ in
   nixpkgs.config = {
     allowBroken = true;
     allowUnfree = true;
-    allowUnsupportedSystem = true;
+    allowUnsupportedSystem = false;
   };
 
   nixpkgs.overlays = [ overlays ];
