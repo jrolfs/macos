@@ -158,7 +158,12 @@ in
 
     pkgs.mcp-nixos
 
-  ];
+  ]
+  # openlawsvpn is packaged on the nixpkgs submodule's local `openlawsvpn`
+  # branch and isn't upstream yet, so a checkout without those commits has no
+  # such attribute. Skip it there rather than failing the whole rebuild with
+  # "attribute 'openlawsvpn' missing". Drop the guard once the PR lands.
+  ++ pkgs.lib.optional (pkgs ? openlawsvpn) pkgs.openlawsvpn;
 
   system.activationScripts.applications.enable = true;
   system.primaryUser = "jamie";
