@@ -96,6 +96,7 @@ in
     "firefox"
     "firefox@developer-edition"
     "firefox@nightly"
+    "gitcomet"
     "glide-browser"
     "google-chrome"
     "google-chrome@beta"
