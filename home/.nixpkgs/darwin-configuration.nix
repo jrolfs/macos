@@ -26,6 +26,7 @@ in
     ./icons.nix
     ./sidecar.nix
     ./spicetify.nix
+    ./spotlight.nix
     ./tap.nix
 
     # ./applications/codium.nix
