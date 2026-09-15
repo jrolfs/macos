@@ -91,7 +91,6 @@ in
     "cursor"
     "daisydisk"
     "discord"
-    "fantastical"
     "figma"
     "firefox"
     "firefox@developer-edition"
