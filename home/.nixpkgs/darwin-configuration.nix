@@ -24,6 +24,7 @@ in
     ./homebrew.nix
     ./glide-developer.nix
     ./icons.nix
+    ./login-items.nix
     ./sidecar.nix
     ./spicetify.nix
     ./spotlight.nix
