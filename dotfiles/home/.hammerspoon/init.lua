@@ -27,6 +27,7 @@ autohide.start({
   "Sirius",
   -- { name = "Spotify", when = autohide.maxDisplays(1) },
   "Spotify",
+  "WhatsApp",
   "Yaak",
   "YouTube",
   "iPhone Mirroring",
