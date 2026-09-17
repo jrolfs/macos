@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""Re-key a Claude Code project store from one working directory to another.
+
+Claude Code keys everything by absolute path: sessions live in
+`~/.claude/projects/<slug>/` where the slug is the munged working directory,
+and the transcripts embed that directory throughout. Moving or renaming a
+project directory therefore strands its threads: `/resume` in the new location
+sees nothing, and the old location may no longer exist (the legacy homeshick
+castle becoming `~/.config/system`, a worktree adopting a new convention).
+
+This renames the store and rewrites embedded paths, in both plain
+(`/Users/me/old`) and slug (`-Users-me-old`) forms. Replacement is
+boundary-aware so a project whose path extends another's (`repo` vs
+`repo.flake`) is never rewritten by the shorter one's move. claude-sync
+propagates the move on the next push as a delete + add.
+
+Do not re-key a project with a live session; finish or stop it first, and on
+multi-machine setups run this only once the machine still writing the old key
+has stopped (its pushes would resurrect it).
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import re
+import sys
+
+PROJECTS_ROOT = os.path.expanduser("~/.claude/projects")
+
+
+def slug_for(path: str) -> str:
+    """Encode a working directory the way Claude Code names its project store."""
+    return re.sub(r"[^a-zA-Z0-9]", "-", os.path.abspath(path))
+
+
+def boundary_pattern(needle: str) -> re.Pattern[bytes]:
+    """Match `needle` only where a path or slug plausibly ends.
+
+    The next character may not be alphanumeric, `-` (slug continuation), or a
+    `.`/`_` that starts a longer basename (`repo.flake`, `repo_v2`).
+    """
+    return re.compile(re.escape(needle.encode()) + rb"(?![a-zA-Z0-9._-])")
+
+
+def rewrite(data: bytes, replacements: list[tuple[re.Pattern[bytes], bytes]]) -> bytes:
+    for pattern, replacement in replacements:
+        data = pattern.sub(replacement, data)
+    return data
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Re-key a Claude Code project store to a new directory."
+    )
+    parser.add_argument("old", help="project directory the threads are keyed to")
+    parser.add_argument("new", help="directory they should be keyed to instead")
+    parser.add_argument(
+        "-n", "--dry-run", action="store_true", help="report without changing anything"
+    )
+    args = parser.parse_args()
+
+    old = os.path.abspath(os.path.expanduser(args.old))
+    new = os.path.abspath(os.path.expanduser(args.new))
+    old_store = os.path.join(PROJECTS_ROOT, slug_for(old))
+    new_store = os.path.join(PROJECTS_ROOT, slug_for(new))
+
+    if not os.path.isdir(old_store):
+        print(f"no project store at {old_store}", file=sys.stderr)
+        return 1
+    if os.path.exists(new_store):
+        print(f"{new_store} already exists; merge by hand if that's intended", file=sys.stderr)
+        return 1
+
+    replacements = [
+        (boundary_pattern(old), new.encode()),
+        (boundary_pattern(slug_for(old)), slug_for(new).encode()),
+    ]
+
+    changed = 0
+    for root, _, files in os.walk(old_store):
+        for name in files:
+            path = os.path.join(root, name)
+            if os.path.islink(path):
+                continue
+            with open(path, "rb") as f:
+                data = f.read()
+            rewritten = rewrite(data, replacements)
+            if rewritten != data:
+                changed += 1
+                if not args.dry_run:
+                    with open(path, "wb") as f:
+                        f.write(rewritten)
+
+    if args.dry_run:
+        print(f"would rename {old_store}\n          -> {new_store}")
+        print(f"would rewrite paths in {changed} file(s)")
+        return 0
+
+    os.rename(old_store, new_store)
+    print(f"renamed {old_store}\n     -> {new_store}")
+    print(f"rewrote paths in {changed} file(s)")
+    print(f"threads now list under: cd {new} && claude --resume")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
