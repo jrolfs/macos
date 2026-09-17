@@ -40,5 +40,29 @@
   "autoMemoryEnabled": true,
   "editorMode": "vim",
   "preferredNotifChannel": "kitty",
-  "autoCompactEnabled": true
+  "autoCompactEnabled": true,
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-sync pull -q"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-sync push -q"
+          }
+        ]
+      }
+    ]
+  }
 }
