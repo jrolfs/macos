@@ -1,7 +1,15 @@
 setopt extendedglob
 
-mkdir -p $XDG_CONFIG_HOME/zsh/completions
+mkdir -p $ZSH_EXTRA_COMPLETIONS
 source $XDG_CONFIG_HOME/zsh/starship.zsh
+
+# Secrets/tokens (from the `private` repo). Sourced here rather than left to the
+# `init/*.zsh` glob in `.zshrc` because `.zshrc` only runs for interactive
+# shells, so `zsh --login -c '...'` (kitty session panes, editor agent servers)
+# would otherwise start without them.
+keysrc="${XDG_CONFIG_HOME}/zsh/init/keys.zsh"
+[[ -f $keysrc ]] && source $keysrc
+unset keysrc
 
 # Editors
 export EDITOR='nvim'
@@ -29,7 +37,7 @@ typeset -gU cdpath fpath mailpath path
 fpath+=(
   ${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh/site-functions
   $XDG_CONFIG_HOME/zsh/themes
-  $XDG_CONFIG_HOME/zsh/completions
+  $ZSH_EXTRA_COMPLETIONS
 )
 
 # Executable search path
