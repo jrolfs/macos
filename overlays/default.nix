@@ -71,6 +71,20 @@ in
     '';
   };
 
+  # claude-sync — end-to-end-encrypted sync of Claude Code session state
+  # (github:tawanorg/claude-sync). Not in nixpkgs, and upstream ships no
+  # license, so it couldn't be upstreamed as-is. The npm package of the same
+  # name is only a prebuilt-binary shim; this builds from the Go source pinned
+  # by the `claude-sync` flake input (bump with `nix flake update claude-sync`).
+  claude-sync = super.buildGoModule {
+    pname = "claude-sync";
+    version = "0.4.0";
+    src = inputs.claude-sync;
+    vendorHash = "sha256-VLqVk5bhM+WoEbP+agFpm1LjzI2qFWlWQZB8yV2vbOU=";
+    subPackages = [ "cmd/claude-sync" ];
+    meta.mainProgram = "claude-sync";
+  };
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''

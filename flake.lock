@@ -22,6 +22,22 @@
         "type": "github"
       }
     },
+    "claude-sync": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785067637,
+        "narHash": "sha256-hsIski28Dr3k3+/0/+k6XySAeoQ6e5nTeLAGRtZ2kAQ=",
+        "owner": "tawanorg",
+        "repo": "claude-sync",
+        "rev": "49420ef63fe0bbd5b06e64c7dec421f39c9de0c4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tawanorg",
+        "repo": "claude-sync",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -178,6 +194,7 @@
     "root": {
       "inputs": {
         "bootstrap": "bootstrap",
+        "claude-sync": "claude-sync",
         "home-manager": "home-manager",
         "kitty-grab": "kitty-grab",
         "kitty-gruvbox-material": "kitty-gruvbox-material",

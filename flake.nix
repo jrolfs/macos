@@ -78,6 +78,14 @@
       url = "github:yuys13/zshcs";
       flake = false;
     };
+
+    # claude-sync — end-to-end-encrypted sync of Claude Code session state
+    # (~/.claude projects/, history, tasks, plans) through an S3-compatible
+    # bucket. Not in nixpkgs; built by the overlay from this source tree.
+    claude-sync = {
+      url = "github:tawanorg/claude-sync";
+      flake = false;
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, nix-darwin, home-manager, ... }:
