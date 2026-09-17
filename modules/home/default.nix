@@ -128,6 +128,8 @@ in
       config.lib.file.mkOutOfStoreSymlink "${live}/.claude/CLAUDE.md";
     ".claude/settings.json".source =
       config.lib.file.mkOutOfStoreSymlink "${live}/.claude/settings.json";
+    ".claude/keybindings.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${live}/.claude/keybindings.json";
     ".claude/bin".source =
       config.lib.file.mkOutOfStoreSymlink "${live}/.claude/bin";
     ".claude/commands".source =
