@@ -143,7 +143,11 @@ exclude = ["node_modules/"]
 #
 # Override global user config for a specific project. Scalar values (like `worktree-path`) replace the global value. Hooks append — both global and per-project hooks run. Aliases merge — per-project aliases override global aliases on name collision.
 #
-# [projects."github.com/user/repo"]
+# [aliases]
+handoff = "~/.config/worktrunk/bin/wt-handoff"
+restore = "~/.config/worktrunk/bin/wt-restore {{ args }}"
+
+[projects."github.com/user/repo"]
 # worktree-path = ".worktrees/{{ branch | sanitize }}"
 # list.full = true
 # merge.squash = false
