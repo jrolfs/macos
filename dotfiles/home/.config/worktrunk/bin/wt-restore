@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Recreate a worktree pushed by wt-handoff: same absolute path, same branch,
+# dirty state overlaid, and claude-sync pulled first so the path's Claude
+# sessions are resumable the moment the tree exists. Run from anywhere inside
+# the repository (main checkout or any worktree). Refuses to overwrite a dirty
+# tree.
+set -euo pipefail
+
+dir=${1:?usage: wt restore <worktree-dir>}
+
+git fetch origin "+refs/wip/$dir:refs/wip/$dir"
+wip=$(git rev-parse "refs/wip/$dir")
+path=$(git log -1 --format='%(trailers:key=Wt-Path,valueonly=true)' "$wip" | head -1)
+branch=$(git log -1 --format='%(trailers:key=Wt-Branch,valueonly=true)' "$wip" | head -1)
+host=$(git log -1 --format='%(trailers:key=Wt-Host,valueonly=true)' "$wip" | head -1)
+parent=$(git rev-parse "$wip^")
+
+[ -n "$path" ] && [ -n "$branch" ] || {
+  echo "refs/wip/$dir is missing Wt-Path/Wt-Branch trailers" >&2
+  exit 1
+}
+
+if [ ! -d "$path" ]; then
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    git worktree add "$path" "$branch"
+  else
+    git worktree add -b "$branch" "$path" "$parent"
+  fi
+fi
+
+cd "$path"
+
+current=$(git symbolic-ref --short HEAD)
+[ "$current" = "$branch" ] || {
+  echo "$path has $current checked out, snapshot expects $branch" >&2
+  exit 1
+}
+
+[ -z "$(git status --porcelain)" ] || {
+  echo "$path is dirty; commit or stash before restoring" >&2
+  exit 1
+}
+
+if [ "$(git rev-parse HEAD)" != "$parent" ]; then
+  echo "note: $branch is at $(git rev-parse --short HEAD), snapshot parent is ${parent:0:7}; overlaying snapshot anyway"
+fi
+
+# --no-overlay semantics: worktree files end up exactly matching the snapshot
+# tree, including deletions. Ignored files are untouched (wt's pre-start
+# copy-ignored step owns those).
+git restore --source="$wip" --worktree -- :/
+
+command -v claude-sync >/dev/null 2>&1 && claude-sync pull -q || true
+
+echo "restored $dir at $path (branch $branch, snapshot from ${host:-unknown})"

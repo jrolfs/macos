@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Snapshot this worktree's dirty state (tracked edits plus untracked files,
+# ignored files excluded) to refs/wip/<worktree-dir> and push it, so
+# `wt restore <worktree-dir>` on another machine can recreate the tree at the
+# same absolute path. The directory name, not the branch, keys the ref: with
+# stacked PRs the checked-out branch moves while the directory (and the Claude
+# session state keyed to its path) stays put.
+set -euo pipefail
+
+top=$(git rev-parse --show-toplevel)
+dir=$(basename "$top")
+branch=$(git -C "$top" symbolic-ref --short HEAD)
+head=$(git -C "$top" rev-parse HEAD)
+
+# A throwaway copy of the index so the snapshot never touches the real one.
+index=$(mktemp)
+trap 'rm -f "$index"' EXIT
+real_index="$(git -C "$top" rev-parse --absolute-git-dir)/index"
+[ -f "$real_index" ] && cp "$real_index" "$index"
+
+GIT_INDEX_FILE=$index git -C "$top" add -A
+tree=$(GIT_INDEX_FILE=$index git -C "$top" write-tree)
+
+# One -m per paragraph, and git only parses the final paragraph as trailers,
+# so all three must share it.
+commit=$(git -C "$top" commit-tree "$tree" -p "$head" \
+  -m "wip: $dir" \
+  -m "Wt-Path: $top
+Wt-Branch: $branch
+Wt-Host: $(hostname -s)")
+
+git -C "$top" update-ref "refs/wip/$dir" "$commit"
+git -C "$top" push --force origin "refs/wip/$dir:refs/wip/$dir"
+
+# Sessions for this worktree ride claude-sync; push mid-flight transcripts now
+# rather than waiting for their Stop hooks.
+command -v claude-sync >/dev/null 2>&1 && claude-sync push -q || true
+
+echo "pushed refs/wip/$dir ($branch @ ${head:0:7})"
+echo "on the other machine: wt restore $dir"
