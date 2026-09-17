@@ -19,7 +19,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-opus-5",
+  "model": "fable",
   "enabledPlugins": {
     "clangd-lsp@claude-plugins-official": true,
     "swift-lsp@claude-plugins-official": true,

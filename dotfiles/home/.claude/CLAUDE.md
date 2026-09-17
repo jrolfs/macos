@@ -1,7 +1,20 @@
 # Global Claude Code Guidelines
 
+## Prose (this applies to comments as well)
+- Prefer a plain sentence, a colon, or a comma over a dash. Reach for an em dash only when nothing else does the job.
+- Never pad an em dash with spaces, and never use a spaced hyphen as a dash:
+  - DON'T: `some statement — some clause`
+  - DON'T: `some statement - some clause`
+  - DO (sparingly): `some statement—some clause`
+- En dashes are fine unpadded in numeric ranges: `0–1`, `2–3 days`.
+- Existing padded em dashes in a file are not a licence to add more. This rule beats matching surrounding style.
+- Use semicolons sparingly. Prefer wording in complete sentences where possible.
+
 ## Comments
 - Do not write organizational or comments that summarize the code. Comments should only be written in order to explain "why" the code is written in some way in the case there is a reason that is tricky / non-obvious.
+- Keep implementation details out of TSDoc. TSDoc describes what a thing does for its caller, in terms of observable behavior. Internal mechanics, rationale, history ("this used to be X"), and rejected alternatives go in ordinary `//` comments at the relevant code, or in a design doc.
+- Describe behavior concretely rather than through a metaphor. For feature gating say what UI appears or disappears, or borrow feature-flag words like exposed / enabled / hidden / disabled — don't invent a vocabulary ("on offer", "withheld", "surfaced") and make the reader learn it.
+- See above section on prose
 
 ## TypeScript / JavaScript Conventions
 
