@@ -18,7 +18,6 @@
     "deno": true,
     "dockerfile": true,
     "git-firefly": true,
-    "github-actions": true,
     "glsl": true,
     "graphql": true,
     "gruvbox-material": true,
@@ -67,6 +66,10 @@
   },
   "preview_tabs": {
     "enable_preview_file_from_code_navigation": false
+  },
+  "diagnostics": {
+    "button": true,
+    "include_warnings": true
   },
   "tabs": {
     "show_diagnostics": "all",
@@ -126,7 +129,8 @@
   "cli_default_open_behavior": "existing_window",
   "project_panel": {
     "entry_spacing": "standard",
-    "dock": "left"
+    "dock": "left",
+    "show_diagnostics": "all"
   },
   "outline_panel": {
     "indent_size": 2.0,
@@ -186,7 +190,7 @@
     "dark": "Gruvbox Material Custom Dark"
   },
   "vim_mode": true,
-  "ui_font_size": 15,
+  "ui_font_size": 13,
   "buffer_font_size": 12.0,
   "ui_font_family": "Geist",
   "buffer_font_family": "JetBrains Mono",
@@ -194,11 +198,44 @@
   "relative_line_numbers": "enabled",
   "terminal": {
     "font_family": "JetBrains Mono",
-    "font_fallbacks": ["JetBrainsMono Nerd Font", "FiraCode Nerd Font"]
+    "font_fallbacks": [
+      "JetBrainsMono Nerd Font",
+      "FiraCode Nerd Font"
+    ]
   },
-  "wrap_guides": [100],
+  "wrap_guides": [
+    100
+  ],
   "edit_predictions": {
     "mode": "eager",
     "provider": "zed"
+  },
+  "file_types": {
+    "GitHub Actions": [
+      "**/.github/workflows/*.yml",
+      "**/.github/workflows/*.yaml"
+    ]
+  },
+  "lsp": {
+    "yaml-language-server": {
+      "binary": {
+        "path": "/run/current-system/sw/bin/yaml-language-server",
+        "arguments": ["--stdio"]
+      },
+      "settings": {
+        "yaml": {
+          "schemas": {
+            "https://json.schemastore.org/github-workflow.json": [
+              "**/.github/workflows/*.yml",
+              "**/.github/workflows/*.yaml"
+            ],
+            "https://json.schemastore.org/github-action.json": [
+              "**/.github/actions/**/action.yml",
+              "**/.github/actions/**/action.yaml"
+            ]
+          }
+        }
+      }
+    }
   }
 }
