@@ -86,6 +86,8 @@ in
   homebrew.taps = [
     { name = "jorgelbg/tap"; trusted = true; }
     { name = "jrolfs/tap"; trusted = true; }
+    { name = "sozercan/repo"; trusted = true; }
+
     {
       # Private, so the clone needs a credential. It comes over HTTPS from
       # ~/.git-credentials via the helper configured above, rather than over
@@ -140,6 +142,7 @@ in
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
+    "kaset"
     "kitty"
     "linear"
     "loom"
