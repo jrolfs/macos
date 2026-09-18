@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "claude-sync push -q"
+            "command": "claude-zed-sync export >/dev/null; claude-sync push -q"
           }
         ]
       }

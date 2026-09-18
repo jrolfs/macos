@@ -1,0 +1,508 @@
+#!/usr/bin/env python3
+"""Carry Zed's agent-panel history for Claude Code threads between machines.
+
+Zed drives Claude Code over ACP, and for those threads it stores only a pointer:
+a `sidebar_threads` row naming the agent, the session id, the folder paths and a
+title. The conversation itself lives in Claude's own store
+(`~/.claude/projects/<slug>/<session-id>.jsonl`), which claude-sync already
+replicates, and Zed reopens a thread by asking the agent to resume that session
+id. Making a thread appear on another machine is therefore a matter of copying
+one row, not the transcript.
+
+`export` writes this machine's rows to
+`~/.claude/projects/.zed-threads/<host>.json`, so they ride claude-sync's bucket
+alongside the transcripts they point at, with no sync configuration to add.
+`import` reads what the other machines exported and inserts the rows this
+machine lacks. One file per machine, so two machines never write the same file
+and there is nothing to merge.
+
+A thread whose transcript hasn't arrived is skipped rather than imported dead,
+because Zed would offer it in the panel and then fail to load it. The store is
+keyed by absolute working directory, so a repo living at a different path on each
+machine needs `--map`, and Claude's retention cleanup deletes transcripts long
+before Zed forgets the thread: expect a good share of any machine's history to be
+unsyncable for that reason alone.
+
+Zed reads this table when it starts and writes to it as threads change, so a row
+inserted underneath a running Zed may not show up until a restart, and stands to
+be lost if Zed rewrites the table first. Hence the refusal to import while it
+runs, with `--force` for when you know better.
+"""
+from __future__ import annotations
+
+import argparse
+import fnmatch
+import json
+import os
+import re
+import shutil
+import socket
+import sqlite3
+import subprocess
+import sys
+import tempfile
+import uuid
+from datetime import datetime, timezone
+
+HOME = os.path.expanduser("~")
+ZED_SUPPORT = os.path.join(HOME, "Library/Application Support/Zed")
+DEFAULT_DB = os.path.join(ZED_SUPPORT, "db/0-stable/db.sqlite")
+PROJECTS_ROOT = os.path.join(HOME, ".claude/projects")
+
+# Inside the project store because that is what claude-sync already carries:
+# its "sessions" scope is a fixed allowlist (projects, history.jsonl, tasks,
+# plans) and the only way to add a sibling directory is `scope: full`, which
+# would also start uploading settings, agents and credentials. Subdirectories of
+# projects/ ride along as-is, dot-prefixed so nothing scanning for project
+# stores treats it as one.
+EXPORT_DIR = os.path.join(PROJECTS_ROOT, ".zed-threads")
+
+# Fixed namespace so both machines derive the same thread_id for a session, which
+# is what keeps a re-import idempotent and stops one thread turning into two.
+NAMESPACE = uuid.UUID("6f2a1d54-8f1b-5e2c-9a3d-1c7b0e4f8a62")
+
+# Columns carried between machines. thread_id is derived, not copied, and
+# remote_connection is deliberately left behind: it names a connection this
+# machine may not have.
+CARRIED = (
+    "session_id",
+    "agent_id",
+    "title",
+    "title_override",
+    "created_at",
+    "updated_at",
+    "interacted_at",
+    "archived",
+)
+PATH_COLUMNS = ("folder_paths", "main_worktree_paths")
+
+
+def slug_for(path: str) -> str:
+    """Encode a working directory the way Claude Code names its project store."""
+    return re.sub(r"[^a-zA-Z0-9]", "-", os.path.abspath(path))
+
+
+def thread_id_for(session_id: str) -> bytes:
+    return uuid.uuid5(NAMESPACE, session_id).bytes
+
+
+def zed_running() -> bool:
+    return (
+        subprocess.run(
+            ["pgrep", "-f", r"Zed.*\.app/Contents/MacOS/zed"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        == 0
+    )
+
+
+def zed_owns(db: str) -> bool:
+    """Whether this database is one a running Zed would be holding."""
+    return os.path.realpath(db).startswith(os.path.realpath(ZED_SUPPORT) + os.sep)
+
+
+def open_readable(db: str) -> tuple[sqlite3.Connection, str | None]:
+    """Open the database for reading, snapshotting it if that isn't possible.
+
+    Reading alongside a running Zed is normally fine, since a shared read lock is
+    all this needs. A read-only connection to a WAL database does still want to
+    write the shared memory file, though, so the fallback copies the three files
+    aside and reads those. Returns the temp directory to clean up, if one was made.
+    """
+    try:
+        connection = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+        connection.execute("select count(*) from sidebar_threads").fetchone()
+        return connection, None
+    except sqlite3.Error:
+        pass
+
+    scratch = tempfile.mkdtemp(prefix="claude-zed-sync.")
+    for suffix in ("", "-wal", "-shm"):
+        source = db + suffix
+        if os.path.exists(source):
+            shutil.copy2(source, os.path.join(scratch, os.path.basename(source)))
+    copy = os.path.join(scratch, os.path.basename(db))
+    return sqlite3.connect(copy), scratch
+
+
+def columns_of(connection: sqlite3.Connection, table: str) -> list[str]:
+    return [row[1] for row in connection.execute(f"pragma table_info({table})")]
+
+
+def split_paths(value: str | None) -> list[str]:
+    return [line for line in (value or "").split("\n") if line]
+
+
+def local_threads(connection: sqlite3.Connection) -> list[dict]:
+    """Rows Zed holds for Claude Code threads, newest first.
+
+    A row needs both an agent and a session id to be worth carrying. What this
+    drops is titleless stubs, from a thread that was opened in the panel and
+    never used, which point at nothing in Claude's store.
+    """
+    available = set(columns_of(connection, "sidebar_threads"))
+    wanted = [c for c in (*CARRIED, *PATH_COLUMNS) if c in available]
+    connection.row_factory = sqlite3.Row
+    rows = connection.execute(
+        f"select {', '.join(wanted)} from sidebar_threads "
+        "where agent_id is not null and coalesce(session_id, '') <> '' "
+        "order by updated_at desc"
+    ).fetchall()
+
+    threads: dict[str, dict] = {}
+    for row in rows:
+        record = {key: row[key] for key in wanted if key not in PATH_COLUMNS}
+        for column in PATH_COLUMNS:
+            if column in available:
+                record[column] = split_paths(row[column])
+        # Ordered newest first, so a duplicated session id keeps the live row.
+        threads.setdefault(record["session_id"], record)
+    return list(threads.values())
+
+
+def transcript_for(session_id: str, folders: list[str]) -> tuple[str | None, str | None]:
+    """Locate the transcript, preferring the store Zed's cwd would resume from.
+
+    Returns (path, elsewhere): `path` when it sits under the key for one of the
+    thread's folders, `elsewhere` when it only exists under some other key. That
+    happens when the thread's directory has moved since, most often a worktree
+    Zed followed into worktrunk's trash while the store kept the original path.
+    """
+    for folder in folders:
+        candidate = os.path.join(PROJECTS_ROOT, slug_for(folder), f"{session_id}.jsonl")
+        if os.path.exists(candidate):
+            return candidate, None
+
+    if os.path.isdir(PROJECTS_ROOT):
+        for entry in os.scandir(PROJECTS_ROOT):
+            candidate = os.path.join(entry.path, f"{session_id}.jsonl")
+            if entry.is_dir() and os.path.exists(candidate):
+                return None, candidate
+    return None, None
+
+
+def apply_map(paths: list[str], mapping: list[tuple[str, str]]) -> list[str]:
+    mapped = []
+    for path in paths:
+        for old, new in mapping:
+            if path == old or path.startswith(old.rstrip("/") + "/"):
+                path = new.rstrip("/") + path[len(old.rstrip("/")) :]
+                break
+        mapped.append(path)
+    return mapped
+
+
+def parse_map(values: list[str]) -> list[tuple[str, str]]:
+    mapping = []
+    for value in values:
+        old, separator, new = value.partition("=")
+        if not separator:
+            raise argparse.ArgumentTypeError(f"--map wants OLD=NEW, got {value!r}")
+        mapping.append((os.path.expanduser(old), os.path.expanduser(new)))
+    return mapping
+
+
+def excluded(folders: list[str], patterns: list[str]) -> bool:
+    return any(
+        fnmatch.fnmatch(folder, pattern) for folder in folders for pattern in patterns
+    )
+
+
+def do_export(args) -> int:
+    connection, scratch = open_readable(args.db)
+    try:
+        threads = local_threads(connection)
+    finally:
+        connection.close()
+        if scratch:
+            shutil.rmtree(scratch, ignore_errors=True)
+
+    kept, skipped_excluded, skipped_missing, moved = [], 0, 0, 0
+    for record in threads:
+        folders = record.get("folder_paths", [])
+        if args.exclude and excluded(folders, args.exclude):
+            skipped_excluded += 1
+            continue
+        found, elsewhere = transcript_for(record["session_id"], folders)
+        # A transcript under some other project key is still worth exporting: it
+        # syncs like any other, and the receiving machine can point at it with
+        # --map. One that exists nowhere only gives that machine something to
+        # skip in turn.
+        if not (found or elsewhere) and not args.keep_missing:
+            skipped_missing += 1
+            continue
+        if elsewhere:
+            moved += 1
+        kept.append(record)
+
+    payload = {
+        "host": args.host,
+        "generated": datetime.now(timezone.utc).isoformat(),
+        "threads": kept,
+    }
+    destination = os.path.join(EXPORT_DIR, f"{args.host}.json")
+    print(f"{len(kept)} thread(s) to export as {args.host}")
+    if moved:
+        print(f"  {moved} whose transcript sits under another project key")
+    if skipped_excluded:
+        print(f"  {skipped_excluded} excluded by pattern")
+    if skipped_missing:
+        print(f"  {skipped_missing} skipped, transcript no longer on disk")
+    if args.dry_run:
+        print(f"would write {destination}")
+        return 0
+
+    # Written in one move, since claude-sync may be reading the directory to
+    # upload it and a half-written file would be pushed as the real thing.
+    os.makedirs(EXPORT_DIR, exist_ok=True)
+    partial = destination + ".partial"
+    with open(partial, "w") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+    os.replace(partial, destination)
+    print(f"wrote {destination}")
+    return 0
+
+
+def do_import(args) -> int:
+    if not os.path.isdir(EXPORT_DIR):
+        print(f"nothing to import from {EXPORT_DIR}", file=sys.stderr)
+        return 1
+    if zed_owns(args.db) and zed_running() and not (args.dry_run or args.force):
+        print(
+            "Zed is running, and rows inserted under it may not appear or may be "
+            "rewritten.\nquit it first, or pass --force if it isn't holding this "
+            "database.",
+            file=sys.stderr,
+        )
+        return 1
+
+    sources = [
+        entry.path
+        for entry in sorted(os.scandir(EXPORT_DIR), key=lambda e: e.name)
+        if entry.name.endswith(".json") and entry.name != f"{args.host}.json"
+    ]
+    if not sources:
+        print(f"no exports from other machines in {EXPORT_DIR}")
+        return 0
+
+    connection, scratch = open_readable(args.db)
+    try:
+        present = {record["session_id"] for record in local_threads(connection)}
+        available = set(columns_of(connection, "sidebar_threads"))
+    finally:
+        connection.close()
+        if scratch:
+            shutil.rmtree(scratch, ignore_errors=True)
+
+    pending, gone = [], 0
+    skipped = {"present": 0, "no transcript": 0, "moved": 0, "excluded": 0}
+    for source in sources:
+        try:
+            with open(source) as handle:
+                payload = json.load(handle)
+        except (json.JSONDecodeError, OSError) as error:
+            # One unreadable export, from a push that raced a write, shouldn't
+            # cost the machines that did arrive intact.
+            print(f"skipping {os.path.basename(source)}: {error}", file=sys.stderr)
+            continue
+        for record in payload.get("threads", []):
+            session_id = record.get("session_id")
+            if not session_id:
+                continue
+            if session_id in present:
+                skipped["present"] += 1
+                continue
+            folders = apply_map(record.get("folder_paths", []), args.map)
+            worktrees = apply_map(record.get("main_worktree_paths", []), args.map)
+            if args.exclude and excluded(folders, args.exclude):
+                skipped["excluded"] += 1
+                continue
+            found, elsewhere = transcript_for(session_id, folders)
+            if not found:
+                skipped["moved" if elsewhere else "no transcript"] += 1
+                continue
+            if not any(os.path.isdir(folder) for folder in folders):
+                gone += 1
+            pending.append((payload.get("host", "?"), record, folders, worktrees))
+            present.add(session_id)
+
+    print(f"{len(pending)} thread(s) to import from {len(sources)} machine(s)")
+    if gone:
+        print(f"  {gone} whose folder does not exist here, so will not open")
+    for label, count in skipped.items():
+        if count:
+            print(f"  {count} skipped, {label}")
+    if skipped["moved"]:
+        print(
+            "  (their folder no longer matches where the transcript is keyed, "
+            "usually a\n   worktree Zed followed into the trash; --map can point "
+            "one at a real path)"
+        )
+    if not pending:
+        return 0
+
+    if args.verbose or args.dry_run:
+        for host, record, folders, _ in pending:
+            title = record.get("title_override") or record.get("title") or "(untitled)"
+            print(f"  {host}  {title[:58]}")
+            print(f"        {folders[0] if folders else '?'}")
+    if args.dry_run:
+        return 0
+
+    writable = sqlite3.connect(args.db)
+    try:
+        inserted = 0
+        for _, record, folders, worktrees in pending:
+            values = {
+                key: record.get(key)
+                for key in CARRIED
+                if key in available and key in record
+            }
+            values["thread_id"] = thread_id_for(record["session_id"])
+            # STRICT table with NOT NULL on both.
+            values["title"] = record.get("title") or ""
+            values["updated_at"] = record.get("updated_at") or datetime.now(
+                timezone.utc
+            ).isoformat()
+            values["archived"] = int(record.get("archived") or 0)
+            if "folder_paths" in available:
+                values["folder_paths"] = "\n".join(folders)
+                values["folder_paths_order"] = ",".join(
+                    str(index) for index in range(len(folders))
+                )
+            if "main_worktree_paths" in available:
+                values["main_worktree_paths"] = "\n".join(worktrees or folders)
+                values["main_worktree_paths_order"] = ",".join(
+                    str(index) for index in range(len(worktrees or folders))
+                )
+            columns = [key for key in values if key in available]
+            writable.execute(
+                f"insert or ignore into sidebar_threads ({', '.join(columns)}) "
+                f"values ({', '.join('?' for _ in columns)})",
+                [values[key] for key in columns],
+            )
+            inserted += 1
+        writable.commit()
+    finally:
+        writable.close()
+
+    print(f"imported {inserted} thread(s); they appear next time Zed starts")
+    return 0
+
+
+def do_status(args) -> int:
+    connection, scratch = open_readable(args.db)
+    try:
+        threads = local_threads(connection)
+    finally:
+        connection.close()
+        if scratch:
+            shutil.rmtree(scratch, ignore_errors=True)
+
+    here, elsewhere = 0, 0
+    for record in threads:
+        found, other = transcript_for(
+            record["session_id"], record.get("folder_paths", [])
+        )
+        here += bool(found)
+        elsewhere += bool(other)
+
+    print(f"{len(threads)} Claude thread(s) in Zed's history on {args.host}")
+    print(f"{here} with a transcript under the folder Zed records")
+    if elsewhere:
+        print(f"{elsewhere} with one under some other project key, needing --map")
+    print(f"{here + elsewhere} exportable, {len(threads) - here - elsewhere} with no transcript left")
+
+    if os.path.isdir(EXPORT_DIR):
+        for entry in sorted(os.scandir(EXPORT_DIR), key=lambda e: e.name):
+            if not entry.name.endswith(".json"):
+                continue
+            with open(entry.path) as handle:
+                payload = json.load(handle)
+            mine = " (this machine)" if entry.name == f"{args.host}.json" else ""
+            print(
+                f"  {payload.get('host', entry.name):<12} "
+                f"{len(payload.get('threads', [])):>4} thread(s), "
+                f"exported {payload.get('generated', '?')[:19]}{mine}"
+            )
+    else:
+        print(f"no exports yet ({EXPORT_DIR} does not exist)")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Sync Zed's Claude Code thread history between machines."
+    )
+
+    # Shared options live on a parent of each subcommand rather than the top
+    # level, so they can be written after the subcommand where they read
+    # naturally. Argparse only accepts a top-level option before it.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--db", default=DEFAULT_DB, help="Zed database to read/write")
+    common.add_argument(
+        "--host",
+        # Lowercased because the export name becomes a filename, and the bucket
+        # is case-sensitive where APFS is not: a hostname that changes case would
+        # otherwise leave two exports for one machine.
+        default=socket.gethostname().split(".")[0].lower(),
+        help="name this machine exports under",
+    )
+    common.add_argument(
+        "-n", "--dry-run", action="store_true", help="report without changing anything"
+    )
+    common.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        metavar="GLOB",
+        help="skip threads whose folder matches (repeatable)",
+    )
+
+    commands = parser.add_subparsers(dest="command")
+
+    export = commands.add_parser(
+        "export", parents=[common], help="publish this machine's threads"
+    )
+    export.add_argument(
+        "--keep-missing",
+        action="store_true",
+        help="export threads whose transcript is gone from this machine",
+    )
+    export.set_defaults(run=do_export)
+
+    importer = commands.add_parser(
+        "import", parents=[common], help="adopt other machines' threads"
+    )
+    importer.add_argument(
+        "--map",
+        action="append",
+        default=[],
+        metavar="OLD=NEW",
+        help="rewrite a folder prefix, for a repo living elsewhere here",
+    )
+    importer.add_argument("-v", "--verbose", action="store_true", help="list each thread")
+    importer.add_argument(
+        "--force", action="store_true", help="write even though Zed is running"
+    )
+    importer.set_defaults(run=do_import)
+
+    status = commands.add_parser(
+        "status", parents=[common], help="what is here and what has arrived"
+    )
+    status.set_defaults(run=do_status)
+
+    args = parser.parse_args(sys.argv[1:] or ["status"])
+    if getattr(args, "map", None):
+        args.map = parse_map(args.map)
+
+    if not os.path.exists(args.db):
+        print(f"no Zed database at {args.db}", file=sys.stderr)
+        return 1
+    return args.run(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
