@@ -128,7 +128,11 @@ exclude = ["node_modules/"]
 # url = "echo http://localhost:{{ branch | hash_port }}"
 #
 # Aliases defined here apply to all projects. For project-specific aliases, use the project config (https://worktrunk.dev/config/#project-configuration) `[aliases]` section instead.
-#
+
+[aliases]
+handoff = "~/.config/worktrunk/bin/wt-handoff"
+restore = "~/.config/worktrunk/bin/wt-restore {{ args }}"
+
 # ### User project-specific settings
 #
 # For context:
@@ -143,11 +147,7 @@ exclude = ["node_modules/"]
 #
 # Override global user config for a specific project. Scalar values (like `worktree-path`) replace the global value. Hooks append — both global and per-project hooks run. Aliases merge — per-project aliases override global aliases on name collision.
 #
-[aliases]
-handoff = "~/.config/worktrunk/bin/wt-handoff"
-restore = "~/.config/worktrunk/bin/wt-restore {{ args }}"
-
-[projects."github.com/user/repo"]
+# [projects."github.com/user/repo"]
 # worktree-path = ".worktrees/{{ branch | sanitize }}"
 # list.full = true
 # merge.squash = false
