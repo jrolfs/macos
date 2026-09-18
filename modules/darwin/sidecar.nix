@@ -42,4 +42,27 @@ let
 in
 {
   environment.systemPackages = [ sidecar ];
+
+  # The three toggles System Settings → Displays shows once an iPad is
+  # connected, and the same three the menu bar Sidecar item flips. nix-darwin
+  # has no structured option for them, but the domain is an ordinary
+  # ~/Library/Preferences plist rather than a ByHost one, so
+  # CustomUserPreferences reaches it.
+  #
+  # The key names are not guessable from the UI labels: SidecarUI and the
+  # Displays settings extension both read `sidebarShown` (not showSidebar) and
+  # `showTouchbar` (not showTouchBar, despite SidecarDisplayConfig spelling its
+  # matching property showTouchBar). Nothing documents them; they were read out
+  # of the binaries.
+  #
+  # Sidecar builds a SidecarDisplayConfig from these when a session starts, so a
+  # change lands on the next connect, not on the running session.
+  system.defaults.CustomUserPreferences."com.apple.sidecar.display" = {
+    # The sidebar and the virtual Touch Bar are drawn on the iPad, eating a
+    # strip of the only screen the session exists to provide.
+    sidebarShown = false;
+    showTouchbar = false;
+
+    doubleTapEnabled = true;
+  };
 }
