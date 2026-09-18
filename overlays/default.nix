@@ -85,6 +85,23 @@ in
     meta.mainProgram = "claude-sync";
   };
 
+  # The Claude Code helper scripts kept in dotfiles/home/.claude/bin, built into
+  # a package so they land on PATH with the rest of the profile instead of
+  # needing ~/.claude/bin added to it.
+  #
+  # patchShebangs rewrites their `env python3` to the store python3 below, which
+  # is the other half of the reason to package them: `env` would otherwise find
+  # /usr/bin/python3, a Command Line Tools shim that prompts to install Xcode on
+  # a machine that hasn't, and is gone entirely on some macOS releases.
+  claude-helpers = super.runCommandLocal "claude-helpers"
+    { nativeBuildInputs = [ super.python3 ]; }
+    ''
+      install -d $out/bin
+      find ${../dotfiles/home/.claude/bin} -maxdepth 1 -type f \
+        -exec install -m755 -t $out/bin {} +
+      patchShebangs --build $out/bin
+    '';
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''

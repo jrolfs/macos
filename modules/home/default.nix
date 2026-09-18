@@ -116,25 +116,34 @@ in
     # history.jsonl, a dozen caches — so the tracked entries inside it are
     # linked individually and the directory itself stays real. Without these
     # the global conventions in CLAUDE.md simply aren't in effect on a
-    # provisioned machine, and `resume-zed` (zsh/init/claude.zsh) has no script
-    # to run.
+    # provisioned machine.
     #
     # Out of store because these are written back to: `#` appends to CLAUDE.md,
     # settings.json is rewritten whenever a permission is granted, and a saved
-    # slash command or a new helper lands in commands/ or bin/. On newt all four
-    # were symlinks into the dot castle's working tree, which is the same shape
-    # — edits and additions are a git diff, not a rebuild.
+    # slash command lands in commands/. On newt they were symlinks into the dot
+    # castle's working tree, which is the same shape: edits and additions are a
+    # git diff, not a rebuild.
+    #
+    # bin/ is the exception, installed as a package (home.packages below)
+    # instead.
     ".claude/CLAUDE.md".source =
       config.lib.file.mkOutOfStoreSymlink "${live}/.claude/CLAUDE.md";
     ".claude/settings.json".source =
       config.lib.file.mkOutOfStoreSymlink "${live}/.claude/settings.json";
     ".claude/keybindings.json".source =
       config.lib.file.mkOutOfStoreSymlink "${live}/.claude/keybindings.json";
-    ".claude/bin".source =
-      config.lib.file.mkOutOfStoreSymlink "${live}/.claude/bin";
     ".claude/commands".source =
       config.lib.file.mkOutOfStoreSymlink "${live}/.claude/commands";
   } // ghExtensions;
+
+  # The helpers from dotfiles/home/.claude/bin as commands, rather than a
+  # ~/.claude/bin nothing puts on PATH: claude-mv-project is typed at a prompt,
+  # claude-zed-threads is run by the resume-zed function and the like-named
+  # slash command, and both of those had to spell out the absolute path to find
+  # it. Editing one now takes a switch to take effect, which is the trade for
+  # the interpreter no longer being whatever `env python3` resolves to (see the
+  # package in overlays/default.nix).
+  home.packages = [ pkgs.claude-helpers ];
 
   # Migration guard for machines that switched while the entry above was
   # `.local/share/zinit` rather than `.local/share/zinit/zinit.git`, which is

@@ -1,6 +1,6 @@
 ---
 description: List Claude Code threads started by Zed's ACP client for this project, with ready-to-run resume commands. Use when the user wants to find or resume a Zed/ACP thread.
-allowed-tools: Bash(~/.claude/bin/claude-zed-threads:*), Read
+allowed-tools: Bash(claude-zed-threads:*), Read
 argument-hint: "[project-dir]"
 ---
 
@@ -14,7 +14,7 @@ sessions and hard to pick out.
 Zed/ACP threads for this project, newest first (each with the exact command to
 reattach it):
 
-!`~/.claude/bin/claude-zed-threads`
+!`claude-zed-threads`
 
 ## Next step
 

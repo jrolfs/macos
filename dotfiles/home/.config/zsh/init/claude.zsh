@@ -16,7 +16,9 @@
 #
 # ╌╌↗
 resume-zed() {
-  local script="${HOME}/.claude/bin/claude-zed-threads"
+  # The packaged command (claude-helpers) where the flake manages this machine,
+  # the homeshick symlink on one still linking the dot castle.
+  local script=${commands[claude-zed-threads]:-${HOME}/.claude/bin/claude-zed-threads}
   [[ -x "$script" ]] || { print -u2 "resume-zed: missing or non-executable $script"; return 1 }
 
   # Map each clean display line back to its session id and home directory, so
