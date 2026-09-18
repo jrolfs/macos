@@ -13,6 +13,7 @@ in
     ../home-backup.nix
 
     ./daemons.nix
+    ./default-browser.nix
     ./defaults.nix
     ./fileicon.nix
     ./homebrew.nix
