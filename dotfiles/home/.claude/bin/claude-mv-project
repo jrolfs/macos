@@ -14,6 +14,11 @@ boundary-aware so a project whose path extends another's (`repo` vs
 `repo.flake`) is never rewritten by the shorter one's move. claude-sync
 propagates the move on the next push as a delete + add.
 
+When the destination already has a store of its own, because another machine
+has been working in the new location, `--merge` moves the transcripts into it
+instead of renaming. Session filenames are uuids, so the two sets coexist and
+a collision means the same session is already there.
+
 Do not re-key a project with a live session; finish or stop it first, and on
 multi-machine setups run this only once the machine still writing the old key
 has stopped (its pushes would resurrect it).
@@ -23,6 +28,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import sys
 
 PROJECTS_ROOT = os.path.expanduser("~/.claude/projects")
@@ -57,6 +63,11 @@ def main() -> int:
     parser.add_argument(
         "-n", "--dry-run", action="store_true", help="report without changing anything"
     )
+    parser.add_argument(
+        "--merge",
+        action="store_true",
+        help="move the threads into an existing store at the new directory",
+    )
     args = parser.parse_args()
 
     old = os.path.abspath(os.path.expanduser(args.old))
@@ -67,8 +78,23 @@ def main() -> int:
     if not os.path.isdir(old_store):
         print(f"no project store at {old_store}", file=sys.stderr)
         return 1
-    if os.path.exists(new_store):
-        print(f"{new_store} already exists; merge by hand if that's intended", file=sys.stderr)
+
+    merging = os.path.exists(new_store)
+    if merging and not args.merge:
+        print(f"{new_store} already exists; pass --merge to move into it", file=sys.stderr)
+        return 1
+
+    # Checked before anything is rewritten, so a refusal leaves both stores as
+    # they were rather than half-moved.
+    collisions = (
+        sorted(set(os.listdir(old_store)) & set(os.listdir(new_store))) if merging else []
+    )
+    if collisions:
+        print(
+            f"{len(collisions)} name(s) exist in both stores, starting with "
+            f"{collisions[0]}; resolve by hand",
+            file=sys.stderr,
+        )
         return 1
 
     replacements = [
@@ -91,13 +117,22 @@ def main() -> int:
                     with open(path, "wb") as f:
                         f.write(rewritten)
 
+    verb = "merge" if merging else "rename"
     if args.dry_run:
-        print(f"would rename {old_store}\n          -> {new_store}")
+        moving = len(os.listdir(old_store))
+        print(f"would {verb} {old_store}\n         {'into' if merging else '  ->'} {new_store}")
+        print(f"would move {moving} entr{'y' if moving == 1 else 'ies'}")
         print(f"would rewrite paths in {changed} file(s)")
         return 0
 
-    os.rename(old_store, new_store)
-    print(f"renamed {old_store}\n     -> {new_store}")
+    if merging:
+        for name in sorted(os.listdir(old_store)):
+            shutil.move(os.path.join(old_store, name), os.path.join(new_store, name))
+        os.rmdir(old_store)
+        print(f"merged {old_store}\n  into {new_store}")
+    else:
+        os.rename(old_store, new_store)
+        print(f"renamed {old_store}\n     -> {new_store}")
     print(f"rewrote paths in {changed} file(s)")
     print(f"threads now list under: cd {new} && claude --resume")
     return 0
