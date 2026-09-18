@@ -45,6 +45,7 @@ path=(
   /opt/homebrew/bin
   /usr/local/{bin,sbin}
   $HOME/.local/bin
+  $HOME/.claude/bin
   $GOPATH/bin
   $SPICETIFY_INSTALL
   $WORK_BIN
