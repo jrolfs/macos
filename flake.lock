@@ -56,6 +56,29 @@
         "type": "github"
       }
     },
+    "glide": {
+      "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788886164,
+        "narHash": "sha256-F1wxjMtHxA8YL3TiaVb5wujuCiog/tGYguxTGOf7oLQ=",
+        "owner": "glide-browser",
+        "repo": "glide.nix",
+        "rev": "90b69855767dfa25c81dcd437eac7206a8d13284",
+        "type": "github"
+      },
+      "original": {
+        "owner": "glide-browser",
+        "repo": "glide.nix",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -195,6 +218,7 @@
       "inputs": {
         "bootstrap": "bootstrap",
         "claude-sync": "claude-sync",
+        "glide": "glide",
         "home-manager": "home-manager",
         "kitty-grab": "kitty-grab",
         "kitty-gruvbox-material": "kitty-gruvbox-material",

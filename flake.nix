@@ -19,6 +19,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Glide packaged for nix, plus a home-manager module built on
+    # home-manager's own mkFirefoxModule factory. The packages are not used to
+    # install Glide (see modules/home/browsers.nix for why Homebrew still owns
+    # that); the module is what we're after, and glide-browser-bin-unwrapped is
+    # the source the Glide Developer bundle is derived from.
+    glide = {
+      url = "github:glide-browser/glide.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     # Bootstrap repo — provisions a new machine, and provides the `bootstrap`
     # CLI whose `secrets` subcommands read the committed `op://` manifest. A
     # real flake (not `flake = false`) because we consume its

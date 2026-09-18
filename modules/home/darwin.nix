@@ -77,7 +77,14 @@ let
   '';
 in
 {
-  imports = [ ./atuin.nix ./claude-sync.nix ./icloud.nix ./wallpaper.nix ./zed.nix ];
+  imports = [
+    ./atuin.nix
+    ./browsers.nix
+    ./claude-sync.nix
+    ./icloud.nix
+    ./wallpaper.nix
+    ./zed.nix
+  ];
 
   # Provide ~/.zshrc.darwin — sourced by ~/.zshrc when uname is Darwin.
   # NIX_PATH export is gone (the flake handles that via the system
@@ -204,13 +211,7 @@ in
       "${config.home.homeDirectory}/.config/vscode-sync-settings/profiles/main";
   };
 
-  # Tridactyl native messaging host (Firefox extension talks to the
-  # native helper via this manifest).
-  home.file."Library/Application Support/Mozilla/NativeMessagingHosts/tridactyl.json".source =
-    "${dotfiles}/Library/Application Support/Mozilla/NativeMessagingHosts/tridactyl.json";
-
-  # Tridactyl native-main script (the actual helper binary referenced
-  # by the JSON above).
-  home.file.".local/share/tridactyl/native_main.py".source =
-    "${dotfiles}/.local/share/tridactyl/native_main.py";
+  # The tridactyl native messaging host lives in modules/home/browsers.nix now,
+  # as programs.firefox.nativeMessagingHosts, which gets it from
+  # pkgs.tridactyl-native instead of from a vendored manifest and Python script.
 }
