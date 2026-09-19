@@ -85,7 +85,11 @@ for pattern in ${patterns+"${patterns[@]}"}; do
 done
 
 if [ ${#selected[@]} -eq 0 ]; then
-  echo "nothing to restore" >&2
+  if [ "$ignored" -gt 0 ]; then
+    echo "nothing to restore: all $ignored snapshot(s) were taken on $host" >&2
+  else
+    echo "nothing to restore" >&2
+  fi
   exit 1
 fi
 
