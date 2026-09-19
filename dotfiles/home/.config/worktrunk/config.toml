@@ -130,7 +130,7 @@ exclude = ["node_modules/"]
 # Aliases defined here apply to all projects. For project-specific aliases, use the project config (https://worktrunk.dev/config/#project-configuration) `[aliases]` section instead.
 
 [aliases]
-handoff = "~/.config/worktrunk/bin/wt-handoff"
+handoff = "~/.config/worktrunk/bin/wt-handoff {{ args }}"
 restore = "~/.config/worktrunk/bin/wt-restore {{ args }}"
 
 # ### User project-specific settings

@@ -1,55 +1,176 @@
 #!/usr/bin/env bash
-# Recreate a worktree pushed by wt-handoff: same absolute path, same branch,
-# dirty state overlaid, and claude-sync pulled first so the path's Claude
-# sessions are resumable the moment the tree exists. Run from anywhere inside
-# the repository (main checkout or any worktree). Refuses to overwrite a dirty
-# tree.
+# Recreate worktrees pushed by wt-handoff: same absolute path, same branch,
+# dirty state overlaid, and claude-sync pulled before any of it so each path's
+# Claude sessions are resumable the moment the tree exists. Run from anywhere
+# inside the repository (main checkout or any worktree).
+#
+# Patterns match the snapshot name, and --all takes every snapshot another host
+# pushed, so arriving on a new machine is one command rather than one per
+# worktree. Snapshots this host took itself are left out of --all, since
+# overlaying a machine's own stale snapshot onto its own tree is never what was
+# meant; name one explicitly to restore it anyway.
+#
+# A worktree that is dirty or has the wrong branch checked out is skipped rather
+# than overwritten, and in a batch that is one to leave behind rather than a
+# reason to abandon the rest.
 set -euo pipefail
 
-dir=${1:?usage: wt restore <worktree-dir>}
+all=no
+dry=no
+patterns=()
 
-git fetch origin "+refs/wip/$dir:refs/wip/$dir"
-wip=$(git rev-parse "refs/wip/$dir")
-path=$(git log -1 --format='%(trailers:key=Wt-Path,valueonly=true)' "$wip" | head -1)
-branch=$(git log -1 --format='%(trailers:key=Wt-Branch,valueonly=true)' "$wip" | head -1)
-host=$(git log -1 --format='%(trailers:key=Wt-Host,valueonly=true)' "$wip" | head -1)
-parent=$(git rev-parse "$wip^")
+while [ $# -gt 0 ]; do
+  case $1 in
+    --all) all=yes ;;
+    -n | --dry-run) dry=yes ;;
+    -h | --help)
+      echo "usage: wt restore [--all] [--dry-run] [pattern...]"
+      exit 0
+      ;;
+    -*)
+      echo "unknown option: $1" >&2
+      exit 1
+      ;;
+    *) patterns+=("$1") ;;
+  esac
+  shift
+done
 
-[ -n "$path" ] && [ -n "$branch" ] || {
-  echo "refs/wip/$dir is missing Wt-Path/Wt-Branch trailers" >&2
+if [ "$all" = no ] && [ ${#patterns[@]} -eq 0 ]; then
+  echo "usage: wt restore [--all] [--dry-run] [pattern...]" >&2
   exit 1
+fi
+
+host=$(hostname -s)
+main_dir=$(basename "$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -1)")
+
+trailer() {
+  git log -1 --format="%(trailers:key=$1,valueonly=true)" "refs/wip/$2" | head -1
 }
 
-if [ ! -d "$path" ]; then
-  if git show-ref --verify --quiet "refs/heads/$branch"; then
-    git worktree add "$path" "$branch"
-  else
-    git worktree add -b "$branch" "$path" "$parent"
+# The snapshot names are only known after the fetch, so take every ref and pick
+# from what landed.
+git fetch origin "+refs/wip/*:refs/wip/*"
+
+snapshots=()
+while IFS= read -r name; do
+  snapshots+=("$name")
+done < <(git for-each-ref --format='%(refname:strip=2)' refs/wip/)
+
+selected=()
+ignored=0
+
+if [ "$all" = yes ]; then
+  for name in ${snapshots+"${snapshots[@]}"}; do
+    if [ "$(trailer Wt-Host "$name")" = "$host" ]; then
+      ignored=$((ignored + 1))
+      continue
+    fi
+    selected+=("$name")
+  done
+fi
+
+for pattern in ${patterns+"${patterns[@]}"}; do
+  matched=no
+  for name in ${snapshots+"${snapshots[@]}"}; do
+    # shellcheck disable=SC2053  # unquoted so the patterns stay globs. The
+    # repo-prefixed name is matched too, so `jamie-fix-*` finds the sibling
+    # worktrees without spelling out the repo every time.
+    if [[ $name == $pattern || ${name#"$main_dir".} == $pattern ]]; then
+      selected+=("$name")
+      matched=yes
+    fi
+  done
+  [ "$matched" = yes ] || echo "no snapshot matching '$pattern'" >&2
+done
+
+if [ ${#selected[@]} -eq 0 ]; then
+  echo "nothing to restore" >&2
+  exit 1
+fi
+
+restore_one() {
+  local name=$1
+  local wip path branch from parent current
+
+  wip=$(git rev-parse "refs/wip/$name")
+  path=$(trailer Wt-Path "$name")
+  branch=$(trailer Wt-Branch "$name")
+  from=$(trailer Wt-Host "$name")
+  parent=$(git rev-parse "$wip^")
+
+  if [ -z "$path" ] || [ -z "$branch" ]; then
+    echo "skipping $name: missing Wt-Path/Wt-Branch trailers" >&2
+    return 1
   fi
-fi
 
-cd "$path"
+  if [ "$dry" = yes ]; then
+    if [ -d "$path" ]; then
+      echo "would overlay $name onto $path (branch $branch, from ${from:-unknown})"
+    else
+      echo "would create $path (branch $branch, from ${from:-unknown}) and overlay $name"
+    fi
+    return 0
+  fi
 
-current=$(git symbolic-ref --short HEAD)
-[ "$current" = "$branch" ] || {
-  echo "$path has $current checked out, snapshot expects $branch" >&2
-  exit 1
+  if [ ! -d "$path" ]; then
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      git worktree add "$path" "$branch"
+    else
+      git worktree add -b "$branch" "$path" "$parent"
+    fi
+  fi
+
+  cd "$path"
+
+  current=$(git symbolic-ref --short HEAD)
+  if [ "$current" != "$branch" ]; then
+    echo "skipping $name: $path has $current checked out, snapshot expects $branch" >&2
+    return 1
+  fi
+
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "skipping $name: $path is dirty, commit or stash before restoring" >&2
+    return 1
+  fi
+
+  if [ "$(git rev-parse HEAD)" != "$parent" ]; then
+    echo "note: $branch is at $(git rev-parse --short HEAD), snapshot parent is ${parent:0:7}; overlaying snapshot anyway"
+  fi
+
+  # --no-overlay semantics: worktree files end up exactly matching the snapshot
+  # tree, including deletions. Ignored files are untouched (wt's pre-start
+  # copy-ignored step owns those).
+  git restore --source="$wip" --worktree -- :/
+
+  echo "restored $name at $path (branch $branch, snapshot from ${from:-unknown})"
 }
 
-[ -z "$(git status --porcelain)" ] || {
-  echo "$path is dirty; commit or stash before restoring" >&2
-  exit 1
-}
-
-if [ "$(git rev-parse HEAD)" != "$parent" ]; then
-  echo "note: $branch is at $(git rev-parse --short HEAD), snapshot parent is ${parent:0:7}; overlaying snapshot anyway"
+# One pull for the whole batch, ahead of the trees, so a restored path's
+# sessions are there as soon as it is.
+if [ "$dry" = no ] && command -v claude-sync >/dev/null 2>&1; then
+  claude-sync pull -q || true
 fi
 
-# --no-overlay semantics: worktree files end up exactly matching the snapshot
-# tree, including deletions. Ignored files are untouched (wt's pre-start
-# copy-ignored step owns those).
-git restore --source="$wip" --worktree -- :/
+failed=0
+for name in "${selected[@]}"; do
+  # A fresh `set -e` because errexit is suppressed inside a condition, and each
+  # worktree gets a subshell so a restore_one that cd'd away doesn't move the
+  # next one.
+  if ! (
+    set -e
+    restore_one "$name"
+  ); then
+    failed=$((failed + 1))
+  fi
+done
 
-command -v claude-sync >/dev/null 2>&1 && claude-sync pull -q || true
+if [ ${#selected[@]} -gt 1 ]; then
+  echo "$((${#selected[@]} - failed)) of ${#selected[@]} snapshot(s) done"
+fi
 
-echo "restored $dir at $path (branch $branch, snapshot from ${host:-unknown})"
+if [ "$ignored" -gt 0 ]; then
+  echo "left out $ignored snapshot(s) taken on $host" >&2
+fi
+
+[ "$failed" -eq 0 ]

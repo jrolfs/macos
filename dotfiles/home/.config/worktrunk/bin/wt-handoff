@@ -1,40 +1,152 @@
 #!/usr/bin/env bash
-# Snapshot this worktree's dirty state (tracked edits plus untracked files,
+# Snapshot a worktree's dirty state (tracked edits plus untracked files,
 # ignored files excluded) to refs/wip/<worktree-dir> and push it, so
 # `wt restore <worktree-dir>` on another machine can recreate the tree at the
 # same absolute path. The directory name, not the branch, keys the ref: with
 # stacked PRs the checked-out branch moves while the directory (and the Claude
 # session state keyed to its path) stays put.
+#
+# With no arguments this takes the current worktree. Patterns match directory
+# names and --all takes every linked worktree, so moving to a new machine is one
+# command rather than one per worktree. A clean worktree is still worth sending:
+# the ref is what tells the other machine which path to recreate, and the Zed
+# threads claude-zed-sync carries only open once that path exists.
+#
+# The main checkout is left out of --all, since recreating it is a clone rather
+# than a `git worktree add`. Name it explicitly to include it.
 set -euo pipefail
 
-top=$(git rev-parse --show-toplevel)
-dir=$(basename "$top")
-branch=$(git -C "$top" symbolic-ref --short HEAD)
-head=$(git -C "$top" rev-parse HEAD)
+all=no
+dry=no
+patterns=()
 
-# A throwaway copy of the index so the snapshot never touches the real one.
+while [ $# -gt 0 ]; do
+  case $1 in
+    --all) all=yes ;;
+    -n | --dry-run) dry=yes ;;
+    -h | --help)
+      echo "usage: wt handoff [--all] [--dry-run] [pattern...]"
+      exit 0
+      ;;
+    -*)
+      echo "unknown option: $1" >&2
+      exit 1
+      ;;
+    *) patterns+=("$1") ;;
+  esac
+  shift
+done
+
+# git lists the main checkout first, then the linked worktrees.
+worktrees=()
+while IFS= read -r path; do
+  worktrees+=("$path")
+done < <(git worktree list --porcelain | sed -n 's/^worktree //p')
+
+main_top=${worktrees[0]}
+main_dir=$(basename "$main_top")
+
+# Worktrees are usually <repo>.<branch-slug> siblings, but a layout that nests a
+# checkout under its own name (…/worktrees/<repo>/<name>/<repo>) repeats the repo
+# name, which would key every one of them to refs/wip/<repo> and have each
+# overwrite the last. Those fold in the parent directory to stay distinct.
+key_for() {
+  local name
+  name=$(basename "$1")
+  if [ "$name" = "$main_dir" ] && [ "$1" != "$main_top" ]; then
+    name="$(basename "$(dirname "$1")")-$name"
+  fi
+  printf '%s' "$name"
+}
+
+selected=()
+[ "$all" = yes ] && selected=("${worktrees[@]:1}")
+
+for pattern in ${patterns+"${patterns[@]}"}; do
+  matched=no
+  for path in "${worktrees[@]}"; do
+    key=$(key_for "$path")
+    # shellcheck disable=SC2053  # unquoted so the patterns stay globs. The
+    # repo-prefixed name is matched too, so `jamie-fix-*` finds the sibling
+    # worktrees without spelling out the repo every time.
+    if [[ $key == $pattern || ${key#"$main_dir".} == $pattern ]]; then
+      selected+=("$path")
+      matched=yes
+    fi
+  done
+  [ "$matched" = yes ] || echo "no worktree matching '$pattern'" >&2
+done
+
+if [ ${#selected[@]} -eq 0 ]; then
+  [ "$all" = no ] && [ ${#patterns[@]} -eq 0 ] || {
+    echo "nothing to hand off" >&2
+    exit 1
+  }
+  selected=("$(git rev-parse --show-toplevel)")
+fi
+
+# A throwaway copy of the index so a snapshot never touches the real one. One
+# file reused across worktrees, since each pass overwrites it wholesale.
 index=$(mktemp)
 trap 'rm -f "$index"' EXIT
-real_index="$(git -C "$top" rev-parse --absolute-git-dir)/index"
-[ -f "$real_index" ] && cp "$real_index" "$index"
 
-GIT_INDEX_FILE=$index git -C "$top" add -A
-tree=$(GIT_INDEX_FILE=$index git -C "$top" write-tree)
+pushed=()
+skipped=0
 
-# One -m per paragraph, and git only parses the final paragraph as trailers,
-# so all three must share it.
-commit=$(git -C "$top" commit-tree "$tree" -p "$head" \
-  -m "wip: $dir" \
-  -m "Wt-Path: $top
+for top in "${selected[@]}"; do
+  dir=$(key_for "$top")
+
+  # A detached HEAD gives restore no branch to check out, and in a batch that is
+  # one worktree to leave behind rather than a reason to abandon the rest.
+  if ! branch=$(git -C "$top" symbolic-ref --short HEAD 2>/dev/null); then
+    echo "skipping $dir: detached HEAD" >&2
+    skipped=$((skipped + 1))
+    continue
+  fi
+  head=$(git -C "$top" rev-parse HEAD)
+
+  if [ "$dry" = yes ]; then
+    changes=$(git -C "$top" status --porcelain | wc -l | tr -d ' ')
+    echo "would push refs/wip/$dir ($branch @ ${head:0:7}, $changes change(s))"
+    continue
+  fi
+
+  real_index="$(git -C "$top" rev-parse --absolute-git-dir)/index"
+  if [ -f "$real_index" ]; then
+    cp "$real_index" "$index"
+  else
+    : >"$index"
+  fi
+
+  GIT_INDEX_FILE=$index git -C "$top" add -A
+  tree=$(GIT_INDEX_FILE=$index git -C "$top" write-tree)
+
+  # One -m per paragraph, and git only parses the final paragraph as trailers,
+  # so all three must share it.
+  commit=$(git -C "$top" commit-tree "$tree" -p "$head" \
+    -m "wip: $dir" \
+    -m "Wt-Path: $top
 Wt-Branch: $branch
 Wt-Host: $(hostname -s)")
 
-git -C "$top" update-ref "refs/wip/$dir" "$commit"
+  git -C "$top" update-ref "refs/wip/$dir" "$commit"
 git -C "$top" push --force origin "refs/wip/$dir:refs/wip/$dir"
+  echo "pushed refs/wip/$dir ($branch @ ${head:0:7})"
+  pushed+=("$dir")
+done
 
-# Sessions for this worktree ride claude-sync; push mid-flight transcripts now
-# rather than waiting for their Stop hooks.
-command -v claude-sync >/dev/null 2>&1 && claude-sync push -q || true
+if [ ${#pushed[@]} -gt 0 ]; then
+  # Sessions for these worktrees ride claude-sync; push mid-flight transcripts
+  # now rather than waiting for their Stop hooks.
+  command -v claude-sync >/dev/null 2>&1 && claude-sync push -q || true
+fi
 
-echo "pushed refs/wip/$dir ($branch @ ${head:0:7})"
-echo "on the other machine: wt restore $dir"
+if [ ${#pushed[@]} -eq 1 ]; then
+  echo "on the other machine: wt restore ${pushed[0]}"
+elif [ ${#pushed[@]} -gt 1 ]; then
+  echo "on the other machine: wt restore --all"
+fi
+
+if [ "$skipped" -gt 0 ]; then
+  echo "skipped $skipped worktree(s) on a detached HEAD" >&2
+fi
