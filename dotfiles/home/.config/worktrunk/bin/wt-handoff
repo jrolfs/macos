@@ -14,18 +14,29 @@
 #
 # The main checkout is left out of --all, since recreating it is a clone rather
 # than a `git worktree add`. Name it explicitly to include it.
+#
+# The whole batch goes up in one push, so --no-verify (or --push-arg=ARG for
+# anything else git push takes) is worth having when a pre-push hook would
+# otherwise reject work that is mid-flight by definition.
 set -euo pipefail
 
 all=no
 dry=no
 patterns=()
+push_args=()
 
 while [ $# -gt 0 ]; do
   case $1 in
     --all) all=yes ;;
     -n | --dry-run) dry=yes ;;
+    --no-verify) push_args+=(--no-verify) ;;
+    --push-arg)
+      shift
+      push_args+=("${1:?--push-arg needs a value}")
+      ;;
+    --push-arg=*) push_args+=("${1#*=}") ;;
     -h | --help)
-      echo "usage: wt handoff [--all] [--dry-run] [pattern...]"
+      echo "usage: wt handoff [--all] [--dry-run] [--no-verify] [--push-arg=ARG] [pattern...]"
       exit 0
       ;;
     -*)
@@ -85,12 +96,22 @@ if [ ${#selected[@]} -eq 0 ]; then
   selected=("$(git rev-parse --show-toplevel)")
 fi
 
+# Each snapshot chains onto the last one for the same worktree, so the ref only
+# ever moves forward and the push needs no force. That means starting from what
+# the remote has: without this fetch a snapshot taken on another machine since
+# the last one here would be the tip, and the push would be rejected rather than
+# quietly overwriting it.
+if [ "$dry" = no ]; then
+  git fetch -q origin "+refs/wip/*:refs/wip/*" || true
+fi
+
 # A throwaway copy of the index so a snapshot never touches the real one. One
 # file reused across worktrees, since each pass overwrites it wholesale.
 index=$(mktemp)
 trap 'rm -f "$index"' EXIT
 
 pushed=()
+refspecs=()
 skipped=0
 
 for top in "${selected[@]}"; do
@@ -121,21 +142,32 @@ for top in "${selected[@]}"; do
   GIT_INDEX_FILE=$index git -C "$top" add -A
   tree=$(GIT_INDEX_FILE=$index git -C "$top" write-tree)
 
+  # The previous snapshot comes second so that restore's $wip^ is still the
+  # commit the work sits on rather than a snapshot.
+  parents=(-p "$head")
+  if previous=$(git -C "$top" rev-parse --verify --quiet "refs/wip/$dir"); then
+    parents+=(-p "$previous")
+  fi
+
   # One -m per paragraph, and git only parses the final paragraph as trailers,
   # so all three must share it.
-  commit=$(git -C "$top" commit-tree "$tree" -p "$head" \
+  commit=$(git -C "$top" commit-tree "$tree" "${parents[@]}" \
     -m "wip: $dir" \
     -m "Wt-Path: $top
 Wt-Branch: $branch
 Wt-Host: $(hostname -s)")
 
   git -C "$top" update-ref "refs/wip/$dir" "$commit"
-git -C "$top" push --force origin "refs/wip/$dir:refs/wip/$dir"
-  echo "pushed refs/wip/$dir ($branch @ ${head:0:7})"
+  refspecs+=("refs/wip/$dir:refs/wip/$dir")
+  echo "snapshot refs/wip/$dir ($branch @ ${head:0:7})"
   pushed+=("$dir")
 done
 
 if [ ${#pushed[@]} -gt 0 ]; then
+  # One push for the batch, so a pre-push hook runs once rather than per
+  # worktree, and --no-verify has one place to land.
+  git -C "$main_top" push ${push_args+"${push_args[@]}"} origin "${refspecs[@]}"
+
   # Sessions for these worktrees ride claude-sync; push mid-flight transcripts
   # now rather than waiting for their Stop hooks.
   command -v claude-sync >/dev/null 2>&1 && claude-sync push -q || true
