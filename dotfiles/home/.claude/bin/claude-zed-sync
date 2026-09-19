@@ -31,6 +31,7 @@ runs, with `--force` for when you know better.
 from __future__ import annotations
 
 import argparse
+import collections
 import fnmatch
 import json
 import os
@@ -296,7 +297,7 @@ def do_import(args) -> int:
         if scratch:
             shutil.rmtree(scratch, ignore_errors=True)
 
-    pending, gone = [], 0
+    pending, gone = [], collections.Counter()
     skipped = {"present": 0, "no transcript": 0, "moved": 0, "excluded": 0}
     for source in sources:
         try:
@@ -323,14 +324,25 @@ def do_import(args) -> int:
             if not found:
                 skipped["moved" if elsewhere else "no transcript"] += 1
                 continue
-            if not any(os.path.isdir(folder) for folder in folders):
-                gone += 1
+            if folders and not any(os.path.isdir(folder) for folder in folders):
+                gone[folders[0]] += 1
             pending.append((payload.get("host", "?"), record, folders, worktrees))
             present.add(session_id)
 
     print(f"{len(pending)} thread(s) to import from {len(sources)} machine(s)")
     if gone:
-        print(f"  {gone} whose folder does not exist here, so will not open")
+        # Named rather than counted because these are mostly worktrees, whose
+        # paths worktrunk derives from the branch: recreate the worktree and the
+        # thread opens, so knowing which ones are missing is the actionable part.
+        print(
+            f"  {sum(gone.values())} in {len(gone)} folder(s) absent here, which "
+            "import but stay unopenable until the folder is back:"
+        )
+        limit = len(gone) if args.verbose else 8
+        for folder, count in gone.most_common(limit):
+            print(f"    {count:>3}  {folder}")
+        if len(gone) > limit:
+            print(f"    and {len(gone) - limit} more folder(s), -v to list")
     for label, count in skipped.items():
         if count:
             print(f"  {count} skipped, {label}")
