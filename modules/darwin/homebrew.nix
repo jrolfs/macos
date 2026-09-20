@@ -56,17 +56,7 @@ let
     esac
   '';
 
-  # Per-host cask/masApps exclusions — typically apps installed by
-  # organization device management. Keyed on the short hostname.
-  excludeByHost = {
-    # Xcode is a many-GB mas install; skip it during provisioning and add it
-    # by hand (or drop this entry) when it's actually needed.
-    ala = [ "Xcode" ];
-    newt = [ "Xcode" "zoom" ];
-    orolo = [ "google-chrome" "Xcode" "zoom" ];
-    yours-truly = [ "Xcode" ];
-  };
-  excludeApps = excludeByHost.${hostname} or [ ];
+  excludeApps = (import ./excluded-apps.nix).${hostname} or [ ];
 
 in
 
@@ -184,22 +174,15 @@ in
     }
   ];
 
+  # mas is gone from here along with masApps: App Store installs are driven
+  # directly by mas.nix now, and nothing else shells out to `mas`.
   homebrew.brews = [
-    "mas"
     "openssl"
 
     { name = "meterup/packages/mcurl"; args = [ "HEAD" ]; }
     { name = "meterup/packages/mctl"; args = [ "HEAD" ]; }
     { name = "meterup/packages/hostsfile"; args = [ "HEAD" ]; }
   ];
-
-  homebrew.masApps = lib.filterAttrs (name: _: !lib.elem name excludeApps) {
-    "Cloud Baby Monitor" = 517602535;
-    "Fantastical" = 975937182;
-    "Flighty" = 1358823008;
-    "Velja" = 1607635845;
-    "Xcode" = 497799835;
-  };
 
   homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [
 
