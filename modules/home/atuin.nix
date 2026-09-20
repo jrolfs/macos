@@ -21,17 +21,24 @@
 
 let
   item = "op://Secrets/Atuin";
-  dataDirectory = "${config.home.homeDirectory}/.local/share/atuin";
 
   login = pkgs.writeShellScript "atuin-login" ''
     set -uo pipefail
 
     export PATH=${lib.makeBinPath [ pkgs.atuin pkgs.coreutils ]}:$PATH
 
-    # The session file is what a successful login writes and what logout
-    # deletes, so its presence is "logged in" and a logout re-runs this on the
-    # next switch.
-    [ -e ${lib.escapeShellArg dataDirectory}/session ] && exit 0
+    # Ask atuin whether it is logged in rather than testing for a file it
+    # writes. This used to check $XDG_DATA_HOME/atuin/session, which the hub
+    # login path never creates — it records the token as a `hub_session` row in
+    # meta.db — so the guard never fired and every switch ran the three `op
+    # read` calls below, each one a Touch ID prompt.
+    #
+    # The check is local: atuin resolves the session for the configured sync
+    # address without contacting it (an unreachable address still fails in
+    # ~10ms with "Not logged in"), so this stays correct offline and can't
+    # stall the switch. It also doesn't need XDG_DATA_HOME, which activation
+    # runs without.
+    atuin status >/dev/null 2>&1 && exit 0
 
     op() { timeout 120 /opt/homebrew/bin/op --account rolfers.1password.com "$@"; }
 
