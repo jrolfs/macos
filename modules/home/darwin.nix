@@ -82,6 +82,7 @@ in
     ./browsers.nix
     ./claude-sync.nix
     ./icloud.nix
+    ./raycast.nix
     ./wallpaper.nix
     ./zed.nix
   ];
