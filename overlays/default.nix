@@ -89,16 +89,44 @@ in
   # a package so they land on PATH with the rest of the profile instead of
   # needing ~/.claude/bin added to it.
   #
-  # patchShebangs rewrites their `env python3` to the store python3 below, which
-  # is the other half of the reason to package them: `env` would otherwise find
-  # /usr/bin/python3, a Command Line Tools shim that prompts to install Xcode on
-  # a machine that hasn't, and is gone entirely on some macOS releases.
-  claude-helpers = super.runCommandLocal "claude-helpers"
-    { nativeBuildInputs = [ super.python3 ]; }
+  # The shebangs are the other half of the reason to package them. `env python3`
+  # would otherwise find /usr/bin/python3, a Command Line Tools shim that
+  # prompts to install Xcode on a machine that hasn't and is gone entirely on
+  # some macOS releases, and `env bun` would find nothing at all: bun is a
+  # dependency of these scripts, not something the machine is expected to have.
+  claude-helpers =
+    let
+      # zod as its npm tarball rather than through a lockfile: it has no
+      # dependencies of its own, so there is nothing to resolve. Bump it in step
+      # with dotfiles/home/.claude/bin/package.json, which is what an editor and
+      # an ad-hoc `bun install` read.
+      zod = super.fetchurl {
+        url = "https://registry.npmjs.org/zod/-/zod-4.6.5.tgz";
+        hash = "sha256-p4wMUz3jDcHEr8JZrEOsBuOQyw2o0uMurjVTAbULNvw=";
+      };
+    in
+    super.runCommandLocal "claude-helpers"
+    { nativeBuildInputs = [ super.bun super.python3 ]; }
     ''
       install -d $out/bin
-      find ${../dotfiles/home/.claude/bin} -maxdepth 1 -type f \
-        -exec install -m755 -t $out/bin {} +
+      find ${../dotfiles/home/.claude/bin} -maxdepth 1 -type f ! -name '*.ts' \
+        ! -name '*.json' -exec install -m755 -t $out/bin {} +
+
+      # One bundle per command, so nothing has imports to resolve at runtime.
+      # The sources are copied out of the store first because bun finds
+      # node_modules by walking up from the file that imports it, and the store
+      # path it would walk up from is not ours to put anything in.
+      cp -R ${../dotfiles/home/.claude/bin} source
+      chmod -R u+w source
+      mkdir -p node_modules/zod
+      tar xzf ${zod} --strip-components=1 -C node_modules/zod
+      export HOME=$TMPDIR
+      for entry in source/*.ts; do
+        bun build "$entry" --target=bun \
+          --outfile="$out/bin/$(basename "$entry" .ts)"
+      done
+
+      chmod 755 $out/bin/*
       patchShebangs --build $out/bin
     '';
 

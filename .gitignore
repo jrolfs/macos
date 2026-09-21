@@ -1,2 +1,5 @@
 result
 .ccls-cache
+
+# bun install in dotfiles/home/.claude/bin, for editors; the build vendors its own
+node_modules/
