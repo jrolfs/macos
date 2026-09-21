@@ -268,11 +268,29 @@ in
     "zed".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/zed";
 
-    # Same as zed: the spicetify-watcher agent runs `spicetify backup apply`
-    # on every Spotify update, which rewrites config-xpui.ini (and creates
-    # CustomApps/ and Extensions/) in this directory.
-    "spicetify".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/spicetify";
+    # Same as zed, but for the one file rather than the directory: the
+    # spicetify-watcher agent runs `spicetify backup apply` on every Spotify
+    # update, which rewrites config-xpui.ini. spicetify truncates and rewrites
+    # in place, so the write follows the link through to the working copy.
+    #
+    # The directory around it has to stay a real one, because Themes/ below is
+    # a store path and because spicetify creates CustomApps/ and Extensions/
+    # beside it at startup, and neither belongs in the tracked tree.
+    "spicetify/config-xpui.ini".source =
+      config.lib.file.mkOutOfStoreSymlink "${live}/.config/spicetify/config-xpui.ini";
+
+    # current_theme in config-xpui.ini. spicetify looks a theme up in
+    # $XDG_CONFIG_HOME/spicetify/Themes first and its own executable directory
+    # second, so this is the only place a theme it didn't download itself can
+    # go. Was a submodule of the old `dot` castle reached by a relative symlink
+    # in the tracked tree, dangling since the migration: spicetify exits with
+    # `Theme "gruvbox-material" not found` and the watcher logs a failure on
+    # every Spotify update.
+    #
+    # Read-only, which only rules out `spicetify color <field> <value>`, the
+    # one command that writes color.ini back into the theme. Changing the
+    # scheme means forking the input.
+    "spicetify/Themes/gruvbox-material".source = inputs.spicetify-gruvbox-material;
 
     # Same as zed, three times over: Glide regenerates glide.d.ts into this
     # directory, it's a pnpm project (node_modules), and its .envrc has direnv
