@@ -41,27 +41,41 @@ import { replacementFor, rewritePaths, slugFor, storeFor } from "./lib/store.ts"
 
 const USAGE = "usage: claude-mv-project [-n] [--merge] [--session ID] OLD NEW";
 
+interface SessionMatch {
+  /** Session ids matched, for counting what moved. */
+  readonly sessions: readonly string[];
+  /** Everything on disk belonging to them. */
+  readonly names: readonly string[];
+  readonly unresolved: readonly string[];
+}
+
 /**
- * Match session ids, or the leading part of one, to transcript filenames.
+ * Match session ids, or the leading part of one, to what the store holds for
+ * them.
  *
- * Prefixes are accepted because the listings you pick a session out of, Zed's
- * and `claude-zed-threads`, both abbreviate the uuid.
+ * A session is a `<id>.jsonl` and, when it offloaded anything, an `<id>/`
+ * beside it holding tool results. Moving one without the other leaves the
+ * transcript pointing at results that aren't there. Prefixes are accepted
+ * because the listings you pick a session out of, Zed's and
+ * `claude-zed-threads`, both abbreviate the uuid.
  */
-const resolveSessions = (
-  store: string,
-  wanted: readonly string[],
-): { readonly names: readonly string[]; readonly unresolved: readonly string[] } => {
-  const available = readdirSync(store).filter((name) => name.endsWith(".jsonl"));
+const resolveSessions = (store: string, wanted: readonly string[]): SessionMatch => {
+  const entries = readdirSync(store);
+  const ids = [...new Set(entries.map((name) => name.replace(/\.jsonl$/, "")))];
   const matched = wanted.map((want) => ({
     want,
-    matches: available.filter((name) => name.startsWith(want)),
+    ids: ids.filter((id) => id.startsWith(want)),
   }));
+  const resolved = matched.filter(({ ids: found }) => found.length === 1).map(({ ids: found }) => found[0]!);
   return {
-    names: matched.filter(({ matches }) => matches.length === 1).map(({ matches }) => matches[0]!),
+    sessions: resolved,
+    names: resolved.flatMap((id) =>
+      [`${id}.jsonl`, id].filter((name) => entries.includes(name)),
+    ),
     unresolved: matched
-      .filter(({ matches }) => matches.length !== 1)
-      .map(({ want, matches }) =>
-        matches.length ? `${want} matches ${matches.length} transcripts` : `no transcript for ${want}`,
+      .filter(({ ids: found }) => found.length !== 1)
+      .map(({ want, ids: found }) =>
+        found.length ? `${want} matches ${found.length} sessions` : `nothing for ${want} in the store`,
       ),
   };
 };
@@ -127,7 +141,7 @@ const main = (): number => {
     replacementFor(slugFor(old), slugFor(next)),
   ];
   const what = selected
-    ? `${names.length} session(s)`
+    ? `${selected.sessions.length} session(s)`
     : `${names.length} entr${names.length === 1 ? "y" : "ies"}`;
 
   if (args["dry-run"]) {
