@@ -227,7 +227,9 @@ in
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
-    "kaset"
+    # kaset — built from source instead, patched to enable WebKit's native
+    # picture in picture. See overlays/default.nix. Restore this line (and drop
+    # the overlay) once the patch is upstreamed.
     "kitty"
     "linear"
     "loom"
