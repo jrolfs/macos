@@ -21,28 +21,29 @@ let
   # callPackage of this file.
   glide = pkgs.callPackage "${inputs.glide}/package.nix" { };
 
-  reidentify = pkgs.writeText "glide-reidentify.py" ''
-    import os
-    import pathlib
-    import plistlib
-    import sys
+  reidentify = pkgs.writeText "glide-reidentify.py" # python
+    ''
+      import os
+      import pathlib
+      import plistlib
+      import sys
 
-    app = pathlib.Path(sys.argv[1])
-    identifier = os.environ["bundleIdentifier"]
-    name = os.environ["bundleName"]
+      app = pathlib.Path(sys.argv[1])
+      identifier = os.environ["bundleIdentifier"]
+      name = os.environ["bundleName"]
 
-    info = app / "Contents" / "Info.plist"
-    plist = plistlib.loads(info.read_bytes())
-    plist["CFBundleIdentifier"] = identifier
-    plist["CFBundleName"] = name
-    info.write_bytes(plistlib.dumps(plist))
+      info = app / "Contents" / "Info.plist"
+      plist = plistlib.loads(info.read_bytes())
+      plist["CFBundleIdentifier"] = identifier
+      plist["CFBundleName"] = name
+      info.write_bytes(plistlib.dumps(plist))
 
-    # InfoPlist.strings is what macOS actually shows in the menu bar, and it
-    # wins over CFBundleName. UTF-16 LE, which is what iconv was doing here
-    # before this moved into a derivation.
-    for strings in app.glob("Contents/Resources/*.lproj/InfoPlist.strings"):
-        strings.write_text('CFBundleName = "%s";\n' % name, encoding="utf-16-le")
-  '';
+      # InfoPlist.strings is what macOS actually shows in the menu bar, and it
+      # wins over CFBundleName. UTF-16 LE, which is what iconv was doing here
+      # before this moved into a derivation.
+      for strings in app.glob("Contents/Resources/*.lproj/InfoPlist.strings"):
+          strings.write_text('CFBundleName = "%s";\n' % name, encoding="utf-16-le")
+    '';
 
   bundle = pkgs.runCommand "glide-developer-${glide.version}"
     {
@@ -78,42 +79,43 @@ in
   # Developer ID would need Glide's signing key. 1Password's BrowserSupport
   # helper verifies the team id of whoever connects, so its extension will not
   # work in this copy; the Homebrew-installed Glide is the one for that.
-  system.activationScripts.postActivation.text = lib.mkAfter ''
-    # Guarded on the store path so an unchanged Glide doesn't re-copy 315 MB and
-    # re-sign it on every switch, which is what this did before.
-    if [[ "$(cat /var/lib/glide-developer/source 2>/dev/null)" != "${bundle}" ]]; then
-      echo "installing ${targetApp}..." >&2
+  system.activationScripts.postActivation.text = lib.mkAfter # bash
+    ''
+      # Guarded on the store path so an unchanged Glide doesn't re-copy 315 MB and
+      # re-sign it on every switch, which is what this did before.
+      if [[ "$(cat /var/lib/glide-developer/source 2>/dev/null)" != "${bundle}" ]]; then
+        echo "installing ${targetApp}..." >&2
 
-      rm -rf "${targetApp}"
-      cp -R "${bundle}/${bundleName}.app" "${targetApp}"
-      chmod -R u+w "${targetApp}"
+        rm -rf "${targetApp}"
+        cp -R "${bundle}/${bundleName}.app" "${targetApp}"
+        chmod -R u+w "${targetApp}"
 
-      # Nothing out of the store is quarantined, but the icon this app gets
-      # below leaves FinderInfo and an Icon\r file behind, and a previous
-      # generation's would make codesign refuse with "resource fork, Finder
-      # information, or similar detritus not allowed".
-      xattr -cr "${targetApp}"
-      rm -f "${targetApp}/Icon"$'\r'
+        # Nothing out of the store is quarantined, but the icon this app gets
+        # below leaves FinderInfo and an Icon\r file behind, and a previous
+        # generation's would make codesign refuse with "resource fork, Finder
+        # information, or similar detritus not allowed".
+        xattr -cr "${targetApp}"
+        rm -f "${targetApp}/Icon"$'\r'
 
-      codesign --force --deep --sign - "${targetApp}"
+        codesign --force --deep --sign - "${targetApp}"
 
-      # Written only once signing has succeeded, so a failure retries next
-      # switch rather than being remembered as done.
-      mkdir -p /var/lib/glide-developer
-      printf '%s' "${bundle}" > /var/lib/glide-developer/source
+        # Written only once signing has succeeded, so a failure retries next
+        # switch rather than being remembered as done.
+        mkdir -p /var/lib/glide-developer
+        printf '%s' "${bundle}" > /var/lib/glide-developer/source
 
-      # Icon last, because fileicon-style writes invalidate the signature just
-      # applied. Both Glide and this copy already fail `codesign --verify
-      # --strict` for that reason, which is worth knowing but has not stopped
-      # either from launching.
-      #
-      # icons.nix's LaunchAgent also watches /Applications and would pick this
-      # up on its own; the explicit call just avoids waiting for it.
-      #
-      # $systemConfig, not /run/current-system: that symlink is not re-pointed
-      # until the very end of activation, so resolving through it here would run
-      # the *previous* generation's script.
-      "$systemConfig/sw/bin/icon-customizer" || true
-    fi
-  '';
+        # Icon last, because fileicon-style writes invalidate the signature just
+        # applied. Both Glide and this copy already fail `codesign --verify
+        # --strict` for that reason, which is worth knowing but has not stopped
+        # either from launching.
+        #
+        # icons.nix's LaunchAgent also watches /Applications and would pick this
+        # up on its own; the explicit call just avoids waiting for it.
+        #
+        # $systemConfig, not /run/current-system: that symlink is not re-pointed
+        # until the very end of activation, so resolving through it here would run
+        # the *previous* generation's script.
+        "$systemConfig/sw/bin/icon-customizer" || true
+      fi
+    '';
 }

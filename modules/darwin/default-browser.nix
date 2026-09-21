@@ -24,30 +24,31 @@ let
   #
   # Removing this module does not restore Safari. Activation scripts only ever
   # run forwards; the entries stay until something else overwrites them.
-  handlers = pkgs.writeText "default-browser.jq" ''
-    def handler: {
-      LSHandlerRoleAll: $identifier,
-      LSHandlerPreferredVersions: { LSHandlerRoleAll: "-" }
-    };
+  handlers = pkgs.writeText "default-browser.jq" # jq
+    ''
+      def handler: {
+        LSHandlerRoleAll: $identifier,
+        LSHandlerPreferredVersions: { LSHandlerRoleAll: "-" }
+      };
 
-    .LSHandlers = (
-      [
-        .LSHandlers[]?
-        | select(
-            (.LSHandlerURLScheme // "") as $scheme
-            | (.LSHandlerContentType // "") as $type
-            | $scheme != "http"
-              and $scheme != "https"
-              and $type != "com.apple.default-app.web-browser"
-          )
-      ]
-      + [
-          handler + { LSHandlerURLScheme: "http" },
-          handler + { LSHandlerURLScheme: "https" },
-          handler + { LSHandlerContentType: "com.apple.default-app.web-browser" }
+      .LSHandlers = (
+        [
+          .LSHandlers[]?
+          | select(
+              (.LSHandlerURLScheme // "") as $scheme
+              | (.LSHandlerContentType // "") as $type
+              | $scheme != "http"
+                and $scheme != "https"
+                and $type != "com.apple.default-app.web-browser"
+            )
         ]
-    )
-  '';
+        + [
+            handler + { LSHandlerURLScheme: "http" },
+            handler + { LSHandlerURLScheme: "https" },
+            handler + { LSHandlerContentType: "com.apple.default-app.web-browser" }
+          ]
+      )
+    '';
 
   # The plist is edited directly because the API route no longer works from a
   # command line on macOS 26. LSSetDefaultHandlerForURLScheme, which is all
@@ -112,11 +113,12 @@ in
   #
   # postActivation runs after the mas and homebrew steps, so a first-time
   # install of Velja is already on disk by the time this looks for it.
-  system.activationScripts.postActivation.text = lib.mkAfter ''
-    if [[ -d "${app}" ]]; then
-      launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- ${setDefaultBrowser}
-    else
-      echo "Skipping default browser: ${app} not found"
-    fi
-  '';
+  system.activationScripts.postActivation.text = lib.mkAfter # bash
+    ''
+      if [[ -d "${app}" ]]; then
+        launchctl asuser "$(id -u -- ${user})" sudo --user=${user} -- ${setDefaultBrowser}
+      else
+        echo "Skipping default browser: ${app} not found"
+      fi
+    '';
 }

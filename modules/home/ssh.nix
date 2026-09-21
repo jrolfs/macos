@@ -54,8 +54,9 @@ let
   '';
 in
 {
-  home.activation.authorizedKeys = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run ${authorizedKeys} \
-      || warnEcho "ssh: could not write authorized_keys"
-  '';
+  home.activation.authorizedKeys = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run ${authorizedKeys} \
+        || warnEcho "ssh: could not write authorized_keys"
+    '';
 }

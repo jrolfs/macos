@@ -91,89 +91,91 @@ in
   # nix.nixPath + registry entries in modules/darwin/default.nix).
   # nix-switch / nix-rebuild aliases now use --flake; icn points at the
   # consolidated repo's icons/ dir.
-  home.file.".zshrc.darwin".text = ''
-    #
-    #
-    # Aliases ----------------------------------------------------------------------
+  home.file.".zshrc.darwin".text = # zsh
+    ''
+      #
+      #
+      # Aliases ----------------------------------------------------------------------
 
-    alias mkbk="mackup backup -f && mackup uninstall -f"
-    alias mkrs="mackup restore -f && mackup uninstall -f"
+      alias mkbk="mackup backup -f && mackup uninstall -f"
+      alias mkrs="mackup restore -f && mackup uninstall -f"
 
-    alias icn="(cd ${configDirectory}/icons && sudo ./apply.sh)"
+      alias icn="(cd ${configDirectory}/icons && sudo ./apply.sh)"
 
-    alias nix-rebuild='sudo -E darwin-rebuild build --flake "${flake}" --show-trace'
-    alias nix-search="nix search nixpkgs"
+      alias nix-rebuild='sudo -E darwin-rebuild build --flake "${flake}" --show-trace'
+      alias nix-search="nix search nixpkgs"
 
-    alias spoon="$(brew --prefix)/bin/hs"
+      alias spoon="$(brew --prefix)/bin/hs"
 
 
-    #
-    #
-    # Functions --------------------------------------------------------------------
+      #
+      #
+      # Functions --------------------------------------------------------------------
 
-    # A function rather than an alias so it can take --brew / --no-brew. With
-    # neither, `brew bundle` runs only when the Brewfile changed, which is the
-    # gate in modules/darwin/homebrew.nix. --brew runs it regardless (pick up
-    # upstream cask releases, or a version bump in a jrolfs/tap .rb); --no-brew
-    # skips it for one switch. Everything else is passed through to
-    # darwin-rebuild.
-    function nix-switch {
-      local brew=auto flag=
-      local -a rest
+      # A function rather than an alias so it can take --brew / --no-brew. With
+      # neither, `brew bundle` runs only when the Brewfile changed, which is the
+      # gate in modules/darwin/homebrew.nix. --brew runs it regardless (pick up
+      # upstream cask releases, or a version bump in a jrolfs/tap .rb); --no-brew
+      # skips it for one switch. Everything else is passed through to
+      # darwin-rebuild.
+      function nix-switch {
+        local brew=auto flag=
+        local -a rest
 
-      for argument in "''$@"; do
-        case "''$argument" in
-          --brew)    brew=reset; flag=''$argument ;;
-          --no-brew) brew=skip;  flag=''$argument ;;
-          *)         rest+=("''$argument") ;;
-        esac
-      done
+        for argument in "''$@"; do
+          case "''$argument" in
+            --brew)    brew=reset; flag=''$argument ;;
+            --no-brew) brew=skip;  flag=''$argument ;;
+            *)         rest+=("''$argument") ;;
+          esac
+        done
 
-      # Absolute path because sudo resets the environment, and this has to work
-      # from a shell whose PATH has not been through brew shellenv yet.
-      local gate=/run/current-system/sw/bin/homebrew-gate
+        # Absolute path because sudo resets the environment, and this has to work
+        # from a shell whose PATH has not been through brew shellenv yet.
+        local gate=/run/current-system/sw/bin/homebrew-gate
 
-      # $brew doubles as the homebrew-gate subcommand. The binary is absent
-      # until the switch that first installs it, so a flag passed on a fresh
-      # machine warns instead of aborting the rebuild that would create it.
-      if [[ ''$brew != auto ]]; then
-        if [[ -x ''$gate ]]; then
-          sudo "''$gate" "''$brew" || return
-        else
-          echo "nix-switch: homebrew-gate not installed yet, ignoring ''$flag" >&2
+        # $brew doubles as the homebrew-gate subcommand. The binary is absent
+        # until the switch that first installs it, so a flag passed on a fresh
+        # machine warns instead of aborting the rebuild that would create it.
+        if [[ ''$brew != auto ]]; then
+          if [[ -x ''$gate ]]; then
+            sudo "''$gate" "''$brew" || return
+          else
+            echo "nix-switch: homebrew-gate not installed yet, ignoring ''$flag" >&2
+          fi
         fi
-      fi
 
-      sudo -E darwin-rebuild switch --flake "${flake}" --show-trace "''${rest[@]}"
-    }
+        sudo -E darwin-rebuild switch --flake "${flake}" --show-trace "''${rest[@]}"
+      }
 
-    function reset-host {
-      host=$(hostname -s)
+      function reset-host {
+        host=$(hostname -s)
 
-      echo "Setting HostName to ''${host}"
-      sudo scutil --set HostName $host
-      echo "Setting LocalHostName to ''${host}"
-      sudo scutil --set LocalHostName $host
-      echo "Setting ComputerName to ''${host}"
-      sudo scutil --set ComputerName $host
+        echo "Setting HostName to ''${host}"
+        sudo scutil --set HostName $host
+        echo "Setting LocalHostName to ''${host}"
+        sudo scutil --set LocalHostName $host
+        echo "Setting ComputerName to ''${host}"
+        sudo scutil --set ComputerName $host
 
-      echo "Flushing DNS cache..."
-      sudo killall -HUP mDNSResponder
-    }
+        echo "Flushing DNS cache..."
+        sudo killall -HUP mDNSResponder
+      }
 
-    #
-    # GitHub CLI → Raycast
+      #
+      # GitHub CLI → Raycast
 
-    source "$XDG_CONFIG_HOME/zsh/github-to-raycast.zsh"
-  '';
+      source "$XDG_CONFIG_HOME/zsh/github-to-raycast.zsh"
+    '';
 
   # system.defaults.screencapture.location points here, and screencapture
   # silently falls back to the desktop if the directory is missing — as it is on
   # a fresh machine. The dock also carries a tile for it, which would render as
   # a "?" placeholder.
-  home.activation.screenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run mkdir -p "$HOME/Images/Screenshots"
-  '';
+  home.activation.screenshotsDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run mkdir -p "$HOME/Images/Screenshots"
+    '';
 
   # karabiner writes back to its config dir (and we want the file
   # editable via the Karabiner-Elements UI too) — point at the live

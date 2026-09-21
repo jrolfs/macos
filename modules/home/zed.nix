@@ -42,17 +42,18 @@ in
   home.file."Library/Application Support/Zed/extensions/installed/gruvbox-material-custom".source =
     config.lib.file.mkOutOfStoreSymlink clone;
 
-  home.activation.zedExtensionClone = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run ${cloneScript} \
-      || warnEcho "zed: could not clone ${cloneUrl} to ${clone} — the dev extension is dangling until it exists"
+  home.activation.zedExtensionClone = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run ${cloneScript} \
+        || warnEcho "zed: could not clone ${cloneUrl} to ${clone} — the dev extension is dangling until it exists"
 
-    # The compiled grammars are gitignored build artifacts, and only Zed can
-    # produce them (there's no CLI for it — it downloads a wasi-sdk into
-    # extensions/build/ and compiles). The theme half works straight off the
-    # clone; the language overrides sit out until the grammars exist.
-    if [ -e ${lib.escapeShellArg clone}/extension.toml ] \
-      && [ ! -e ${lib.escapeShellArg clone}/grammars/tsx.wasm ]; then
-      warnEcho "zed: grammars not compiled — run 'zed: rebuild dev extension' once to enable the language overrides"
-    fi
-  '';
+      # The compiled grammars are gitignored build artifacts, and only Zed can
+      # produce them (there's no CLI for it — it downloads a wasi-sdk into
+      # extensions/build/ and compiles). The theme half works straight off the
+      # clone; the language overrides sit out until the grammars exist.
+      if [ -e ${lib.escapeShellArg clone}/extension.toml ] \
+        && [ ! -e ${lib.escapeShellArg clone}/grammars/tsx.wasm ]; then
+        warnEcho "zed: grammars not compiled — run 'zed: rebuild dev extension' once to enable the language overrides"
+      fi
+    '';
 }

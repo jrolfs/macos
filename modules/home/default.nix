@@ -163,11 +163,12 @@ in
   # snippet and completion caches it clones at runtime. Safe to delete this
   # block once no machine is still on a pre-cafbe20 generation.
   home.activation.zinitHomeDirectory =
-    lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] ''
-      if [ -L "${config.xdg.dataHome}/zinit" ]; then
-        run rm $VERBOSE_ARG "${config.xdg.dataHome}/zinit"
-      fi
-    '';
+    lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] # bash
+      ''
+        if [ -L "${config.xdg.dataHome}/zinit" ]; then
+          run rm $VERBOSE_ARG "${config.xdg.dataHome}/zinit"
+        fi
+      '';
 
   # kitty.conf sets `listen_on unix:~/.local/share/kitty/socket`, and kitty
   # bind()s that socket while starting up without creating the directory it
@@ -177,16 +178,18 @@ in
   # launch — with the socket never created, which takes `kitty @ --to` with it
   # (the set-font-size helper in zsh/init/functions.zsh and the stay/ action
   # scripts both locate it by globbing this directory).
-  home.activation.kittySocketDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run mkdir -p "${config.xdg.dataHome}/kitty"
-  '';
+  home.activation.kittySocketDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run mkdir -p "${config.xdg.dataHome}/kitty"
+    '';
 
   # gpg refuses to use a home directory that is readable by anyone else, and
   # the one home-manager creates on its way to linking gpg.conf gets the
   # default 755.
-  home.activation.gnupgPermissions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run chmod 700 "${config.home.homeDirectory}/.gnupg"
-  '';
+  home.activation.gnupgPermissions = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run chmod 700 "${config.home.homeDirectory}/.gnupg"
+    '';
 
   # XDG config directories. Each lifts an entire subtree from
   # dotfiles/home/.config/ except where the app writes back to its dir

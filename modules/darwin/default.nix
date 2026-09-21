@@ -209,10 +209,11 @@ in
   programs.zsh = {
     enable = true;
     enableCompletion = false;
-    interactiveShellInit = ''
+    interactiveShellInit = # zsh
+      ''
 
-      HISTFILE=$HOME/.zhistory
+        HISTFILE=$HOME/.zhistory
 
-    '';
+      '';
   };
 }

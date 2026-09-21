@@ -50,8 +50,9 @@ let
   '';
 in
 {
-  home.activation.atuinLogin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run ${login} \
-      || warnEcho "atuin: not logged in — unlock 1Password and rerun, or run 'atuin login' by hand"
-  '';
+  home.activation.atuinLogin = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run ${login} \
+        || warnEcho "atuin: not logged in — unlock 1Password and rerun, or run 'atuin login' by hand"
+    '';
 }
