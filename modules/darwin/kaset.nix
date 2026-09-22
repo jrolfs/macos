@@ -1,13 +1,29 @@
-{ lib, pkgs, ... }:
+{ hostname, lib, pkgs, ... }:
 
 let
   version = "0.14.0";
 
-  # Kaset normally arrives as a Homebrew cask (see homebrew.nix, where the entry
-  # is commented out). This builds the same release from source with one change:
-  # WebKit's native picture in picture is switched on, so the "Enter Picture in
-  # Picture" item in the video's context menu is usable instead of greyed out.
-  # Drop this module and restore the cask once the patch is upstream.
+  # Hosts carrying a full Xcode.app, which the source build below needs. Every
+  # other host falls back to the stock cask, so it still gets Kaset — just
+  # without the patch.
+  #
+  # This cannot be inferred, and it cannot be satisfied by declaring Xcode in
+  # homebrew.nix's masApps either: nix builds the whole closure *before*
+  # activation, and `brew bundle` only runs *during* it, so a host installing
+  # Xcode for the first time would still fail the build that needs it. Xcode
+  # also wants `sudo xcodebuild -license accept` and
+  # `sudo xcodebuild -runFirstLaunch`, neither of which is safe to automate.
+  #
+  # So: install Xcode by hand, run those two commands, then add the host here.
+  hostsWithXcode = [ "ala" ];
+
+  buildsFromSource = lib.elem hostname hostsWithXcode;
+
+  # Kaset normally arrives as a Homebrew cask. This builds the same release from
+  # source with one change: WebKit's native picture in picture is switched on,
+  # so the "Enter Picture in Picture" item in the video's context menu is usable
+  # instead of greyed out, and a button over the video enters it directly.
+  # Drop this module and restore the plain cask once the patch is upstream.
   #
   # Built with the *system* Xcode toolchain rather than nixpkgs': the app needs
   # SwiftUI and FoundationModels, whose macro plugins (libPreviewsMacros,
@@ -112,5 +128,11 @@ let
 
 in
 {
-  environment.systemPackages = [ kaset ];
+  # Laziness matters here: on a host without Xcode the derivation is never
+  # forced, so nothing tries to evaluate a build it cannot run.
+  environment.systemPackages = lib.optional buildsFromSource kaset;
+
+  # homebrew.casks merges across modules, so this module owns both sides of the
+  # choice and homebrew.nix stays out of it.
+  homebrew.casks = lib.optional (!buildsFromSource) "kaset";
 }

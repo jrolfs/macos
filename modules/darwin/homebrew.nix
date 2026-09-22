@@ -227,9 +227,9 @@ in
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
-    # kaset — built from source instead, patched to enable WebKit's native
-    # picture in picture. See overlays/default.nix. Restore this line (and drop
-    # the overlay) once the patch is upstreamed.
+    # kaset is not listed here: kaset.nix decides per host whether to build it
+    # from source (patched for native picture in picture) or to add this cask
+    # back. Deleting that module restores the stock cask everywhere.
     "kitty"
     "linear"
     "loom"
