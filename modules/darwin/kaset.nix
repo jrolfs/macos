@@ -71,6 +71,16 @@ let
       # two engines report different output layouts.
       substituteInPlace Scripts/build-app.sh \
         --replace-fail 'swift build -c' 'swift build --build-system native --disable-sandbox -c'
+
+      # buildPhase swaps the stock AppIcon.icon (an Icon Composer package) for
+      # an appiconset built from our .icns, so take it out of actool's
+      # arguments. It also has to come out of the guard, which would otherwise
+      # skip compiling the catalog altogether once the package is gone — and
+      # the catalog still has to be built, because it carries AccentColor,
+      # which Info.plist references.
+      substituteInPlace Scripts/build-app.sh \
+        --replace-fail 'elif [[ -d "$ICON_SOURCE" ]] && [[ -d "$APP_ASSET_CATALOG" ]]' 'elif [[ -d "$APP_ASSET_CATALOG" ]]' \
+        --replace-fail 'xcrun actool "$ICON_SOURCE" "$APP_ASSET_CATALOG"' 'xcrun actool "$APP_ASSET_CATALOG"'
     '';
 
     dontConfigure = true;
@@ -96,31 +106,39 @@ let
       # SwiftPM wants somewhere to put its clone and artifact caches.
       export HOME="$TMPDIR"
 
+      # Custom app icon, installed at the source rather than into the finished
+      # bundle. The Dock and the command-tab switcher draw the *running* app's
+      # icon, which AppKit reads from the compiled asset catalog by looking up
+      # the name AppIcon — it finds it there whether or not Info.plist mentions
+      # it. Rewriting CFBundleIconName/CFBundleIconFile afterwards therefore
+      # only moves Finder, which goes through Info.plist, and leaves the Dock
+      # and switcher on the stock icon. Measured: 95% match on Finder's path,
+      # 63.5% (i.e. unchanged) on the running app's.
+      #
+      # actool cannot read .icns, so unpack it into an ordinary appiconset and
+      # drop the Icon Composer package the stock icon ships as.
+      appiconset=Sources/Kaset/Resources/Assets.xcassets/AppIcon.appiconset
+      rm -rf Sources/Kaset/Resources/AppIcon.icon
+      mkdir -p "$appiconset"
+      iconutil --convert iconset ${./pkgs/kaset-appicon.icns} \
+        --output "$TMPDIR/AppIcon.iconset"
+      cp "$TMPDIR/AppIcon.iconset"/*.png "$appiconset/"
+      cp ${./pkgs/kaset-appicon-contents.json} "$appiconset/Contents.json"
+
       KASET_SIGNING=adhoc ./Scripts/build-app.sh release
 
-      resources=.build/app/Kaset.app/Contents/Resources
-      plist=.build/app/Kaset.app/Contents/Info.plist
+      # Nothing reads this one — the bundle resolves its icon through
+      # CFBundleIconName and the catalog — but leaving the stock artwork
+      # sitting in the bundle invites a confusing diagnosis later.
+      cp ${./pkgs/kaset-appicon.icns} .build/app/Kaset.app/Contents/Resources/AppIcon.icns
 
       # Sparkle would find an update, then fail to apply it: the bundle it wants
       # to replace lives in the read-only store. Bump `version` above instead.
+      # Editing Info.plist breaks the signature build-app.sh just applied, so
+      # reseal the outer bundle with the same ad-hoc arguments it used.
+      plist=.build/app/Kaset.app/Contents/Info.plist
       plutil -replace SUEnableAutomaticChecks -bool false "$plist"
       plutil -replace SUAllowsAutomaticUpdates -bool false "$plist"
-
-      # Custom app icon. Dropping in AppIcon.icns is not enough on its own:
-      # the stock bundle resolves its icon through CFBundleIconName, which
-      # names an asset inside the actool-compiled Assets.car, and ships an
-      # Icon Composer AppIcon.icon package beside it for the macOS 26 tinted
-      # and dark variants. Both outrank CFBundleIconFile, so both have to go
-      # before the .icns is consulted. Assets.car itself stays — it also
-      # carries AccentColor, which Info.plist still references.
-      cp ${./pkgs/kaset-appicon.icns} "$resources/AppIcon.icns"
-      rm -rf "$resources/AppIcon.icon"
-      plutil -remove CFBundleIconName "$plist"
-      plutil -remove CFBundleIcons "$plist"
-      plutil -replace CFBundleIconFile -string AppIcon "$plist"
-
-      # Every edit above breaks the signature build-app.sh just applied, so
-      # reseal the outer bundle with the same ad-hoc arguments it used.
       codesign --force --sign - --entitlements Kaset.entitlements .build/app/Kaset.app
 
       runHook postBuild
