@@ -96,34 +96,65 @@ in
   # dependency of these scripts, not something the machine is expected to have.
   claude-helpers =
     let
-      # zod as its npm tarball rather than through a lockfile: it has no
-      # dependencies of its own, so there is nothing to resolve. Bump it in step
-      # with dotfiles/home/.claude/bin/package.json, which is what an editor and
-      # an ad-hoc `bun install` read.
-      zod = super.fetchurl {
-        url = "https://registry.npmjs.org/zod/-/zod-4.6.5.tgz";
-        hash = "sha256-p4wMUz3jDcHEr8JZrEOsBuOQyw2o0uMurjVTAbULNvw=";
+      source = ../dotfiles/home/.claude/bin;
+
+      # Only the two files that decide what gets installed, so editing a script
+      # doesn't invalidate the fetch below and send it back to the network.
+      manifest = super.runCommandLocal "claude-helpers-manifest" { } ''
+        install -d $out
+        install -m644 ${source}/package.json ${source}/bun.lock $out/
+      '';
+
+      # Dependencies as a fixed-output derivation, the one place in this build
+      # allowed to reach the network. bun.lock pins what lands here, so the hash
+      # changes when the lockfile does and at no other time. Regenerate both
+      # together: `bun install` in the source directory, then take the hash nix
+      # reports when it rebuilds.
+      modules = super.stdenvNoCC.mkDerivation {
+        name = "claude-helpers-node-modules";
+        src = manifest;
+        nativeBuildInputs = [ super.bun ];
+        dontFixup = true;
+        buildPhase = ''
+          export HOME=$TMPDIR
+          export BUN_INSTALL_CACHE_DIR=$TMPDIR/cache
+          bun install --frozen-lockfile --ignore-scripts --no-progress
+        '';
+        installPhase = "cp -R node_modules $out";
+        outputHashMode = "recursive";
+        outputHashAlgo = "sha256";
+        outputHash = "sha256-JkS6JWjXOf9coNB61yD+JvPWOwAxooBCAYSanpIL00g=";
       };
     in
     super.runCommandLocal "claude-helpers"
     { nativeBuildInputs = [ super.bun super.python3 ]; }
     ''
       install -d $out/bin
-      find ${../dotfiles/home/.claude/bin} -maxdepth 1 -type f ! -name '*.ts' \
-        ! -name '*.json' -exec install -m755 -t $out/bin {} +
+      find ${source} -maxdepth 1 -type f ! -name '*.ts' ! -name '*.tsx' \
+        ! -name '*.json' ! -name 'bun.lock' -exec install -m755 -t $out/bin {} +
 
       # One bundle per command, so nothing has imports to resolve at runtime.
       # The sources are copied out of the store first because bun finds
       # node_modules by walking up from the file that imports it, and the store
       # path it would walk up from is not ours to put anything in.
-      cp -R ${../dotfiles/home/.claude/bin} source
-      chmod -R u+w source
-      mkdir -p node_modules/zod
-      tar xzf ${zod} --strip-components=1 -C node_modules/zod
+      cp -R ${source} source
+      cp -R ${modules} node_modules
+      chmod -R u+w source node_modules
+
+      # Ink reaches for react-devtools-core in the DEV path nothing here takes,
+      # and the bundler resolves that import whether or not it runs. A stub
+      # satisfies it without carrying the devtools.
+      install -d node_modules/react-devtools-core
+      echo '{"name":"react-devtools-core","version":"0.0.0","main":"index.js"}' \
+        > node_modules/react-devtools-core/package.json
+      echo 'export default { connectToDevTools: () => {} };' \
+        > node_modules/react-devtools-core/index.js
+
       export HOME=$TMPDIR
-      for entry in source/*.ts; do
-        bun build "$entry" --target=bun \
-          --outfile="$out/bin/$(basename "$entry" .ts)"
+      for entry in source/*.ts source/*.tsx; do
+        [ -e "$entry" ] || continue
+        name=$(basename "$entry")
+        bun build "$entry" --target=bun --outfile="$out/bin/''${name%.*}"
       done
 
       chmod 755 $out/bin/*
