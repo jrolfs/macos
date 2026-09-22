@@ -1,4 +1,4 @@
-Enable WebKit's native picture in picture.
+Enable WebKit's native picture in picture, and add a button for it.
 
 WebKit only enables the context menu's "Enter Picture in Picture" when
 Settings::allowsPictureInPictureMediaPlayback is on (ContextMenuController
@@ -7,14 +7,22 @@ reaches MediaElementSession::allowsPictureInPicture). For WKWebView on macOS
 that setting defaults to false, so the item is appended for the video and then
 drawn disabled.
 
-Upstreaming note: the same switch would also let Kaset's own picture in
-picture button hand off to the system window instead of its floating NSWindow.
+With the setting on, webkitSetPresentationMode also starts working, so the
+watch view gets a button over the top-right corner of the video that hands
+playback to the system window. It fades in on hover, the way the system's own
+picture in picture window reveals its controls. Leaving is handled by that
+window's restore control, so there is no exit path here.
 
---- a/Sources/Kaset/Services/WebKit/WebKitManager.swift
-+++ b/Sources/Kaset/Services/WebKit/WebKitManager.swift
+This is deliberately not wired to the existing player bar picture in picture
+button, which pops out to Kaset's own floating NSWindow. Upstream would
+probably want the two behind a preference rather than side by side.
+
+diff -ru a/Sources/Kaset/Services/WebKit/WebKitManager.swift b/Sources/Kaset/Services/WebKit/WebKitManager.swift
+--- a/Sources/Kaset/Services/WebKit/WebKitManager.swift	2026-08-28 10:54:47
++++ b/Sources/Kaset/Services/WebKit/WebKitManager.swift	2026-09-22 01:11:43
 @@ -264,6 +264,15 @@
          #endif
-
+ 
          configuration.preferences.isElementFullscreenEnabled = true
 +        // WebKit gates the context menu's "Enter Picture in Picture" on
 +        // Settings::allowsPictureInPictureMediaPlayback, which WKWebView
@@ -26,5 +34,106 @@ picture button hand off to the system window instead of its floating NSWindow.
 +            forKey: "allowsPictureInPictureMediaPlayback"
 +        )
          configuration.mediaTypesRequiringUserActionForPlayback = []
-
+ 
          // Enable AirPlay for streaming to Apple TV, HomePod, etc.
+diff -ru a/Sources/Kaset/Views/YouTube/YouTubeWatchView.swift b/Sources/Kaset/Views/YouTube/YouTubeWatchView.swift
+--- a/Sources/Kaset/Views/YouTube/YouTubeWatchView.swift	2026-08-28 10:54:47
++++ b/Sources/Kaset/Views/YouTube/YouTubeWatchView.swift	2026-09-22 02:26:04
+@@ -27,6 +27,7 @@
+ 
+     @State private var commentDraft = ""
+     @State private var settings = SettingsManager.shared
++    @State private var isHoveringVideoSurface = false
+ 
+     /// The ambient backdrop style to render: the user's chosen style, or `.off`
+     /// when they've disabled the feature in Settings → YouTube.
+@@ -200,6 +201,12 @@
+             // Liquid Glass player bar at the bottom of the window.
+             YouTubeWatchSurfaceView()
+                 .aspectRatio(16 / 9, contentMode: .fit)
++                .overlay(alignment: .topTrailing) {
++                    self.nativePictureInPictureButton
++                }
++                .onHover { hovering in
++                    self.isHoveringVideoSurface = hovering
++                }
+                 .clipShape(.rect(cornerRadius: 12))
+                 .accessibilityIdentifier(AccessibilityID.YouTubeContent.watchSurface)
+         } else if self.playsInFloatingWindow {
+@@ -260,6 +267,35 @@
+         }
+     }
+ 
++    /// Hands the video to the system picture in picture window.
++    ///
++    /// Sits over the top-right corner of the video and fades in on hover, the
++    /// way the system's own picture in picture window reveals its controls.
++    /// Returning is handled by that window's restore control, so this only
++    /// enters.
++    private var nativePictureInPictureButton: some View {
++        Button {
++            YouTubeWatchWebView.shared.enterNativePictureInPicture()
++            HapticService.toggle()
++        } label: {
++            Image(systemName: "pip.enter")
++                .font(.system(size: 14, weight: .medium))
++                .foregroundStyle(.white)
++                .frame(width: 30, height: 30)
++                .background(.black.opacity(0.55), in: .circle)
++                .overlay {
++                    Circle().strokeBorder(.white.opacity(0.25), lineWidth: 0.5)
++                }
++        }
++        .buttonStyle(.plain)
++        .padding(10)
++        .opacity(self.isHoveringVideoSurface ? 1 : 0)
++        .animation(.easeInOut(duration: 0.15), value: self.isHoveringVideoSurface)
++        .help(String(localized: "Picture in Picture"))
++        .accessibilityLabel(String(localized: "Picture in Picture"))
++        .accessibilityIdentifier(AccessibilityID.YouTubeContent.watchNativePictureInPicture)
++    }
++
+     /// Starts playback of this view's video, or adopts the surface if this
+     /// video is already playing (e.g. docking back from the floating window).
+     private func startOrAdoptPlayback(startAt: Double? = nil) {
+@@ -880,6 +916,7 @@
+ 
+ extension AccessibilityID.YouTubeContent {
+     static let watchSurface = "youtubeContent.watchSurface"
++    static let watchNativePictureInPicture = "youtubeContent.watchNativePictureInPicture"
+     static let chaptersSection = "youtubeContent.chaptersSection"
+     static let commentsSection = "youtubeContent.commentsSection"
+     static let commentField = "youtubeContent.commentField"
+diff -ru a/Sources/Kaset/Views/YouTube/YouTubeWatchWebView+Scripts.swift b/Sources/Kaset/Views/YouTube/YouTubeWatchWebView+Scripts.swift
+--- a/Sources/Kaset/Views/YouTube/YouTubeWatchWebView+Scripts.swift	2026-08-28 10:54:47
++++ b/Sources/Kaset/Views/YouTube/YouTubeWatchWebView+Scripts.swift	2026-09-22 02:25:27
+@@ -829,6 +829,29 @@
+         )
+     }
+ 
++    /// Moves the watch page's video into the system picture in picture window.
++    ///
++    /// Leaving it is handled by the system window's own control, so there is no
++    /// matching exit call here.
++    func enterNativePictureInPicture() {
++        // `evaluateJavaScript` runs with a forced user gesture, which
++        // `webkitSetPresentationMode` requires via
++        // `MediaElementSession::fullscreenPermitted`.
++        self.webView?.evaluateJavaScript(
++            """
++            (function() {
++                const video = document.querySelector('#movie_player video') || document.querySelector('video');
++                if (!video) { return 'no-video'; }
++                if (typeof video.webkitSetPresentationMode !== 'function') { return 'unsupported'; }
++                if (video.webkitPresentationMode === 'picture-in-picture') { return 'already-active'; }
++                video.webkitSetPresentationMode('picture-in-picture');
++                return 'entered';
++            })();
++            """,
++            completionHandler: nil
++        )
++    }
++
+     /// Evaluates JavaScript that returns a string (nil on error).
+     private func evaluateForString(_ script: String) async -> String? {
+         guard let webView else { return nil }
