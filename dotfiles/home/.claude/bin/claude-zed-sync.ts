@@ -25,11 +25,22 @@
  * machine's history to be unsyncable for that reason alone.
  *
  * `move` re-roots threads on a different directory, for work that starts in a
- * main checkout and continues in a worktree cut for it. Zed scopes the agent
- * panel to the folders a thread records, so a thread left pointing at the old
- * directory stops appearing once you are working in the new one. The transcript
- * has to move with it, since Claude resumes from the store keyed to the
- * directory it is running in, which `claude-mv-project` handles.
+ * main checkout and continues in a worktree cut for it. The transcript moves
+ * with them, since Claude resumes from the store keyed to the directory it is
+ * running in, which `claude-mv-project` handles.
+ *
+ * What the row does and doesn't decide is worth knowing before reaching for
+ * this. Zed runs a thread in whatever workspace you open it from, spawning the
+ * agent with that workspace's root as its working directory, and writes the
+ * folder paths back to the row afterwards. So the row says where a thread last
+ * ran, and re-rooting it only holds if the new directory is itself a Zed
+ * workspace and the thread is opened there. Open it from a window still rooted
+ * at the old directory and Zed runs it there again and puts the row back, which
+ * looks like the move having silently failed.
+ *
+ * Moving the transcript is the half that always matters: without it the agent
+ * starts in the new directory, finds no session of that id in the store keyed
+ * to it, and the thread cannot resume at all.
  *
  * Zed reads this table when it starts and writes to it as threads change, so a
  * row inserted underneath a running Zed may not show up until a restart, and
@@ -522,6 +533,11 @@ const doMove = (argv: readonly string[]): number => {
   }
 
   console.log(`\nre-rooted ${selected.length} thread(s); they appear next time Zed starts`);
+  console.log(
+    `open ${next} as its own Zed window before picking one up: a thread opened\n` +
+      "from a window rooted somewhere else runs there instead, and Zed writes that " +
+      "back over this.",
+  );
   return 0;
 };
 
