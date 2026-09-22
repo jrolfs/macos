@@ -22,9 +22,10 @@ A slash command runs inside *this* conversation and cannot reattach the CLI to
 a different transcript. To fully resume one of the threads above:
 
 - Run its `claude --resume <id>` line in your shell, or
-- Use the `resume-zed` shell function to pick one interactively with `sk`.
-  It reads only this project by default; `resume-zed --repo` spans every
-  worktree of this repo and `resume-zed --all` spans every project.
+- Use the `resume-zed` shell function to pick one interactively: type to
+  filter, ↑↓ to move, ⏎ to reattach. It reads only this project by default;
+  `resume-zed --repo` spans every worktree of this repo and `resume-zed --all`
+  spans every project.
 
 If instead you'd rather continue that work **here**, without leaving this
 session, tell me which thread and I'll read its transcript from

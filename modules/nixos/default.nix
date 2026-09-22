@@ -3,8 +3,18 @@
 # Shared NixOS configuration. Imported by every nixosConfiguration via
 # flake.nix's mkNixos. Host-specific bits live in hosts/<hostname>/.
 
+let
+  overlays = import ../../overlays inputs;
+in
 {
   imports = [ ../bootstrap.nix ../home-backup.nix ];
+
+  # Same overlay the darwin side applies. Not darwin-specific: modules/home is
+  # shared by both platforms and reaches for overlay packages unconditionally
+  # (claude-helpers, zshcs), so without this a NixOS host doesn't evaluate at
+  # all. Packages in it that only make sense on macOS are lazy — nothing builds
+  # unless something references it.
+  nixpkgs.overlays = [ overlays ];
 
   system.stateVersion = "24.05";
 

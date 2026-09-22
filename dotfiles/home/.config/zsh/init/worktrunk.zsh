@@ -2,8 +2,9 @@
 # completion asks the binary for candidates, so it knows nothing about alias
 # arguments; this wrapper special-cases restore and delegates everything else.
 #
-# Registered from .zshrc's wt atload (not here): init files source before the
-# wt shell init, and the later compdef wins at zicdreplay.
+# Registered from .zshrc's zicompinit block (not here): compdef does not exist
+# until compinit has run, and registering after zicdreplay lets this wrapper
+# win over anything the wt shell init queued.
 
 _wt_restore_candidates() {
   local -aU dirs
