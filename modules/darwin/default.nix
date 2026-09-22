@@ -19,6 +19,7 @@ in
     ./homebrew.nix
     ./glide-developer.nix
     ./icons.nix
+    ./kaset.nix
     ./mas.nix
     ./sidecar.nix
     ./spicetify.nix
