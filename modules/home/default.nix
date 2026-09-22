@@ -191,6 +191,26 @@ in
       run chmod 700 "${config.home.homeDirectory}/.gnupg"
     '';
 
+  # ~/.config/spicetify used to be one symlink for the whole directory and is
+  # now a real directory of per-file links (see xdg.configFile below). Nothing
+  # in home-manager performs that conversion: it links the new generation
+  # before it cleans the old one, and the cleanup then keeps the old symlink
+  # because the new generation has an entry by the same name. So the stale
+  # link is still standing when the links below it are created, `mkdir -p` and
+  # `ln -s` follow it into the working copy, and config-xpui.ini lands there
+  # pointing at the store path that points back at it. spicetify opens its own
+  # config, gets ELOOP, and silently falls back to a default config with no
+  # theme.
+  #
+  # Guarded on -L so this only ever removes the old whole-directory link, not
+  # the real directory that replaces it.
+  home.activation.spicetifyDirectoryLink = lib.hm.dag.entryBefore [ "checkLinkTargets" ] # bash
+    ''
+      if [ -L "${config.xdg.configHome}/spicetify" ]; then
+        run rm $VERBOSE_ARG "${config.xdg.configHome}/spicetify"
+      fi
+    '';
+
   # XDG config directories. Each lifts an entire subtree from
   # dotfiles/home/.config/ except where the app writes back to its dir
   # — those use mkOutOfStoreSymlink so the link target stays mutable.
