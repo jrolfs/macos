@@ -54,4 +54,4 @@ require("modules.notifications").bind({
   previous = "j",
 })
 
-_.alert("🔨   Loaded Hammerspoon configuration")
+_.alert("Loaded Hammerspoon configuration", { emoji = "🔨" })

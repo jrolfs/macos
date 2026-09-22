@@ -15,7 +15,8 @@
       "Bash(cat:*)",
       "Bash(grep:*)",
       "Bash(gh search code:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(swift build:*)"
     ],
     "defaultMode": "auto"
   },

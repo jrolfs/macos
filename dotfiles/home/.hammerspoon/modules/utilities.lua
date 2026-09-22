@@ -1,27 +1,14 @@
+local hud = require("modules.hud")
+
 local M = {}
 
-function M.alert(message, duration)
-  local alpha = 0.8
-  local styling = {
-    strokeWidth = 0,
-    fillColor = { hex = "#32302F", alpha = alpha },
-    strokeColor = { hex = "#32302F", alpha = alpha },
-    textColor = { hex = "#bdae93" },
-    fadeInDuration = 0.15,
-    fadeOutDuration = 0.15,
-    radius = 10,
-    padding = 20,
-    atScreenEdge = 0,
-    textFont = "IBM Plex Sans",
-    textSize = 24,
-    -- Hammerspoon uses NS* constants for font weight
-    -- Common values: "thin", "regular", "medium", "bold", "heavy"
-  }
+-- Callers predate the options table and pass a bare duration.
+function M.alert(message, options)
+  if type(options) == "number" then
+    options = { duration = options }
+  end
 
-  -- Default duration of 1 second if not specified
-  duration = duration or 1
-
-  hs.alert.show(message, styling, duration)
+  return hud.show(message, options)
 end
 
 local hyper = { "ctrl", "alt", "cmd", "shift" }

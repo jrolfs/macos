@@ -9,7 +9,7 @@
 {
   # Xcode is a many-GB mas install; skip it during provisioning and add it
   # by hand (or drop this entry) when it's actually needed.
-  ala = [ "Xcode" ];
+  ala = [];
   newt = [ "Xcode" "zoom" ];
   orolo = [ "google-chrome" "Xcode" "zoom" ];
   yours-truly = [ "Xcode" ];

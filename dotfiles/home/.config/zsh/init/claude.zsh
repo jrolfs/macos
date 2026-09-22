@@ -7,6 +7,9 @@
 # widen the search across the repo or everything, reattaching the chosen one
 # from its own home directory.
 #
+# Picking happens in claude-zed-threads itself now, so there is no external
+# fuzzy finder in the loop: type to filter, ↑↓ to move, ⏎ to reattach.
+#
 # ```sh
 #   resume-zed          # threads for this project directory
 #   resume-zed --repo   # every git worktree of the current repo
@@ -21,27 +24,16 @@ resume-zed() {
   local script=${commands[claude-zed-threads]:-${HOME}/.claude/bin/claude-zed-threads}
   [[ -x "$script" ]] || { print -u2 "resume-zed: missing or non-executable $script"; return 1 }
 
-  # Map each clean display line back to its session id and home directory, so
-  # the picker never has to surface (or parse fields out of) the raw uuid.
-  local -A id_for dir_for
-  local -a order
-  local id dir display
-  while IFS=$'\t' read -r id dir display; do
-    id_for[$display]=$id
-    dir_for[$display]=$dir
-    order+=("$display")
-  done < <("$script" --sk "$@")
-
-  (( ${#order} )) || { print -u2 "resume-zed: no Zed/ACP threads found"; return 0 }
-
-  local choice
-  choice=$(print -rl -- "${order[@]}" \
-    | sk --prompt='zed thread ❯ ' --height=40% --reverse) || return 0
-  [[ -n "$choice" ]] || return 0
+  # The picker draws on stderr and writes the chosen thread to stdout, so the
+  # id and its directory come back through a plain command substitution. It
+  # exits non-zero when nothing was picked.
+  local chosen id dir
+  chosen=$("$script" --pick "$@") || return 0
+  IFS=$'\t' read -r id dir <<<"$chosen"
+  [[ -n "$id" ]] || return 0
 
   # Reattach from the thread's own directory when it still exists, so file
   # references in the transcript resolve; otherwise resume in place.
-  local home_dir="${dir_for[$choice]}"
-  [[ -n "$home_dir" && -d "$home_dir" ]] && cd "$home_dir"
-  claude --resume "${id_for[$choice]}"
+  [[ -n "$dir" && -d "$dir" ]] && cd "$dir"
+  claude --resume "$id"
 }

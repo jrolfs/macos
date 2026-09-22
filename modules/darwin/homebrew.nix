@@ -188,7 +188,7 @@ in
 
     "1password"
     "1password-cli"
-    "affinity"
+    "acorn"
     "arq"
     "aws-vpn-client"
     "claude"
@@ -210,7 +210,9 @@ in
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
-    "kaset"
+    # kaset is not listed here: kaset.nix decides per host whether to build it
+    # from source (patched for native picture in picture) or to add this cask
+    # back. Deleting that module restores the stock cask everywhere.
     "kitty"
     "linear"
     "loom"

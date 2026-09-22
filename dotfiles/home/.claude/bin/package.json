@@ -2,12 +2,16 @@
   "name": "claude-helpers",
   "private": true,
   "type": "module",
-  "description": "Sources for pkgs.claude-helpers; the build vendors zod itself (see overlays/default.nix), so this is here for editors and ad-hoc `bun install`",
+  "description": "Sources for pkgs.claude-helpers; overlays/default.nix installs these same dependencies from bun.lock into the build, so keep the two in step",
   "dependencies": {
+    "ink": "^7.1.1",
+    "react": "^19.3.0",
+    "string-width": "^8.2.2",
     "zod": "4.6.5"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/react": "^19.3.0",
     "typescript": "latest"
   }
 }
