@@ -1,0 +1,30 @@
+Enable WebKit's native picture in picture.
+
+WebKit only enables the context menu's "Enter Picture in Picture" when
+Settings::allowsPictureInPictureMediaPlayback is on (ContextMenuController
+sets shouldEnable from HitTestResult::mediaSupportsPictureInPicture, which
+reaches MediaElementSession::allowsPictureInPicture). For WKWebView on macOS
+that setting defaults to false, so the item is appended for the video and then
+drawn disabled.
+
+Upstreaming note: the same switch would also let Kaset's own picture in
+picture button hand off to the system window instead of its floating NSWindow.
+
+--- a/Sources/Kaset/Services/WebKit/WebKitManager.swift
++++ b/Sources/Kaset/Services/WebKit/WebKitManager.swift
+@@ -264,6 +264,15 @@
+         #endif
+
+         configuration.preferences.isElementFullscreenEnabled = true
++        // WebKit gates the context menu's "Enter Picture in Picture" on
++        // Settings::allowsPictureInPictureMediaPlayback, which WKWebView
++        // defaults to false on macOS. WKWebViewConfiguration exposes the public
++        // switch only under TARGET_OS_IPHONE, so reach the macOS SPI setter
++        // `_setAllowsPictureInPictureMediaPlayback:` through KVC.
++        configuration.preferences.setValue(
++            true,
++            forKey: "allowsPictureInPictureMediaPlayback"
++        )
+         configuration.mediaTypesRequiringUserActionForPlayback = []
+
+         // Enable AirPlay for streaming to Apple TV, HomePod, etc.
