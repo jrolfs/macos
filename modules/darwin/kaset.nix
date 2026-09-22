@@ -98,13 +98,29 @@ let
 
       KASET_SIGNING=adhoc ./Scripts/build-app.sh release
 
+      resources=.build/app/Kaset.app/Contents/Resources
+      plist=.build/app/Kaset.app/Contents/Info.plist
+
       # Sparkle would find an update, then fail to apply it: the bundle it wants
       # to replace lives in the read-only store. Bump `version` above instead.
-      # Editing Info.plist breaks the signature build-app.sh just applied, so
-      # reseal the outer bundle with the same ad-hoc arguments it used.
-      plist=.build/app/Kaset.app/Contents/Info.plist
       plutil -replace SUEnableAutomaticChecks -bool false "$plist"
       plutil -replace SUAllowsAutomaticUpdates -bool false "$plist"
+
+      # Custom app icon. Dropping in AppIcon.icns is not enough on its own:
+      # the stock bundle resolves its icon through CFBundleIconName, which
+      # names an asset inside the actool-compiled Assets.car, and ships an
+      # Icon Composer AppIcon.icon package beside it for the macOS 26 tinted
+      # and dark variants. Both outrank CFBundleIconFile, so both have to go
+      # before the .icns is consulted. Assets.car itself stays — it also
+      # carries AccentColor, which Info.plist still references.
+      cp ${./pkgs/kaset-appicon.icns} "$resources/AppIcon.icns"
+      rm -rf "$resources/AppIcon.icon"
+      plutil -remove CFBundleIconName "$plist"
+      plutil -remove CFBundleIcons "$plist"
+      plutil -replace CFBundleIconFile -string AppIcon "$plist"
+
+      # Every edit above breaks the signature build-app.sh just applied, so
+      # reseal the outer bundle with the same ad-hoc arguments it used.
       codesign --force --sign - --entitlements Kaset.entitlements .build/app/Kaset.app
 
       runHook postBuild
