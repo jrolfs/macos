@@ -188,7 +188,7 @@ in
 
     "1password"
     "1password-cli"
-    "affinity"
+    "acorn"
     "arq"
     "aws-vpn-client"
     "claude"
