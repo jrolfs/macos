@@ -53,7 +53,7 @@ function M.place(side)
   -- setOrigin moves the display in the global coordinate space; macOS
   -- persists the arrangement for this display set until it changes again.
   other:setOrigin(origin.x, origin.y)
-  _.alert("🖥️   " .. other:name() .. " → " .. side)
+  _.alert(other:name() .. " → " .. side, { emoji = "🖥️" })
 end
 
 -- Prompt for a side with a searchable chooser, then apply it.
