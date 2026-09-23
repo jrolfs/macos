@@ -91,5 +91,11 @@
     "bindings": {
       "ctrl-k": null,
     },
+  },
+  {
+    "context": "Editor",
+      "bindings": {
+      "ctrl-cmd-m": "pane::JoinIntoNext"
+    }
   }
 ]
