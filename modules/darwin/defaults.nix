@@ -1,5 +1,12 @@
 { config, lib, hostname, ... }:
 
+let
+  # A ByHost domain addressed as a path. `defaults` fills in the hardware UUID
+  # itself, so the name carries no host suffix and this stays portable.
+  byHost = domain:
+    "/Users/${config.system.primaryUser}/Library/Preferences/ByHost/${domain}";
+in
+
 {
   system.defaults = {
     dock = {
@@ -178,8 +185,20 @@
     # The two HideWidgets options are the whole of System Settings → Desktop &
     # Dock → Widgets → "Show widgets", and turning them on is what gets rid of
     # the clock and calendar macOS seeds a new desktop with. It is all or
-    # nothing: which widgets are on the desktop, and where, is held in
-    # com.apple.chronod's own store, so there is no declaring a subset.
+    # nothing, and it is the only part of widgets that is declarable at all.
+    #
+    # Which widgets exist and where they sit — on the desktop and in the
+    # Notification Center sidebar alike — is not in any defaults domain. It is
+    # a row per host in the HostConfigs table of
+    # ~/Library/Group Containers/group.com.apple.chronod/chronod/chrono.sql,
+    # holding an NSKeyedArchiver graph of ChronoKit objects that carries each
+    # widget's app-intent payload. ChronoServices does have a write path for it
+    # (CHSWidgetHost -setConfiguration:), but reaching it means holding
+    # com.apple.chronoservices and com.apple.private.chrono-extension-host,
+    # which a locally signed helper cannot claim. So the sidebar is rebuilt by
+    # hand per machine, and the two have drifted: newt carries Fantastical and
+    # CARROT Weather large over Batteries and World Clock small, while ala is
+    # still on the Calendar/Weather/Photos set macOS ships with.
     WindowManager = {
       AutoHide = false;
       EnableStandardClickToShowDesktop = false;
@@ -190,13 +209,68 @@
       StandardHideWidgets = true;
     };
 
-    # Only the menu bar items whose visibility nix-darwin can express: the
-    # option is a bool that writes 18 (shown) or 24 (hidden), so the "show when
-    # active" states (Bluetooth = 8, Display = 2 on newt) have no representation
-    # here. They also live in a ByHost domain, which CustomUserPreferences
-    # writes past, so there is no workaround short of a bespoke activation
-    # script.
-    controlcenter.Sound = true;
+    # Menu bar items. system.defaults.controlcenter reaches this domain by
+    # writing to the ByHost path, and CustomUserPreferences hands its key to
+    # `defaults write` unchanged, so the same path works here — with the whole
+    # integer available rather than the bool the module options take, which
+    # only ever write 18 or 24.
+    #
+    # Apple documents none of these integers, but checking them against the
+    # items com.apple.controlcenter currently reports as visible pins three of
+    # them down. Bluetooth sits at 2 and shows because a device is connected,
+    # while Display and Focus sit at 2 and stay hidden; everything at 8 is
+    # absent from that list and Sound at 18 is in it.
+    #
+    # Writing defaults only restarts the Dock, so a change here appears at the
+    # next login unless ControlCenter is killed by hand.
+    CustomUserPreferences.${byHost "com.apple.controlcenter"} = {
+      # 18: always in the menu bar.
+      Sound = 18;
+
+      # 2: only while the item has something to say.
+      Bluetooth = 2;
+      Display = 2;
+      FocusModes = 2;
+
+      # 8: Control Center only.
+      AirDrop = 8;
+      NowPlaying = 8;
+      Siri = 8;
+      VPN = 8;
+      VoiceControl = 8;
+
+      # Screen Mirroring shows, but the GUI wrote 0 rather than the 18 the
+      # reading above predicts, so it is copied as-is rather than normalised.
+      ScreenMirroring = 0;
+
+      MusicRecognition = 1;
+      BatteryShowEnergyMode = 1;
+    };
+
+    # Spotlight keeps its menu bar item in its own ByHost domain. Siri's is in
+    # an ordinary domain, despite the Control Center module above also carrying
+    # a Siri key: that one governs the Control Center tile, this one the menu
+    # bar item.
+    CustomUserPreferences.${byHost "com.apple.Spotlight"}.MenuItemHidden = true;
+    CustomUserPreferences."com.apple.Siri".StatusMenuVisible = false;
+
+    # Third-party menu bar items are not Control Center's to track. AppKit
+    # keeps each one in its owning app's own domain, under the status item's
+    # autosave name — and an app that never sets one gets "Item-0" by creation
+    # order, which holds for these single-item agents but would shift under an
+    # app that grew a second. Only hidden items appear: the key is written
+    # when something is dragged out of the menu bar, so a visible item has no
+    # key at all and nothing to pin.
+    #
+    # Velja is the exception. It is sandboxed, so its domain is inside its
+    # container rather than ~/Library/Preferences and a domain write never
+    # reaches it, but it is visible, which is what it would be anyway.
+    CustomUserPreferences."com.apple.TextInputMenuAgent"."NSStatusItem VisibleCC Item-0" =
+      false;
+    CustomUserPreferences."com.cordlessdog.Stay"."NSStatusItem VisibleCC Item-0" =
+      false;
+    CustomUserPreferences."org.pqrs.Karabiner-Console-User-Server"."NSStatusItem VisibleCC Item-0" =
+      false;
 
     smb = {
       NetBIOSName = lib.toUpper hostname;

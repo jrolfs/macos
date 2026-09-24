@@ -20,6 +20,7 @@ in
     ./glide-developer.nix
     ./icons.nix
     ./kaset.nix
+    ./login-items.nix
     ./mas.nix
     ./sidecar.nix
     ./spicetify.nix

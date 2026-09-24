@@ -1,5 +1,12 @@
 { pkgs, ... }:
 
+# Headless things only. A GUI app started from here exec's the Mach-O inside
+# its bundle and never becomes a registered app instance, which costs it its
+# TCC grants. Those belong in login-items.nix, which explains why.
+#
+# Hammerspoon is the deliberate exception: KeepAlive restarts it after a crash
+# and login items have no equivalent, so it stays here.
+
 {
   launchd.user.agents = {
     hammerspoon = {
@@ -24,24 +31,5 @@
       };
     };
 
-    # stay = {
-    #   path = [ "/Applications/Stay.app" ];
-    #   serviceConfig = {
-    #     Label = "com.cordlessdog.stay";
-    #     ProgramArguments = [ "/Applications/Stay.app/Contents/MacOS/Stay" ];
-    #     KeepAlive = true;
-    #     RunAtLoad = true;
-    #   };
-    # };
-
-    # moom = {
-    #   path = [ "/Applications/Moom.app" ];
-    #   serviceConfig = {
-    #     Label = "com.manytricks.Moom";
-    #     ProgramArguments = [ "/Applications/Moom.app/Contents/MacOS/Moom" ];
-    #     KeepAlive = true;
-    #     RunAtLoad = true;
-    #   };
-    # };
   };
 }
