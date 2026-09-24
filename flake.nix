@@ -19,6 +19,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Declarative disk partitioning, used by the NixOS hosts. Pairs with
+    # nixos-anywhere, which runs disko on the target before installing: the
+    # layout is config rather than a one-time manual act, and disko generates
+    # the `fileSystems` entries that would otherwise come from
+    # hardware-configuration.nix.
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Glide packaged for nix, plus a home-manager module built on
     # home-manager's own mkFirefoxModule factory. The packages are not used to
     # install Glide (see modules/home/browsers.nix for why Homebrew still owns
@@ -128,6 +138,7 @@
         modules = [
           ./modules/nixos
           ./hosts/${hostname}
+          inputs.disko.nixosModules.disko
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
@@ -141,7 +152,8 @@
     in
     {
       darwinConfigurations.ala = mkDarwin "ala" "aarch64-darwin";
-      # darwinConfigurations.newt = mkDarwin "newt" "aarch64-darwin";  # phase 3
+      darwinConfigurations.leeloo = mkDarwin "leeloo" "aarch64-darwin";
+      # darwinConfigurations.newt = mkDarwin "newt" "aarch64-darwin";  # retired
 
       nixosConfigurations.irulan = mkNixos "irulan" "x86_64-linux";  # phase 2
 

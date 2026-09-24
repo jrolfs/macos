@@ -12,6 +12,7 @@
 
 {
   imports = [
+    ./disko.nix
     # ./hardware-configuration.nix              # TODO: add after install
 
     ../../modules/nixos/services/home-assistant.nix
@@ -75,16 +76,15 @@
     ];
   };
 
-  # Placeholder root + boot until hardware-configuration.nix lands.
-  # Lets `nix flake check` evaluate the host without real hardware.
-  fileSystems."/" = lib.mkDefault {
-    device = "/dev/disk/by-label/nixos";
-    fsType = "ext4";
-  };
-  fileSystems."/boot" = lib.mkDefault {
-    device = "/dev/disk/by-label/boot";
-    fsType = "vfat";
-  };
+  # `/` and `/boot` come from disko.nix — it owns the partition table and
+  # generates the matching fileSystems entries, so the placeholders that used
+  # to live here (just enough for the host to evaluate without hardware) are
+  # gone.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # Compressed swap in RAM instead of a swap partition: 16 GB stretches
+  # further under Plex transcodes plus Komodo's containers, with no SSD writes.
+  # Nothing here hibernates, which is the one thing zram can't back.
+  zramSwap.enable = true;
 }
