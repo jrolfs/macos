@@ -1,4 +1,4 @@
-{ pkgs, lib, inputs, ... }:
+{ pkgs, lib, inputs, userName, ... }:
 
 # Shared NixOS configuration. Imported by every nixosConfiguration via
 # flake.nix's mkNixos. Host-specific bits live in hosts/<hostname>/.
@@ -41,6 +41,30 @@ in
   # Default user shell across NixOS hosts. Matches the darwin side so
   # the lifted-and-shifted .zshrc / .zshenv work without a chsh dance.
   programs.zsh.enable = true;
+
+  # Every secret this config knows about comes from 1Password, so `op` has to
+  # exist before bootstrap can materialize anything — and on NixOS there is no
+  # installer step to fall back on, which is why this is declared rather than
+  # left to the provisioning run.
+  #
+  # The module rather than a bare package: it installs a setuid wrapper the
+  # desktop app's CLI integration needs, which `environment.systemPackages`
+  # alone would not provide.
+  programs._1password.enable = true;
+
+  # The desktop app is what lets `op` authenticate the same way it does on
+  # macOS, with the app as the authentication boundary and nothing at rest.
+  # It only works where there's a graphical session, so a host that is
+  # sometimes headless also keeps a service-account token — see
+  # src/onepassword.ts in the bootstrap repo for how the two coexist.
+  #
+  # polkitPolicyOwners is not optional: without it the app cannot authorize
+  # against the system's authentication agent, and the CLI integration toggle
+  # silently fails to take.
+  programs._1password-gui = {
+    enable = true;
+    polkitPolicyOwners = [ userName ];
+  };
 
   # Time + locale defaults. Override per host if needed.
   time.timeZone = lib.mkDefault "America/Los_Angeles";
