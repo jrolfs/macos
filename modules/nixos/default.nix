@@ -7,7 +7,7 @@ let
   overlays = import ../../overlays inputs;
 in
 {
-  imports = [ ../bootstrap.nix ../home-backup.nix ];
+  imports = [ ../bootstrap.nix ../home-backup.nix ../packages.nix ];
 
   # Same overlay the darwin side applies. Not darwin-specific: modules/home is
   # shared by both platforms and reaches for overlay packages unconditionally
@@ -78,29 +78,14 @@ in
   services.rpcbind.enable = true;
   boot.supportedFilesystems = [ "nfs" ];
 
-  # Tools that should always be on PATH on any NixOS host. Mirrors the
-  # baseline that's in modules/darwin/default.nix's environment.systemPackages
-  # but lighter — only the cross-platform essentials. Host-specific apps
-  # land in services modules.
+  # The cross-platform baseline is ../packages.nix, imported above. These are
+  # the ones that only make sense here: GNU coreutils is what a Linux system
+  # already assumes, and adding it on darwin would shadow the BSD tools the
+  # rest of that config is written against.
   environment.systemPackages = with pkgs; [
-    bat
-    bottom
     coreutils
     curl
-    eza
-    fd
-    git
-    git-crypt
     htop
-    jq
-    mise
-    neovim
-    nil
-    nixpkgs-fmt
-    ripgrep
-    starship
-    tmux
     wget
-    yq
   ];
 }

@@ -11,6 +11,7 @@ in
 
     ../bootstrap.nix
     ../home-backup.nix
+    ../packages.nix
 
     ./daemons.nix
     ./default-browser.nix
@@ -30,39 +31,12 @@ in
   ];
 
   # Packages
+  #
+  # The cross-platform ones live in ../packages.nix, imported above. What's
+  # left is either macOS-only, or not yet wanted on a host that isn't a
+  # workstation.
 
   environment.systemPackages = [
-
-    #
-    # Utilities
-
-    # Shell
-
-    pkgs.atuin
-    pkgs.bat
-    pkgs.bottom
-    pkgs.eza
-    pkgs.fd
-    pkgs.jq
-    pkgs.miller
-    pkgs.ripgrep
-    pkgs.sd
-    pkgs.skim
-    pkgs.starship
-    pkgs.tealdeer
-    pkgs.terminal-notifier
-    pkgs.tmux
-    pkgs.yq
-    pkgs.zoxide
-    pkgs.zsh
-
-    # Theming
-    pkgs.spicetify-cli
-
-    # Network
-
-    pkgs.rclone
-    pkgs.wakeonlan
 
     #
     # macOS
@@ -70,60 +44,20 @@ in
     pkgs.m-cli
     pkgs.mackup
     pkgs.nightlight
+    pkgs.terminal-notifier
 
-    #
-    # Build
+    # Theming — driven by ./spicetify.nix, which is darwin-only.
+    pkgs.spicetify-cli
 
-    pkgs.autoconf
-    pkgs.automake
-    pkgs.cmake
-
-    #
-    # Fun
-
-    pkgs.fortune
-    pkgs.figlet
-    pkgs.dotacat
-
-    #
-    # Media
-
-    pkgs.ffmpeg
-    pkgs.imagemagick
-    pkgs.yt-dlp
-
-    #
-    # Git
-
-    pkgs.delta
-    pkgs.gh
-    pkgs.git
-    pkgs.git-crypt
-    pkgs.git-lfs
-    pkgs.worktrunk
-
-    #
-    # Security
-
-    pkgs.pinentry-curses
+    # GUI pinentry. The shared list carries the curses one, which is what
+    # actually answers over SSH.
     pkgs.pinentry_mac
-    pkgs.gnupg
-    pkgs.yubikey-manager
-
-    #
-    # Development tools
-
-    pkgs.httpie
-    pkgs.mise
-
-    # Language servers
-    pkgs.lua-language-server
-    pkgs.nixd
-    pkgs.yaml-language-server
-    pkgs.zshcs
 
     #
     # Infrastructure
+    #
+    # Work tooling. Shareable in principle — azure-cli alone is most of a
+    # gigabyte, so a host opts in rather than inheriting it.
 
     pkgs.azure-cli
     pkgs.kubectl
@@ -132,28 +66,17 @@ in
     #
     # Editors
 
+    # A GUI neovim, so it wants a graphical session to be worth installing.
     pkgs.neovide
-    pkgs.neovim
-    pkgs.nil
-    pkgs.tree-sitter
 
     #
-    # Shell
-
     # Nix
+
+    # devbox is on the way out (it's why nix.package is pinned to Lix 2.94),
+    # and nothing uses devenv yet — neither belongs in a shared baseline while
+    # that's true.
     pkgs.devbox
     pkgs.devenv
-    pkgs.nixpkgs-fmt
-
-    # AI
-    pkgs.claude-code
-    pkgs.claude-monitor
-    pkgs.claude-code-router
-
-    pkgs.opencode
-    pkgs.opencode-claude-auth
-
-    pkgs.mcp-nixos
 
   ];
 
