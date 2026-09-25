@@ -117,7 +117,9 @@ in
     pkgs.mise
 
     # Language servers
+    pkgs.lua-language-server
     pkgs.nixd
+    pkgs.yaml-language-server
     pkgs.zshcs
 
     #
