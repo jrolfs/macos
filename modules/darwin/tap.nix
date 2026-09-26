@@ -1,6 +1,29 @@
-{ pkgs, ... }:
+{ pkgs, lib, config, userName, ... }:
+
+# The `jrolfs/tap` casks, and the tool that bumps them.
+#
+# `homebrew/` in this repo *is* the tap: activation symlinks it into
+# Library/Taps, so brew reads the working tree directly and an edit is live on
+# the next switch with nothing to push first.
+#
+# It used to be a copy. `homebrew.taps` named `jrolfs/tap` with no
+# clone_target, so brew cloned github.com/jrolfs/homebrew-tap and read that,
+# while `cask-updater` rewrote the files here — two copies, no sync, drifting
+# in both directions. They did: the clone was a lingon-pro bump ahead while
+# this tree was a unite-pro fix ahead, and a switch kept failing a checksum
+# that had already been corrected in the only place anyone was looking.
+#
+# Verified before adopting: brew reads casks from a symlinked, non-git tap
+# (`brew info --cask jrolfs/tap/unite-pro` resolves and reports upgrades), and
+# `brew tap jrolfs/tap` against the existing directory is a no-op that leaves
+# the symlink alone — which is what `brew bundle` does every activation.
+# `jrolfs/tap` therefore stays in `homebrew.taps`, so the Brewfile lists it and
+# cleanup = "zap" doesn't untap it.
 
 let
+  tapPath = "${config.homebrew.prefix}/Library/Taps/jrolfs/homebrew-tap";
+  tapSource = "/Users/${userName}/.config/system/homebrew";
+
   script = pkgs.writeShellScriptBin "cask-updater" ''
     set -euo pipefail
 
@@ -107,4 +130,34 @@ let
 in
 {
   environment.systemPackages = [ script ];
+
+  # Before the Homebrew bundle, which is why this is extraActivation: that
+  # runs early (offset ~29k in the activation script) while the bundle is at
+  # ~128k.
+  system.activationScripts.extraActivation.text = lib.mkIf config.homebrew.enable (
+    lib.mkAfter # bash
+      ''
+        if [ "$(readlink ${tapPath} 2>/dev/null)" != ${tapSource} ]; then
+          # A directory here is the old cloned tap. Removing it loses nothing:
+          # its history is on GitHub, and this repo is the source now. Guarded
+          # on .git so a symlink-to-elsewhere or a stray file is left for a
+          # human rather than deleted silently.
+          if [ -d ${tapPath} ] && [ ! -L ${tapPath} ]; then
+            if [ -e ${tapPath}/.git ]; then
+              echo >&2 "homebrew: replacing the cloned jrolfs/tap with this repo's homebrew/"
+              rm -rf ${tapPath}
+            else
+              echo >&2 "homebrew: ${tapPath} is a directory but not a tap clone — leaving it alone"
+            fi
+          else
+            rm -f ${tapPath}
+          fi
+
+          if [ ! -e ${tapPath} ]; then
+            mkdir -p "$(dirname ${tapPath})"
+            ln -s ${tapSource} ${tapPath}
+          fi
+        fi
+      ''
+  );
 }
