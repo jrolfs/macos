@@ -70,6 +70,11 @@ in
       NewWindowTarget = "Home";
       ShowPathbar = true;
 
+      # Item count and free space along the bottom of the window. On both
+      # machines already, but the option defaults to false, so a fresh one
+      # would come up without it.
+      ShowStatusBar = true;
+
       # What the desktop is allowed to hold. The internal disk is reachable
       # from anywhere and only ever in the way; anything plugged in or mounted
       # is worth an icon precisely because it is temporary.
@@ -123,6 +128,12 @@ in
       # Three-finger vertical swipe has to stay off for three-finger drag to
       # work — they compete for the same gesture.
       TrackpadThreeFingerVertSwipeGesture = 0;
+
+      # Same competition, and the same resolution: with three-finger drag on,
+      # a three-finger tap is a drag that started and stopped, not a lookup.
+      # Both machines sit at 0 already; the option's default is 2, so this is
+      # only about where a fresh machine starts.
+      TrackpadThreeFingerTapGesture = 0;
     };
 
     LaunchServices = {
@@ -207,6 +218,11 @@ in
       StageManagerHideWidgets = true;
       StandardHideDesktopIcons = false;
       StandardHideWidgets = true;
+
+      # Holding option while dragging a window snaps it into macOS's own tiling
+      # layout, which is on by default and fights Moom and Stay for the same
+      # drag. Off on both machines already, undeclared until now.
+      EnableTilingOptionAccelerator = false;
     };
 
     # Menu bar items. system.defaults.controlcenter reaches this domain by
