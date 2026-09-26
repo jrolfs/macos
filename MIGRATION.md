@@ -13,8 +13,9 @@ owning the dotfiles.
 
 ## Architecture
 
-- **One repo.** This repo (currently the `migration-flake` branch; deploys to
-  `~/.config/system` on a machine). `flake.nix` exposes:
+- **One repo.** This repo (`main`; deploys to `~/.config/system` on a
+  machine). The pre-flake channels-and-homeshick configuration is kept on the
+  `pre-flake` branch. `flake.nix` exposes:
   - `darwinConfigurations.ala` — new MacBook (phase 1 target)
   - `darwinConfigurations.newt` — daily driver (phase 3, added last)
   - `nixosConfigurations.irulan` — Beelink NUC home server (phase 2)
@@ -222,20 +223,24 @@ MIGRATION.md
 makes every historical nixpkgs version addressable — worth trying if `pin.nix`
 becomes unwieldy or a package needs a precise old version. Not adopted yet.
 
-## Bootstrap (`jrolfs/bootstrap`, `flake-migration` branch)
+## Bootstrap (`jrolfs/bootstrap`)
 
 Fresh-machine installer, two stages: `bootstrap.sh` (bash) installs **Lix** +
-Xcode CLT and clones itself (`BOOTSTRAP_REF` selects the branch — use
-`flake-migration` until it merges to `main`), then a Deno/TS app runs an
+Xcode CLT and clones itself (`BOOTSTRAP_REF` selects the branch, defaulting
+to `main`), then a Deno/TS app runs an
 ordered, resumable set of phases (state in `~/.bootstrap/state.json`; re-run
 the one-liner to resume). macOS-only steps are gated on `Deno.build.os`.
 
 Run it on a fresh machine:
 
 ```sh
-BOOTSTRAP_REF=flake-migration bash -c "$(curl -fsSL \
-  https://raw.githubusercontent.com/jrolfs/bootstrap/flake-migration/bootstrap.sh)"
+bash -c "$(curl -fsSL \
+  https://raw.githubusercontent.com/jrolfs/bootstrap/main/bootstrap.sh)"
 ```
+
+On NixOS the same command runs from the installer image: it partitions the
+disk and installs the system, then you reboot and run it again for the
+user-level phases.
 
 Phases, in order:
 1. **hostname-set** — confirm/set the hostname *first* (the flake selects its
@@ -248,7 +253,7 @@ Phases, in order:
    1Password GUI's CLI integration; verified via `op whoami`).
 4. **private-cloned** (homeshick clone + `link private`) → **nix-config-cloned**
    (`nixConfigRepo`@`nixConfigBranch` → `~/.config/system`; currently
-   `jrolfs/macos`@`migration-flake` — flip the repo name after the rename) →
+   `jrolfs/macos`@`main` — flip the repo name after the rename) →
    **vscode-sync-cloned**.
 5. **resilio-configured** — install Resilio, best-effort seed `sync.conf`, launch
    foreground and **guide the user** through the first-run EULA + adding the

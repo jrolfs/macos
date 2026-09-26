@@ -50,7 +50,7 @@
     # checkout to use that working tree's manifest instead; otherwise
     # `nix flake update bootstrap` to pick up new references.
     bootstrap = {
-      url = "github:jrolfs/bootstrap/flake-migration";
+      url = "github:jrolfs/bootstrap";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

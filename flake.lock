@@ -8,16 +8,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1789626619,
-        "narHash": "sha256-9UXaNJlgZjuGw+mT324Zo5S1OVZ9Hp67XJ6jyjwQKwg=",
+        "lastModified": 1790410620,
+        "narHash": "sha256-1NIRoQXX/JoS9sHMCcMB/HDa0p3iI2Wa4tcWvgW05Y8=",
         "owner": "jrolfs",
         "repo": "bootstrap",
-        "rev": "b867b3d4cc1c6bc2321a5f618ed943b6c67adbd1",
+        "rev": "2d99a0abbf86af80b0f0c4180f21266a372366ea",
         "type": "github"
       },
       "original": {
         "owner": "jrolfs",
-        "ref": "flake-migration",
         "repo": "bootstrap",
         "type": "github"
       }
