@@ -248,7 +248,14 @@ in
     "font-fira-code-nerd-font"
     "font-geist"
     "font-hack-nerd-font"
-    "font-ibm-plex"
+    # Upstream split the single `font-ibm-plex` cask into one per family.
+    # These are the Latin three; the rest (math, condensed, and the
+    # arabic/devanagari/hebrew/jp/kr/sc/tc/thai scripts) exist under the same
+    # prefix if ever wanted. Nothing in this config names IBM Plex, so this is
+    # availability rather than a dependency.
+    "font-ibm-plex-mono"
+    "font-ibm-plex-sans"
+    "font-ibm-plex-serif"
     "font-inter"
     "font-iosevka"
     "font-iosevka-slab"
