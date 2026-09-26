@@ -33,6 +33,19 @@
     isNormalUser = true;
     home = "/home/${userName}";
     shell = pkgs.zsh;
+    # A NixOS account with no password is *locked*, not passwordless — and
+    # with PasswordAuthentication off and authorized_keys not written until
+    # the GPG key is imported, a fresh install without this is a machine
+    # nobody can log into except the root console.
+    #
+    # Safe to commit to a public repo: yescrypt is memory-hard, and sshd
+    # refuses passwords, so this only ever unlocks a keyboard someone is
+    # standing in front of.
+    #
+    # `initial` is load-bearing. mutableUsers defaults to true, so this
+    # applies only when the account is created — it seeds the install, and
+    # `passwd` afterwards sticks. A reinstall falls back to this.
+    initialHashedPassword = "$y$j9T$bfhk1LFVc.iTrIl0ZAREM1$vrA6U7F2fLQgZlBhaoNWiNr330JmBHauHjoKjOJBtU6";
     # video + render: Plex hardware transcoding via Quick Sync.
     # docker: invoke docker without sudo (Komodo periphery + ad-hoc).
     extraGroups = [ "wheel" "video" "render" "docker" ];
