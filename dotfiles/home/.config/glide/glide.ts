@@ -20,7 +20,9 @@ glide.include('cookies.ts');
 // with the 1Password SDK, which can recommend entries from the page URL.
 // glide.include('one-password.ts');
 
-glide.include('mode-indicator.ts');
+// Parked. Being rebuilt natively in Zen so it can use real chrome elements
+// and Zen's own theming rather than CSS injected from config.
+// glide.include('mode-indicator.ts');
 
 // Miscellaneous
 
