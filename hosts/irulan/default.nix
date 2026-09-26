@@ -15,6 +15,10 @@
     ./disko.nix
     # ./hardware-configuration.nix              # TODO: add after install
 
+    # Attached to a TV with a keyboard, so it gets the GUI applications even
+    # though it spends most of its life headless.
+    ../../modules/nixos/desktop.nix
+
     ../../modules/nixos/services/home-assistant.nix
     ../../modules/nixos/services/plex.nix
     ../../modules/nixos/services/step-ca.nix
