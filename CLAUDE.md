@@ -1,83 +1,158 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) working in this repository.
 
 ## What This Is
 
-A macOS dotfiles repository managed via [Homeshick](https://github.com/andsens/homeshick). Files under `home/` are symlinked into `$HOME` by Homeshick. System configuration is managed declaratively through **nix-darwin**.
+One flake that configures every machine Jamie owns, macOS and Linux alike,
+from a single source. `nix-darwin` builds the macOS systems, `home-manager`
+owns the dotfiles, and `nixpkgs` is pinned by `flake.lock`.
+
+It deploys to `~/.config/system` on a machine.
+
+Hosts (`flake.nix`):
+
+| Attribute | Machine |
+|---|---|
+| `darwinConfigurations.ala` | MacBook Air M4, personal |
+| `darwinConfigurations.adrian` | MacBook Air M5, work, MDM-managed |
+| `nixosConfigurations.irulan` | Beelink NUC home server (`x86_64-linux`) |
+
+`newt` is the retired work laptop that `adrian` replaces. Its attribute is
+commented out in `flake.nix`, but the machine still runs the pre-flake
+configuration (the `pre-flake` branch plus the `macos` homeshick castle), which
+makes it the reference for anything not yet migrated. See MIGRATION.md.
+
+The migration from homeshick castles and nix channels is still in progress. The
+`private` castle deliberately stays a castle (git-crypt), which is why
+`$HOMESHICK_KINGDOM` is still exported. SECRETS.md covers that half.
 
 ## Key Commands
 
 ```bash
-# Apply nix-darwin configuration (rebuilds system packages, defaults, services, Homebrew, etc.)
-sudo -E darwin-rebuild switch --show-trace
-
-# Shorthand alias (defined in home/.zshrc.darwin)
+# Build and activate this host. Defined in modules/home/darwin.nix, not a
+# plain alias: it takes flags.
 nix-switch
+nix-switch --brew       # run `brew bundle` even if the Brewfile is unchanged
+nix-switch --no-brew    # skip it for one switch
+nix-switch --update     # refresh flake.lock first (--update=nixpkgs for one input)
 
-# Apply custom app icons
-icn    # or: (cd $HOMESHICK_KINGDOM/macos/icons && sudo ./apply.sh)
+nix-rebuild             # build without activating
+nix-update              # nix flake update, optionally per-input
+homebrew-gate status    # whether the next switch will run `brew bundle`
 
-# Mackup backup/restore (syncs app preferences via file_system engine)
-mkbk   # backup
-mkrs   # restore
+icn                     # apply custom app icons (icons/apply.sh)
+mkbk / mkrs             # mackup backup / restore
+spoon                   # the Hammerspoon CLI (`hs` is homeshick)
 ```
 
-## Architecture
+`brew bundle` is the slowest part of a switch and is gated on a content hash of
+the Brewfile, so most switches skip it. That gate is the reason `--brew` exists:
+a version bump inside a `jrolfs/tap` cask does not change the Brewfile.
 
-### nix-darwin Configuration (`home/.nixpkgs/`)
+On Linux hosts `nix-switch` wraps `nixos-rebuild` instead.
 
-The entry point is `darwin-configuration.nix`, which imports:
+## Layout
 
-- **`homebrew.nix`** — Homebrew casks, Mac App Store apps, and taps. Supports `NIX_MACOS_EXCLUDE_CASKS` env var (comma-separated) to skip specific apps (e.g. for org-managed devices). Cleanup mode is `zap` (removes unmanaged casks).
-- **`defaults.nix`** — macOS system preferences (Dock, Finder, trackpad, keyboard, NSGlobalDomain)
-- **`daemons.nix`** — launchd user agents (currently Hammerspoon)
-- **`icons.nix`** — Nix-built `icon-customizer` script that applies custom `.icns` files to apps
-- **`fileicon.nix`** — Packages the `fileicon` CLI tool from source
-- **`overlays.nix`** — Nixpkgs overlays (darwin-zsh-completions)
+```
+flake.nix          inputs, the three host configurations, the `glide` devShell
+modules/
+  darwin/          macOS system configuration (nix-darwin)
+  home/            home-manager, shared plus darwin.nix / linux.nix
+  nixos/           NixOS system configuration
+  packages.nix     packages every machine gets
+  bootstrap.nix    the `bootstrap` CLI, for 1Password-backed secrets
+  home-backup.nix  what home-manager does with an unmanaged file in its way
+hosts/             per-host overrides: ala, adrian, irulan (+ irulan/disko.nix)
+dotfiles/home/     the dotfile tree, linked into $HOME by modules/home
+homebrew/          IS the jrolfs/tap, symlinked into brew's Taps directory
+icons/             .icns assets plus apply.sh
+karabiner/         live Karabiner config, out-of-store symlinked so it can write back
+overlays/          nixpkgs overlays, plus pin.nix for single-package pins
+automator/         macOS Automator workflows
+vscodium/          separate flake building VSCodium with extensions
+links/             convenience symlink to /Library/LaunchDaemons
+```
 
-### Git Submodules
+### modules/darwin
 
-- `nix-darwin/` — Fork of nix-darwin (jrolfs/nix-darwin)
-- `nixpkgs/` — Fork of nixpkgs (jrolfs/nixpkgs)
+| Module | What it does |
+|---|---|
+| `defaults.nix` | `system.defaults`, the bulk of the macOS preferences |
+| `homebrew.nix` | casks, brews, taps, and the `brew bundle` gate |
+| `tap.nix` | symlinks `homebrew/` into place; `cask-updater` bumps the casks |
+| `mas.nix` | App Store installs, driving `mas` directly (not via `brew bundle`) |
+| `spotlight.nix` | keeps Spotlight indexing on, which `mas list` depends on |
+| `excluded-apps.nix` | per-host cask/App Store exclusions, read by both of the above |
+| `login-items.nix` | login items via System Events, since the BTM store is SIP-locked |
+| `daemons.nix` | launchd user agents, for headless things only |
+| `tailscale.nix` | connect Tailscale everywhere except at home |
+| `finder-sidebar.nix` | Finder sidebar Favorites, via `mysides` |
+| `default-browser.nix` | Velja as the http(s) router |
+| `icons.nix` / `fileicon.nix` | custom app icons and the tool that sets them |
+| `sidecar.nix` | Sidecar (iPad as display) via the private SidecarCore framework |
+| `glide-developer.nix` | a second Glide copy with its own bundle identifier |
+| `kaset.nix` | source build with the native-PiP patch, or the stock cask |
+| `spicetify.nix` | Spotify theming |
 
-These are pointed at via `NIX_PATH` in `.zshrc.darwin`.
+### modules/home
 
-### Custom App Icons (`icons/`)
+`default.nix` links `dotfiles/home` into `$HOME`, `darwin.nix` and `linux.nix`
+are the per-platform shared modules, and the rest are subject-specific:
+`neovim.nix` (owns all of `~/.config/nvim`), `browsers.nix`, `zed.nix`,
+`ssh.nix`, `atuin.nix`, `wallpaper.nix`, `icloud.nix`, `claude-sync.nix`.
 
-- `icons/assets/` (symlinked as `icons/big-sur/`) contains `.icns` files named to match application names
-- `icons/apply.sh` uses `fd` + `fileicon` to apply icons to `/Applications/*.app`
-- Requires `sudo` for some apps
+## Companion docs
 
-### Hammerspoon (`home/.hammerspoon/`)
+Read the relevant one before changing that area. They carry the reasoning that
+would otherwise have to be rediscovered.
 
-Lua-based macOS automation. Modules in `modules/`:
-- `autohide` — Auto-hides specific apps when they lose focus
-- `finder` — Copy current Finder path
-- `utilities` — Hyper key binding helpers (right option key mapped to Hyper via Karabiner)
+| File | Covers |
+|---|---|
+| `NIX-DARWIN.md` | every nix-darwin module, and whether this repo uses it |
+| `MIGRATION.md` | the homeshick-to-flake migration, phases and gotchas |
+| `RECONCILIATION.md` | the castle-to-flake file sweep, and what still needs a decision |
+| `BACKPORT.md` | fixes found here that newt's pre-flake setup still needs |
+| `HOMEBREW.md` | how far Homebrew determinism goes, why `brew pin` and nix-homebrew don't get there |
+| `SECRETS.md` | why secrets sit outside the flake, and the bootstrap dependency chain |
+| `homebrew/README.md` | the tap itself, and bumping a cask with `cask-updater` |
 
-### Karabiner Elements (`home/.config/karabiner/`)
+## Conventions
 
-Key remappings:
-- Caps Lock → Right Control
-- Right Control alone → Escape
-- Right Option → Hyper key (Ctrl+Option+Cmd+Shift), alone → Ctrl+Option+A
-- Fn+HJKL → Arrow keys (vim-style navigation)
-- Left Option+Tab → Toggle kitty visibility
-- Left Option+Backtick → Toggle Obsidian visibility
+- Flakes only. `nix.nixPath` and the registry are pinned to the flake's inputs
+  in `modules/darwin/default.nix`, so `nix shell nixpkgs#foo` resolves to the
+  same nixpkgs the system was built from.
+- `allowUnfree`, `allowBroken` and `allowUnsupportedSystem` are all on.
+- Homebrew cleanup is `zap`, so any cask not listed is removed on the next
+  switch. `onActivation.upgrade` is `true`, which is deliberate and argued in
+  `homebrew.nix`.
+- Touch ID for sudo via `security.pam.services.sudo_local.touchIdAuth`.
+- `nix.package` is pinned to Lix 2.94 because devbox needs
+  `builtins.fetchClosure`, which Lix 2.95 removed.
+- Comments explain *why*, not what. Most modules here open with a paragraph on
+  the failure they exist to prevent; match that rather than summarising the
+  code.
 
-### Other Dotfiles
+## Gotchas
 
-- `home/.skhdrc` — skhd hotkey daemon config (uses chunkc tiling, currently disabled)
-- `home/.mackup.cfg` — Mackup config using file_system engine for app preference sync
-- `home/.config/zsh/` — Shell helpers and `ghr` function (GitHub CLI → Raycast integration)
-- `home/.local/share/raycast/` — Raycast helper scripts
-- `automator/` — macOS Automator workflows (iPad mirroring, YouTube PiP)
-- `vscodium/` — Nix flake for building VSCodium with extensions
-
-## Nix Conventions
-
-- Configuration uses the nix-darwin module system (not flakes for the main config)
-- `nixpkgs.config.allowUnfree = true` and `allowBroken = true` are set
-- Homebrew cleanup is set to `zap` — any cask not listed will be removed on rebuild
-- Touch ID for sudo is enabled via `security.pam.services.sudo_local.touchIdAuth`
+- **`builtins.getEnv` returns `""` under pure flake evaluation.** Several
+  modules carry a hardcoded path with a comment saying exactly this
+  (`icons.nix`, `spicetify.nix`, `tailscale.nix`). Deriving from
+  `config.system.primaryUser` is the pattern. A path that silently becomes
+  `/foo` instead of `/Users/jamie/foo` fails at runtime, not at build time.
+- **A nix-darwin option being unset means nothing on its own.** It may be at
+  Apple's default, or it may be drift. Check the machine before declaring
+  anything, and read `defaults` one key at a time: parsing a whole-domain
+  `defaults read` reports set keys as absent, because the output is nested.
+- **nix-darwin's "The default is ..." documentation is not always current.** It
+  describes several trackpad gestures as defaulting to off that macOS ships on.
+  NIX-DARWIN.md lists the known-stale ones.
+- **Per-host exclusions live in `excluded-apps.nix`**, keyed by short hostname.
+  The old `NIX_MACOS_EXCLUDE_CASKS` environment variable is dead; the
+  `dotfiles/home/.config/zsh/env.*` files that still set it are leftovers and
+  nothing reads them.
+- **Some macOS state is not declarable at all**, and the modules say so where it
+  bites: the screen saver and wallpaper (WallpaperAgent owns the store),
+  `universalaccess` (TCC blocks the activation write), and desktop widget
+  placement (an NSKeyedArchiver graph in chronod's sqlite). These are per-machine
+  manual steps by design, not missing configuration.

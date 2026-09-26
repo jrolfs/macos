@@ -32,7 +32,7 @@ in
 
       # Every entry has to exist at activation time or the Dock renders a "?"
       # placeholder tile in its place, so anything listed here needs to be
-      # installed unconditionally — not excluded via NIX_MACOS_EXCLUDE_CASKS.
+      # installed unconditionally, not listed in excluded-apps.nix.
       persistent-apps = [
         "/Applications/kitty.app"
         "/Applications/Zed.app"
