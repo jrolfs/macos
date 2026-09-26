@@ -38,6 +38,38 @@ in
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_read_text_file" ];
   });
 
+  # recode 3.7.16 is broken on aarch64-darwin as of the 2026-09 nixpkgs bump.
+  # Its own test suite catches it — ten round-trip conversions fail and the
+  # harness dies with `Segmentation fault: 11` — so the build fails honestly
+  # rather than shipping something broken.
+  #
+  # Do *not* "fix" this with `doCheck = false`. Measured with the checks off:
+  # the resulting `recode utf8..ascii` aborts with SIGABRT after printing
+  # "Charset WINDOWS-874 already exists and is not CP874", and fortune, which
+  # links it, then prints nothing at all while still exiting 0. Disabling the
+  # tests converts a loud build failure into a silently useless binary.
+  #
+  # So pin the whole package to the last nixpkgs revision where it worked.
+  # Deliberately not via ./pin.nix: that helper reports when a pin is safe to
+  # remove by checking the binary cache, and cache availability says nothing
+  # about whether this is fixed — it would advise removing the pin at exactly
+  # the moment doing so would quietly break fortune again. Re-test by hand
+  # (`recode utf8..ascii <<< 'héllo'` should round-trip, not abort) before
+  # dropping this.
+  recode =
+    let
+      lastWorking = import
+        (builtins.fetchTarball {
+          url = "https://github.com/NixOS/nixpkgs/archive/d482ef84049d9b7276b83a06e4e4d76983830097.tar.gz";
+          sha256 = "sha256-we5zDEFfn8TgzeWKjKDMIjeQZ59omEPl23NIF+13/ys=";
+        })
+        {
+          localSystem = super.stdenv.hostPlatform.system;
+          inherit (super) config;
+        };
+    in
+    lastWorking.recode;
+
   # worktrunk's test suite includes two tests that probe the OS process table
   # (reading its own PID and a spawned child `sh`), which the Nix build sandbox
   # on darwin doesn't expose — they panic with "own pid must be readable from
