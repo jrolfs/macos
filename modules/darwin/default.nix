@@ -27,6 +27,8 @@ in
     ./mas.nix
     ./sidecar.nix
     ./spicetify.nix
+    ./spotlight.nix
+    ./tailscale.nix
     ./tap.nix
 
     # ./applications/codium.nix
