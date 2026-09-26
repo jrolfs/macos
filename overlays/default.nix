@@ -193,6 +193,49 @@ in
       patchShebangs --build $out/bin
     '';
 
+  # Built from source because nixpkgs' mysides unpacks the upstream .pkg from
+  # 2015, which is x86_64-only — it dies with "bad CPU type in executable" on
+  # an Apple Silicon machine without Rosetta. The source compiles for arm64
+  # with nothing but Foundation and CoreServices.
+  #
+  # It drives LSSharedFileList, deprecated since 10.11 and still the only way
+  # to write Finder's sidebar: `sfltool` offers list/clear/reset and nothing
+  # that adds an item. Verified working on macOS 26 — `mysides list` returns
+  # the same entries decoded by hand out of the FavoriteItems.sfl4 archive.
+  # If a release finally removes the API, the fallback is writing that
+  # NSKeyedArchiver plist directly, bookmark blobs and all.
+  mysides = super.stdenv.mkDerivation {
+    pname = "mysides";
+    version = "1.0.1-unstable-2024-02-16";
+
+    src = super.fetchFromGitHub {
+      owner = "mosen";
+      repo = "mysides";
+      rev = "355d010b61c4ad36fcdd84b0f9e6ec530369bd1b";
+      hash = "sha256-aAZOGeU8lvMPxBIHKbNNe5WVHvSfRpjgnqJ6qV4Jw00=";
+    };
+
+    buildPhase = ''
+      runHook preBuild
+      $CC -fobjc-arc -framework Foundation -framework CoreServices \
+        -o mysides src/*.m
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 mysides $out/bin/mysides
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Manage macOS Finder sidebar favorites";
+      homepage = "https://github.com/mosen/mysides";
+      platforms = super.lib.platforms.darwin;
+      mainProgram = "mysides";
+    };
+  };
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''

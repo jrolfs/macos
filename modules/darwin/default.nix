@@ -17,6 +17,7 @@ in
     ./default-browser.nix
     ./defaults.nix
     ./fileicon.nix
+    ./finder-sidebar.nix
     ./homebrew.nix
     ./glide-developer.nix
     ./icons.nix
