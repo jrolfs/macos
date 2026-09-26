@@ -16,7 +16,10 @@ glide.include('tab-activity.ts');
 glide.include('tab-pip.ts');
 glide.include('windows.ts');
 glide.include('cookies.ts');
-glide.include('one-password.ts');
+// Parked. Matching entries by scraping is too unreliable to leave on. Revisit
+// with the 1Password SDK, which can recommend entries from the page URL.
+// glide.include('one-password.ts');
+
 glide.include('mode-indicator.ts');
 
 // Miscellaneous
