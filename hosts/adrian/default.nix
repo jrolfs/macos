@@ -10,8 +10,8 @@
 
 {
   networking.hostName = hostname;
-  networking.computerName = "Leeloo";
+  networking.computerName = "Adrian";
   networking.localHostName = hostname;
 
-  # leeloo-specific darwin options go here as they come up.
+  # adrian-specific darwin options go here as they come up.
 }

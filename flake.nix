@@ -152,7 +152,7 @@
     in
     {
       darwinConfigurations.ala = mkDarwin "ala" "aarch64-darwin";
-      darwinConfigurations.leeloo = mkDarwin "leeloo" "aarch64-darwin";
+      darwinConfigurations.adrian = mkDarwin "adrian" "aarch64-darwin";
       # darwinConfigurations.newt = mkDarwin "newt" "aarch64-darwin";  # retired
 
       nixosConfigurations.irulan = mkNixos "irulan" "x86_64-linux";  # phase 2

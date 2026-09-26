@@ -13,7 +13,7 @@
   # Work machine, MDM-managed. Only Xcode for now to keep the first bootstrap
   # short; anything else the MDM owns gets added once `brew list` on the
   # machine says what it actually installs.
-  leeloo = [ "Xcode" ];
+  adrian = [ "Xcode" ];
   newt = [ "Xcode" "zoom" ];
   orolo = [ "google-chrome" "Xcode" "zoom" ];
   yours-truly = [ "Xcode" ];

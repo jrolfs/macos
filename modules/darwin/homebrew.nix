@@ -191,6 +191,7 @@ in
     "acorn"
     "arq"
     "aws-vpn-client"
+    "chatgpt"
     "claude"
     "cleanshot"
     "cursor"
@@ -210,9 +211,6 @@ in
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
-    # kaset is not listed here: kaset.nix decides per host whether to build it
-    # from source (patched for native picture in picture) or to add this cask
-    # back. Deleting that module restores the stock cask everywhere.
     "kitty"
     "linear"
     "loom"
@@ -237,6 +235,9 @@ in
     "zed"
     "zed@preview"
     "zoom"
+    # back. Deleting that module restores the stock cask everywhere.
+    # from source (patched for native picture in picture) or to add this cask
+    # kaset is not listed here: kaset.nix decides per host whether to build it
 
     # Fonts
     "font-atkinson-hyperlegible"
