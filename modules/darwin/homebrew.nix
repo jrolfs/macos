@@ -159,7 +159,11 @@ in
     '';
 
   homebrew.taps = [
-    { name = "jorgelbg/tap"; trusted = true; }
+    # jorgelbg/tap is gone: it carried only pinentry-touchid, which nothing
+    # here uses — darwin's gpg-agent names pinentry-mac and linux.nix names
+    # pinentry-curses. It had also become un-tappable, since its formula
+    # declares no URL for the Linux platforms newer Homebrew validates at tap
+    # time, so `brew tap` rejected the whole tap and failed the switch.
     { name = "jrolfs/tap"; trusted = true; }
     { name = "sozercan/repo"; trusted = true; }
 
