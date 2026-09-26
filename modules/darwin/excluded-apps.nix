@@ -10,10 +10,15 @@
   # Xcode is a many-GB mas install; skip it during provisioning and add it
   # by hand (or drop this entry) when it's actually needed.
   ala = [];
-  # Work machine, MDM-managed. Only Xcode for now to keep the first bootstrap
-  # short; anything else the MDM owns gets added once `brew list` on the
-  # machine says what it actually installs.
-  adrian = [ "Xcode" ];
+  # Work machine, MDM-managed. Kandji installs 1Password and Zoom directly
+  # into /Applications, and a cask refuses to clobber an app it doesn't own —
+  # so the first switch failed on both. Note this excludes the 1Password
+  # *GUI* only: `1password-cli` is a separate cask, is brew-managed here, and
+  # is what `op` needs, so it stays.
+  #
+  # Xcode is excluded for a different reason: it's a many-GB App Store install
+  # that would dominate provisioning time.
+  adrian = [ "1password" "Xcode" "zoom" ];
   newt = [ "Xcode" "zoom" ];
   orolo = [ "google-chrome" "Xcode" "zoom" ];
   yours-truly = [ "Xcode" ];
