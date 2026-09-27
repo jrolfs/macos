@@ -96,6 +96,13 @@ in
     # picks the value up when it next launches, not while it is running. On a
     # fresh machine that means the first login; on a running one, `killall
     # Finder`.
+    # Hides the Tags section of Finder's sidebar — Finder Settings → Sidebar →
+    # Tags → Recent Tags. Not a nix-darwin option, and the name undersells it:
+    # this is the whole section, not just recently-used ones. The separate
+    # FavoriteTagNames array is left at its stock colours, since it feeds the
+    # right-click Tags menu rather than the sidebar.
+    CustomUserPreferences."com.apple.finder".ShowRecentTags = false;
+
     CustomUserPreferences."com.apple.finder".DesktopViewSettings = {
       GroupBy = "None";
 
