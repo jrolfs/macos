@@ -15,6 +15,7 @@ in
 
     ./daemons.nix
     ./default-browser.nix
+    ./display-profiles.nix
     ./defaults.nix
     ./fileicon.nix
     ./finder-sidebar.nix
