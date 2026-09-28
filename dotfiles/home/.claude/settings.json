@@ -64,6 +64,7 @@
   "effortLevel": "xhigh",
   "tui": "default",
   "autoMemoryEnabled": true,
+  "theme": "auto",
   "editorMode": "vim",
   "preferredNotifChannel": "kitty",
   "autoCompactEnabled": true
