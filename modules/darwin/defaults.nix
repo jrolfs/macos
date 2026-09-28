@@ -285,9 +285,11 @@ in
     # when something is dragged out of the menu bar, so a visible item has no
     # key at all and nothing to pin.
     #
-    # Velja is the exception. It is sandboxed, so its domain is inside its
-    # container rather than ~/Library/Preferences and a domain write never
-    # reaches it, but it is visible, which is what it would be anyway.
+    # Velja is absent for that same reason: its item is visible, so there is
+    # no key. Its domain does sit in an App Store sandbox container rather
+    # than in ~/Library/Preferences, but that is no obstacle to writing it.
+    # cfprefsd resolves the domain either way, which is what velja.nix relies
+    # on.
     CustomUserPreferences."com.apple.TextInputMenuAgent"."NSStatusItem VisibleCC Item-0" =
       false;
     CustomUserPreferences."com.cordlessdog.Stay"."NSStatusItem VisibleCC Item-0" =
