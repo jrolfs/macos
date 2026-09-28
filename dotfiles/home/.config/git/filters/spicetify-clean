@@ -1,2 +1,13 @@
 #!/bin/sh
-sed '/^; DO NOT CHANGE/,$d'
+
+# Drop the [Backup] section spicetify rewrites on every Spotify update. It is
+# the last section in the file, so deleting to EOF is enough.
+#
+# This used to match the `; DO NOT CHANGE!` comment that spicetify wrote above
+# the section, which was self-defeating: the filter stripped the comment along
+# with the section, and spicetify only emits it when it generates a config from
+# scratch. Recreating the section on a config that already exists takes a
+# different path and writes a bare `[Backup]`. So the first checkout that
+# replaced the working copy with the cleaned blob took the marker with it and
+# the filter has been a silent no-op ever since.
+sed '/^\[Backup\]/,$d'

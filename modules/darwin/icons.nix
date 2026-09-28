@@ -108,17 +108,18 @@ in
   environment.systemPackages = [ script ];
 
 
-  system.activationScripts.postActivation.text = lib.mkAfter ''
-    # Install a stable-path compiled wrapper for icon-customizer.
-    # Must be a Mach-O binary (not a script) so TCC recognises the FDA
-    # grant on the path.  The agent's ProgramArguments points here so the
-    # user only has to grant Full Disk Access once (System Settings →
-    # Privacy & Security → Full Disk Access → add
-    # /usr/local/bin/icon-customizer).
-    mkdir -p /usr/local/bin
-    cp ${wrapper}/bin/icon-customizer ${wrapperPath}
-    chmod +x ${wrapperPath}
-  '';
+  system.activationScripts.postActivation.text = lib.mkAfter # bash
+    ''
+      # Install a stable-path compiled wrapper for icon-customizer.
+      # Must be a Mach-O binary (not a script) so TCC recognises the FDA
+      # grant on the path.  The agent's ProgramArguments points here so the
+      # user only has to grant Full Disk Access once (System Settings →
+      # Privacy & Security → Full Disk Access → add
+      # /usr/local/bin/icon-customizer).
+      mkdir -p /usr/local/bin
+      cp ${wrapper}/bin/icon-customizer ${wrapperPath}
+      chmod +x ${wrapperPath}
+    '';
 
   # Passwordless sudo for icon-setter so the LaunchAgent can customise icons on
   # root-owned app bundles (e.g. Kandji-managed apps).  Managed declaratively

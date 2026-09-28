@@ -128,18 +128,20 @@ in
   # one yet the whole config dangles — including the entry points the warm-up
   # boots, hence before it. Nothing else needs the clone this early: dangling
   # symlinks are created happily and resolve the moment it lands.
-  home.activation.neovimConfigClone = lib.hm.dag.entryBetween [ "neovimPack" ] [ "writeBoundary" ] ''
-    run ${cloneScript} \
-      || warnEcho "neovim: could not clone ${cloneUrl} to ${clone} — ~/.config/nvim is dangling until it exists"
-  '';
+  home.activation.neovimConfigClone = lib.hm.dag.entryBetween [ "neovimPack" ] [ "writeBoundary" ] # bash
+    ''
+      run ${cloneScript} \
+        || warnEcho "neovim: could not clone ${cloneUrl} to ${clone} — ~/.config/nvim is dangling until it exists"
+    '';
 
   # Runs on every activation rather than only when the pack directory is empty.
   # `vim.pack.add` is a no-op for plugins that are already cloned, so the cost
   # of the warm case is two nvim boots — and gating on emptiness would mean a
   # plugin added to the config after the first switch never got installed by
   # one, which is the case this module exists to cover.
-  home.activation.neovimPack = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run ${warmUp} \
-      || warnEcho "neovim: plugin install did not complete — :checkhealth vim.pack in an interactive session"
-  '';
+  home.activation.neovimPack = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run ${warmUp} \
+        || warnEcho "neovim: plugin install did not complete — :checkhealth vim.pack in an interactive session"
+    '';
 }

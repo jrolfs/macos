@@ -18,15 +18,16 @@ in
   # Mirrors the .zshrc.darwin pattern from darwin.nix; the existing
   # dotfiles/home/.zshrc has the platform-rc lookup that picks the
   # right file based on uname.
-  home.file.".zshrc.linux".text = ''
-    #
-    #
-    # Aliases ----------------------------------------------------------------------
+  home.file.".zshrc.linux".text = # zsh
+    ''
+      #
+      #
+      # Aliases ----------------------------------------------------------------------
 
-    alias nix-switch="sudo -E nixos-rebuild switch --flake ${flake} --show-trace"
-    alias nix-rebuild="sudo -E nixos-rebuild build --flake ${flake} --show-trace"
-    alias nix-search="nix search nixpkgs"
-  '';
+      alias nix-switch="sudo -E nixos-rebuild switch --flake ${flake} --show-trace"
+      alias nix-rebuild="sudo -E nixos-rebuild build --flake ${flake} --show-trace"
+      alias nix-search="nix search nixpkgs"
+    '';
 
   # Declared inline rather than lifted from the dotfiles tree because the
   # macOS copy names pinentry-mac, which doesn't exist here. Irulan is

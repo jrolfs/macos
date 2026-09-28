@@ -1,8 +1,8 @@
 # Backport candidates
 
-Fixes made on this branch (`migration-flake`) that are worth applying to the
-**pre-migration** setup too — i.e. `macos` master and the `dot` / `private`
-castles — because `newt` runs that setup until phase 3 (see `MIGRATION.md`).
+Fixes made during the migration that are worth applying to the
+**pre-migration** setup too — i.e. the `pre-flake` branch and the `dot` /
+`private` castles — because `newt` runs that setup until phase 3 (see `MIGRATION.md`).
 
 Nothing here is required for the migration itself. This is the list of "I found
 a real bug while migrating and my daily driver still has it."

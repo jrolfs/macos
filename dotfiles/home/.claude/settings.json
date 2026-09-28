@@ -15,32 +15,12 @@
       "Bash(cat:*)",
       "Bash(grep:*)",
       "Bash(gh search code:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(swift build:*)"
     ],
     "defaultMode": "auto"
   },
   "model": "fable",
-  "enabledPlugins": {
-    "clangd-lsp@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": true,
-    "worktrunk@worktrunk": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "lua-lsp@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "worktrunk": {
-      "source": {
-        "source": "github",
-        "repo": "max-sixty/worktrunk"
-      }
-    }
-  },
-  "effortLevel": "xhigh",
-  "tui": "default",
-  "autoMemoryEnabled": true,
-  "editorMode": "vim",
-  "preferredNotifChannel": "kitty",
-  "autoCompactEnabled": true,
   "hooks": {
     "SessionStart": [
       {
@@ -64,5 +44,28 @@
         ]
       }
     ]
-  }
+  },
+  "enabledPlugins": {
+    "clangd-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true,
+    "worktrunk@worktrunk": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "worktrunk": {
+      "source": {
+        "source": "github",
+        "repo": "max-sixty/worktrunk"
+      }
+    }
+  },
+  "effortLevel": "xhigh",
+  "tui": "default",
+  "autoMemoryEnabled": true,
+  "theme": "auto",
+  "editorMode": "vim",
+  "preferredNotifChannel": "kitty",
+  "autoCompactEnabled": true
 }

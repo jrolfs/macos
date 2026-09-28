@@ -12,10 +12,12 @@ local autohide = require('modules.autohide')
 
 autohide.start({
   "1Password",
+  "ChatGPT",
   "Dash",
   "DevDocs",
   "Discord",
   "Find My",
+  "Kaset",
   "Linear",
   "Maps",
   "Music",
@@ -25,8 +27,7 @@ autohide.start({
   "Reminders",
   "Resilio Sync",
   "Sirius",
-  -- { name = "Spotify", when = autohide.maxDisplays(1) },
-  "Spotify",
+  "Spotify", -- { name = "Spotify", when = autohide.maxDisplays(1) },
   "WhatsApp",
   "Yaak",
   "YouTube",
@@ -54,4 +55,4 @@ require("modules.notifications").bind({
   previous = "j",
 })
 
-_.alert("🔨   Loaded Hammerspoon configuration")
+_.alert("Loaded Hammerspoon configuration", { emoji = "🔨" })

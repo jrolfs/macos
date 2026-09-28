@@ -79,8 +79,9 @@ let
   '';
 in
 {
-  home.activation.wallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run ${apply} \
-      || warnEcho "wallpaper: could not set the desktop picture — see the Hammerspoon console"
-  '';
+  home.activation.wallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run ${apply} \
+        || warnEcho "wallpaper: could not set the desktop picture — see the Hammerspoon console"
+    '';
 }

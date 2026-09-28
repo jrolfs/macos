@@ -56,17 +56,7 @@ let
     esac
   '';
 
-  # Per-host cask/masApps exclusions — typically apps installed by
-  # organization device management. Keyed on the short hostname.
-  excludeByHost = {
-    # Xcode is a many-GB mas install; skip it during provisioning and add it
-    # by hand (or drop this entry) when it's actually needed.
-    ala = [ "Xcode" ];
-    newt = [ "Xcode" "zoom" ];
-    orolo = [ "google-chrome" "Xcode" "zoom" ];
-    yours-truly = [ "Xcode" ];
-  };
-  excludeApps = excludeByHost.${hostname} or [ ];
+  excludeApps = (import ./excluded-apps.nix).${hostname} or [ ];
 
 in
 
@@ -107,27 +97,28 @@ in
   # it, because the whole point is to decide whether its `brew bundle` runs.
   # The command itself is reused verbatim, so every onActivation option still
   # means what it means upstream.
-  system.activationScripts.homebrew.text = lib.mkIf config.homebrew.enable (lib.mkForce ''
-    if [ -e ${skipToken} ]; then
-      # Consumed here rather than by the wrapper that wrote it, so that a switch
-      # interrupted before activation can't leave Homebrew gated off silently.
-      rm -f ${skipToken}
-      echo >&2 "Homebrew bundle... skipped (--no-brew)"
-    elif [ ! -f "${config.homebrew.prefix}/bin/brew" ]; then
-      echo >&2 -e "\e[1;31merror: Homebrew is not installed, skipping...\e[0m"
-    elif [ "$(cat ${stamp} 2>/dev/null || true)" = "${bundleStateHash}" ]; then
-      echo >&2 "Homebrew bundle... unchanged, skipped (nix-switch --brew to run anyway)"
-    else
-      echo >&2 "Homebrew bundle..."
-      # Cleared before the run and written only after it returns. The script
-      # runs under `set -e`, so a failed bundle aborts activation with no stamp
-      # on disk and the next switch retries instead of recording it as done.
-      rm -f ${stamp}
-      ${config.homebrew.onActivation.brewBundleCmd { onlyCheck = false; }}
-      mkdir -p ${stateDirectory}
-      printf '%s\n' ${bundleStateHash} > ${stamp}
-    fi
-  '');
+  system.activationScripts.homebrew.text = lib.mkIf config.homebrew.enable (lib.mkForce # bash
+    ''
+      if [ -e ${skipToken} ]; then
+        # Consumed here rather than by the wrapper that wrote it, so that a switch
+        # interrupted before activation can't leave Homebrew gated off silently.
+        rm -f ${skipToken}
+        echo >&2 "Homebrew bundle... skipped (--no-brew)"
+      elif [ ! -f "${config.homebrew.prefix}/bin/brew" ]; then
+        echo >&2 -e "\e[1;31merror: Homebrew is not installed, skipping...\e[0m"
+      elif [ "$(cat ${stamp} 2>/dev/null || true)" = "${bundleStateHash}" ]; then
+        echo >&2 "Homebrew bundle... unchanged, skipped (nix-switch --brew to run anyway)"
+      else
+        echo >&2 "Homebrew bundle..."
+        # Cleared before the run and written only after it returns. The script
+        # runs under `set -e`, so a failed bundle aborts activation with no stamp
+        # on disk and the next switch retries instead of recording it as done.
+        rm -f ${stamp}
+        ${config.homebrew.onActivation.brewBundleCmd { onlyCheck = false; }}
+        mkdir -p ${stateDirectory}
+        printf '%s\n' ${bundleStateHash} > ${stamp}
+      fi
+    '');
 
   homebrew.global.brewfile = true;
 
@@ -158,16 +149,21 @@ in
   # `git credential fill` against a two-file config, where the system helper is
   # not consulted at all. So from the second switch on, the HTTPS path is served
   # by `gh auth git-credential` and needs `gh auth login` to have happened.
-  environment.etc."gitconfig".text = ''
-    [credential "https://github.com"]
-    	helper = store
+  environment.etc."gitconfig".text = # git_config
+    ''
+      [credential "https://github.com"]
+      	helper = store
 
-    [url "https://github.com/meterup/"]
-    	insteadOf = https://github.com/meterup/
-  '';
+      [url "https://github.com/meterup/"]
+      	insteadOf = https://github.com/meterup/
+    '';
 
   homebrew.taps = [
-    { name = "jorgelbg/tap"; trusted = true; }
+    # jorgelbg/tap is gone: it carried only pinentry-touchid, which nothing
+    # here uses — darwin's gpg-agent names pinentry-mac and linux.nix names
+    # pinentry-curses. It had also become un-tappable, since its formula
+    # declares no URL for the Linux platforms newer Homebrew validates at tap
+    # time, so `brew tap` rejected the whole tap and failed the switch.
     { name = "jrolfs/tap"; trusted = true; }
     { name = "sozercan/repo"; trusted = true; }
 
@@ -182,8 +178,9 @@ in
     }
   ];
 
+  # mas is gone from here along with masApps: App Store installs are driven
+  # directly by mas.nix now, and nothing else shells out to `mas`.
   homebrew.brews = [
-    "mas"
     "openssl"
 
     { name = "meterup/packages/mcurl"; args = [ "HEAD" ]; }
@@ -191,21 +188,14 @@ in
     { name = "meterup/packages/hostsfile"; args = [ "HEAD" ]; }
   ];
 
-  homebrew.masApps = lib.filterAttrs (name: _: !lib.elem name excludeApps) {
-    "Cloud Baby Monitor" = 517602535;
-    "Fantastical" = 975937182;
-    "Flighty" = 1358823008;
-    "Velja" = 1607635845;
-    "Xcode" = 497799835;
-  };
-
   homebrew.casks = builtins.filter (app: !lib.elem app excludeApps) [
 
     "1password"
     "1password-cli"
-    "affinity"
+    "acorn"
     "arq"
     "aws-vpn-client"
+    "chatgpt"
     "claude"
     "cleanshot"
     "cursor"
@@ -225,7 +215,6 @@ in
     "jrolfs/tap/lingon-pro"
     "jrolfs/tap/unite-pro"
     "karabiner-elements"
-    "kaset"
     "kitty"
     "linear"
     "loom"
@@ -250,13 +239,23 @@ in
     "zed"
     "zed@preview"
     "zoom"
+    # back. Deleting that module restores the stock cask everywhere.
+    # from source (patched for native picture in picture) or to add this cask
+    # kaset is not listed here: kaset.nix decides per host whether to build it
 
     # Fonts
     "font-atkinson-hyperlegible"
     "font-fira-code-nerd-font"
     "font-geist"
     "font-hack-nerd-font"
-    "font-ibm-plex"
+    # Upstream split the single `font-ibm-plex` cask into one per family.
+    # These are the Latin three; the rest (math, condensed, and the
+    # arabic/devanagari/hebrew/jp/kr/sc/tc/thai scripts) exist under the same
+    # prefix if ever wanted. Nothing in this config names IBM Plex, so this is
+    # availability rather than a dependency.
+    "font-ibm-plex-mono"
+    "font-ibm-plex-sans"
+    "font-ibm-plex-serif"
     "font-inter"
     "font-iosevka"
     "font-iosevka-slab"

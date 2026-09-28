@@ -18,55 +18,57 @@
 # managed-preferences layer, which `defaults read` includes.
 
 let
-  profile = pkgs.writeText "icloud-restrictions.mobileconfig" ''
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>PayloadContent</key>
-      <array>
-        <dict>
-          <key>PayloadType</key>
-          <string>com.apple.applicationaccess</string>
-          <key>PayloadIdentifier</key>
-          <string>com.jrolfs.icloud.applicationaccess</string>
-          <key>PayloadUUID</key>
-          <string>B0E56D2C-1F3A-4C4B-9C4E-8A2D5E7F1A23</string>
-          <key>PayloadDisplayName</key>
-          <string>iCloud restrictions</string>
-          <key>PayloadVersion</key>
-          <integer>1</integer>
-          <key>allowCloudKeychainSync</key>
-          <false/>
-          <key>allowCloudDesktopAndDocuments</key>
-          <false/>
-        </dict>
-      </array>
-      <key>PayloadType</key>
-      <string>Configuration</string>
-      <key>PayloadScope</key>
-      <string>User</string>
-      <key>PayloadIdentifier</key>
-      <string>com.jrolfs.icloud</string>
-      <key>PayloadUUID</key>
-      <string>4D7A9F31-6B2E-4E8A-A1C5-3F9B0D6C8E42</string>
-      <key>PayloadDisplayName</key>
-      <string>iCloud restrictions (1Password, Resilio)</string>
-      <key>PayloadDescription</key>
-      <string>Disables iCloud Keychain and the Desktop &amp; Documents redirection; iCloud Drive is unaffected.</string>
-      <key>PayloadVersion</key>
-      <integer>1</integer>
-    </dict>
-    </plist>
-  '';
+  profile = pkgs.writeText "icloud-restrictions.mobileconfig" # xml
+    ''
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>PayloadContent</key>
+        <array>
+          <dict>
+            <key>PayloadType</key>
+            <string>com.apple.applicationaccess</string>
+            <key>PayloadIdentifier</key>
+            <string>com.jrolfs.icloud.applicationaccess</string>
+            <key>PayloadUUID</key>
+            <string>B0E56D2C-1F3A-4C4B-9C4E-8A2D5E7F1A23</string>
+            <key>PayloadDisplayName</key>
+            <string>iCloud restrictions</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>allowCloudKeychainSync</key>
+            <false/>
+            <key>allowCloudDesktopAndDocuments</key>
+            <false/>
+          </dict>
+        </array>
+        <key>PayloadType</key>
+        <string>Configuration</string>
+        <key>PayloadScope</key>
+        <string>User</string>
+        <key>PayloadIdentifier</key>
+        <string>com.jrolfs.icloud</string>
+        <key>PayloadUUID</key>
+        <string>4D7A9F31-6B2E-4E8A-A1C5-3F9B0D6C8E42</string>
+        <key>PayloadDisplayName</key>
+        <string>iCloud restrictions (1Password, Resilio)</string>
+        <key>PayloadDescription</key>
+        <string>Disables iCloud Keychain and the Desktop &amp; Documents redirection; iCloud Drive is unaffected.</string>
+        <key>PayloadVersion</key>
+        <integer>1</integer>
+      </dict>
+      </plist>
+    '';
 in
 {
-  home.activation.icloudProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    keychain=$(/usr/bin/defaults read com.apple.applicationaccess allowCloudKeychainSync 2>/dev/null || echo missing)
-    documents=$(/usr/bin/defaults read com.apple.applicationaccess allowCloudDesktopAndDocuments 2>/dev/null || echo missing)
+  home.activation.icloudProfile = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      keychain=$(/usr/bin/defaults read com.apple.applicationaccess allowCloudKeychainSync 2>/dev/null || echo missing)
+      documents=$(/usr/bin/defaults read com.apple.applicationaccess allowCloudDesktopAndDocuments 2>/dev/null || echo missing)
 
-    if [ "$keychain" != 0 ] || [ "$documents" != 0 ]; then
-      warnEcho "icloud: restrictions profile not installed — run 'open ${profile}' and approve it in System Settings → General → Device Management"
-    fi
-  '';
+      if [ "$keychain" != 0 ] || [ "$documents" != 0 ]; then
+        warnEcho "icloud: restrictions profile not installed — run 'open ${profile}' and approve it in System Settings → General → Device Management"
+      fi
+    '';
 }

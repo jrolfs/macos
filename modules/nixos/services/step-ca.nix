@@ -11,8 +11,11 @@
 #
 # The intermediate password file at /var/lib/step-ca/secrets/password
 # must be readable by the step-ca user but not world-readable. Set it
-# up out of band before first start (the password itself is in the
-# 1Password vault — fetchable via `op read "Step CA Intermediate/password"`).
+# up out of band before first start, reading the password on a machine
+# with desktop-app 1Password rather than here: a short-form reference
+# resolves against the Private vault, and a host authenticating with a
+# service account cannot read Private at all. Either copy it across, or
+# give this a sops-nix secret the way komodo.nix plans to.
 
 {
   services.step-ca = {

@@ -163,11 +163,12 @@ in
   # snippet and completion caches it clones at runtime. Safe to delete this
   # block once no machine is still on a pre-cafbe20 generation.
   home.activation.zinitHomeDirectory =
-    lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] ''
-      if [ -L "${config.xdg.dataHome}/zinit" ]; then
-        run rm $VERBOSE_ARG "${config.xdg.dataHome}/zinit"
-      fi
-    '';
+    lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] # bash
+      ''
+        if [ -L "${config.xdg.dataHome}/zinit" ]; then
+          run rm $VERBOSE_ARG "${config.xdg.dataHome}/zinit"
+        fi
+      '';
 
   # kitty.conf sets `listen_on unix:~/.local/share/kitty/socket`, and kitty
   # bind()s that socket while starting up without creating the directory it
@@ -177,16 +178,38 @@ in
   # launch — with the socket never created, which takes `kitty @ --to` with it
   # (the set-font-size helper in zsh/init/functions.zsh and the stay/ action
   # scripts both locate it by globbing this directory).
-  home.activation.kittySocketDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run mkdir -p "${config.xdg.dataHome}/kitty"
-  '';
+  home.activation.kittySocketDirectory = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run mkdir -p "${config.xdg.dataHome}/kitty"
+    '';
 
   # gpg refuses to use a home directory that is readable by anyone else, and
   # the one home-manager creates on its way to linking gpg.conf gets the
   # default 755.
-  home.activation.gnupgPermissions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run chmod 700 "${config.home.homeDirectory}/.gnupg"
-  '';
+  home.activation.gnupgPermissions = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run chmod 700 "${config.home.homeDirectory}/.gnupg"
+    '';
+
+  # ~/.config/spicetify used to be one symlink for the whole directory and is
+  # now a real directory of per-file links (see xdg.configFile below). Nothing
+  # in home-manager performs that conversion: it links the new generation
+  # before it cleans the old one, and the cleanup then keeps the old symlink
+  # because the new generation has an entry by the same name. So the stale
+  # link is still standing when the links below it are created, `mkdir -p` and
+  # `ln -s` follow it into the working copy, and config-xpui.ini lands there
+  # pointing at the store path that points back at it. spicetify opens its own
+  # config, gets ELOOP, and silently falls back to a default config with no
+  # theme.
+  #
+  # Guarded on -L so this only ever removes the old whole-directory link, not
+  # the real directory that replaces it.
+  home.activation.spicetifyDirectoryLink = lib.hm.dag.entryBefore [ "checkLinkTargets" ] # bash
+    ''
+      if [ -L "${config.xdg.configHome}/spicetify" ]; then
+        run rm $VERBOSE_ARG "${config.xdg.configHome}/spicetify"
+      fi
+    '';
 
   # XDG config directories. Each lifts an entire subtree from
   # dotfiles/home/.config/ except where the app writes back to its dir
@@ -265,11 +288,29 @@ in
     "zed".source =
       config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/zed";
 
-    # Same as zed: the spicetify-watcher agent runs `spicetify backup apply`
-    # on every Spotify update, which rewrites config-xpui.ini (and creates
-    # CustomApps/ and Extensions/) in this directory.
-    "spicetify".source =
-      config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.config/system/dotfiles/home/.config/spicetify";
+    # Same as zed, but for the one file rather than the directory: the
+    # spicetify-watcher agent runs `spicetify backup apply` on every Spotify
+    # update, which rewrites config-xpui.ini. spicetify truncates and rewrites
+    # in place, so the write follows the link through to the working copy.
+    #
+    # The directory around it has to stay a real one, because Themes/ below is
+    # a store path and because spicetify creates CustomApps/ and Extensions/
+    # beside it at startup, and neither belongs in the tracked tree.
+    "spicetify/config-xpui.ini".source =
+      config.lib.file.mkOutOfStoreSymlink "${live}/.config/spicetify/config-xpui.ini";
+
+    # current_theme in config-xpui.ini. spicetify looks a theme up in
+    # $XDG_CONFIG_HOME/spicetify/Themes first and its own executable directory
+    # second, so this is the only place a theme it didn't download itself can
+    # go. Was a submodule of the old `dot` castle reached by a relative symlink
+    # in the tracked tree, dangling since the migration: spicetify exits with
+    # `Theme "gruvbox-material" not found` and the watcher logs a failure on
+    # every Spotify update.
+    #
+    # Read-only, which only rules out `spicetify color <field> <value>`, the
+    # one command that writes color.ini back into the theme. Changing the
+    # scheme means forking the input.
+    "spicetify/Themes/gruvbox-material".source = inputs.spicetify-gruvbox-material;
 
     # Same as zed, three times over: Glide regenerates glide.d.ts into this
     # directory, it's a pnpm project (node_modules), and its .envrc has direnv

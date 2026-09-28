@@ -70,8 +70,9 @@ in
 {
   home.packages = [ pkgs.claude-sync ];
 
-  home.activation.claudeSync = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run ${setup} \
-      || warnEcho "claude-sync: not configured — fill in the 1Password item (Secrets → Claude Sync), unlock 1Password, and rerun"
-  '';
+  home.activation.claudeSync = lib.hm.dag.entryAfter [ "writeBoundary" ] # bash
+    ''
+      run ${setup} \
+        || warnEcho "claude-sync: not configured — fill in the 1Password item (Secrets → Claude Sync), unlock 1Password, and rerun"
+    '';
 }

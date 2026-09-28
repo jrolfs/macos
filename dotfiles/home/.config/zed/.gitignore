@@ -1,0 +1,4 @@
+# LMDB env backing the prompt library. lock.mdb is a memory-mapped reader
+# table that every process opening the env stamps with its pid, so it churns
+# on each Zed launch.
+prompts/prompts-library-db.*.mdb/

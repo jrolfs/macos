@@ -17,9 +17,9 @@ function M.copyPath()
   local ok, finderPath = hs.osascript.applescript(script)
   if ok then
     hs.pasteboard.setContents(finderPath)
-    _.alert("Path copied to clipboard")
+    _.alert("Path copied to clipboard", { icon = "com.apple.finder" })
   else
-    _.alert("Error copying path")
+    _.alert("Error copying path", { icon = "com.apple.finder" })
   end
 end
 

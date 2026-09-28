@@ -38,6 +38,38 @@ in
     disabledTests = (old.disabledTests or [ ]) ++ [ "test_read_text_file" ];
   });
 
+  # recode 3.7.16 is broken on aarch64-darwin as of the 2026-09 nixpkgs bump.
+  # Its own test suite catches it — ten round-trip conversions fail and the
+  # harness dies with `Segmentation fault: 11` — so the build fails honestly
+  # rather than shipping something broken.
+  #
+  # Do *not* "fix" this with `doCheck = false`. Measured with the checks off:
+  # the resulting `recode utf8..ascii` aborts with SIGABRT after printing
+  # "Charset WINDOWS-874 already exists and is not CP874", and fortune, which
+  # links it, then prints nothing at all while still exiting 0. Disabling the
+  # tests converts a loud build failure into a silently useless binary.
+  #
+  # So pin the whole package to the last nixpkgs revision where it worked.
+  # Deliberately not via ./pin.nix: that helper reports when a pin is safe to
+  # remove by checking the binary cache, and cache availability says nothing
+  # about whether this is fixed — it would advise removing the pin at exactly
+  # the moment doing so would quietly break fortune again. Re-test by hand
+  # (`recode utf8..ascii <<< 'héllo'` should round-trip, not abort) before
+  # dropping this.
+  recode =
+    let
+      lastWorking = import
+        (builtins.fetchTarball {
+          url = "https://github.com/NixOS/nixpkgs/archive/d482ef84049d9b7276b83a06e4e4d76983830097.tar.gz";
+          sha256 = "sha256-we5zDEFfn8TgzeWKjKDMIjeQZ59omEPl23NIF+13/ys=";
+        })
+        {
+          localSystem = super.stdenv.hostPlatform.system;
+          inherit (super) config;
+        };
+    in
+    lastWorking.recode;
+
   # worktrunk's test suite includes two tests that probe the OS process table
   # (reading its own PID and a spawned child `sh`), which the Nix build sandbox
   # on darwin doesn't expose — they panic with "own pid must be readable from
@@ -89,18 +121,120 @@ in
   # a package so they land on PATH with the rest of the profile instead of
   # needing ~/.claude/bin added to it.
   #
-  # patchShebangs rewrites their `env python3` to the store python3 below, which
-  # is the other half of the reason to package them: `env` would otherwise find
-  # /usr/bin/python3, a Command Line Tools shim that prompts to install Xcode on
-  # a machine that hasn't, and is gone entirely on some macOS releases.
-  claude-helpers = super.runCommandLocal "claude-helpers"
-    { nativeBuildInputs = [ super.python3 ]; }
+  # The shebangs are the other half of the reason to package them. `env python3`
+  # would otherwise find /usr/bin/python3, a Command Line Tools shim that
+  # prompts to install Xcode on a machine that hasn't and is gone entirely on
+  # some macOS releases, and `env bun` would find nothing at all: bun is a
+  # dependency of these scripts, not something the machine is expected to have.
+  claude-helpers =
+    let
+      source = ../dotfiles/home/.claude/bin;
+
+      # Only the two files that decide what gets installed, so editing a script
+      # doesn't invalidate the fetch below and send it back to the network.
+      manifest = super.runCommandLocal "claude-helpers-manifest" { } ''
+        install -d $out
+        install -m644 ${source}/package.json ${source}/bun.lock $out/
+      '';
+
+      # Dependencies as a fixed-output derivation, the one place in this build
+      # allowed to reach the network. bun.lock pins what lands here, so the hash
+      # changes when the lockfile does and at no other time. Regenerate both
+      # together: `bun install` in the source directory, then take the hash nix
+      # reports when it rebuilds.
+      modules = super.stdenvNoCC.mkDerivation {
+        name = "claude-helpers-node-modules";
+        src = manifest;
+        nativeBuildInputs = [ super.bun ];
+        dontFixup = true;
+        buildPhase = ''
+          export HOME=$TMPDIR
+          export BUN_INSTALL_CACHE_DIR=$TMPDIR/cache
+          bun install --frozen-lockfile --ignore-scripts --no-progress
+        '';
+        installPhase = "cp -R node_modules $out";
+        outputHashMode = "recursive";
+        outputHashAlgo = "sha256";
+        outputHash = "sha256-JkS6JWjXOf9coNB61yD+JvPWOwAxooBCAYSanpIL00g=";
+      };
+    in
+    super.runCommandLocal "claude-helpers"
+    { nativeBuildInputs = [ super.bun super.python3 ]; }
     ''
       install -d $out/bin
-      find ${../dotfiles/home/.claude/bin} -maxdepth 1 -type f \
-        -exec install -m755 -t $out/bin {} +
+      find ${source} -maxdepth 1 -type f ! -name '*.ts' ! -name '*.tsx' \
+        ! -name '*.json' ! -name 'bun.lock' -exec install -m755 -t $out/bin {} +
+
+      # One bundle per command, so nothing has imports to resolve at runtime.
+      # The sources are copied out of the store first because bun finds
+      # node_modules by walking up from the file that imports it, and the store
+      # path it would walk up from is not ours to put anything in.
+      cp -R ${source} source
+      cp -R ${modules} node_modules
+      chmod -R u+w source node_modules
+
+      # Ink reaches for react-devtools-core in the DEV path nothing here takes,
+      # and the bundler resolves that import whether or not it runs. A stub
+      # satisfies it without carrying the devtools.
+      install -d node_modules/react-devtools-core
+      echo '{"name":"react-devtools-core","version":"0.0.0","main":"index.js"}' \
+        > node_modules/react-devtools-core/package.json
+      echo 'export default { connectToDevTools: () => {} };' \
+        > node_modules/react-devtools-core/index.js
+
+      export HOME=$TMPDIR
+      for entry in source/*.ts source/*.tsx; do
+        [ -e "$entry" ] || continue
+        name=$(basename "$entry")
+        bun build "$entry" --target=bun --outfile="$out/bin/''${name%.*}"
+      done
+
+      chmod 755 $out/bin/*
       patchShebangs --build $out/bin
     '';
+
+  # Built from source because nixpkgs' mysides unpacks the upstream .pkg from
+  # 2015, which is x86_64-only — it dies with "bad CPU type in executable" on
+  # an Apple Silicon machine without Rosetta. The source compiles for arm64
+  # with nothing but Foundation and CoreServices.
+  #
+  # It drives LSSharedFileList, deprecated since 10.11 and still the only way
+  # to write Finder's sidebar: `sfltool` offers list/clear/reset and nothing
+  # that adds an item. Verified working on macOS 26 — `mysides list` returns
+  # the same entries decoded by hand out of the FavoriteItems.sfl4 archive.
+  # If a release finally removes the API, the fallback is writing that
+  # NSKeyedArchiver plist directly, bookmark blobs and all.
+  mysides = super.stdenv.mkDerivation {
+    pname = "mysides";
+    version = "1.0.1-unstable-2024-02-16";
+
+    src = super.fetchFromGitHub {
+      owner = "mosen";
+      repo = "mysides";
+      rev = "355d010b61c4ad36fcdd84b0f9e6ec530369bd1b";
+      hash = "sha256-aAZOGeU8lvMPxBIHKbNNe5WVHvSfRpjgnqJ6qV4Jw00=";
+    };
+
+    buildPhase = ''
+      runHook preBuild
+      $CC -fobjc-arc -framework Foundation -framework CoreServices \
+        -o mysides src/*.m
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 mysides $out/bin/mysides
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "Manage macOS Finder sidebar favorites";
+      homepage = "https://github.com/mosen/mysides";
+      platforms = super.lib.platforms.darwin;
+      mainProgram = "mysides";
+    };
+  };
 
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }

@@ -44,7 +44,7 @@ zinit light zdharma-continuum/null
 zinit ice nocd atload'eval "$(devenv hook zsh)"'
 zinit light zdharma-continuum/null
 
-zinit ice nocd atload'eval "$(command wt config shell init zsh)"; compdef _wt_with_restore wt' if'command -v wt >/dev/null 2>&1'
+zinit ice nocd atload'eval "$(command wt config shell init zsh)"' if'command -v wt >/dev/null 2>&1'
 zinit light zdharma-continuum/null
 
 # Homeshick
@@ -75,8 +75,15 @@ zinit light bobthecow/launchctl-completion
 zinit ice wait lucid
 zinit light ahmetb/kubectx
 
-# Initialize completions after Turbo-loaded plugins register theirs
-zinit ice wait lucid atload"zicompinit; zicdreplay"
+# Initialize completions after Turbo-loaded plugins register theirs.
+#
+# `wt`'s completion is registered here rather than beside its shell init
+# because zinit only substitutes its compdef-queueing shim while a plugin file
+# is being sourced, and restores (or unfunctions) it immediately after. An
+# `atload` therefore runs with no compdef at all, so calling it there is a
+# "command not found" and the binding is silently lost. Running it after
+# zicdreplay also lets this wrapper win over anything wt queued itself.
+zinit ice wait lucid atload'zicompinit; zicdreplay; (( $+functions[_wt_with_restore] )) && compdef _wt_with_restore wt'
 zinit light zdharma-continuum/null
 
 #
