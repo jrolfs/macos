@@ -1,7 +1,9 @@
 { inputs, pkgs, ... }:
 
 # Firefox (release, Developer Edition, Nightly) and Glide are installed by
-# Homebrew, in modules/darwin/homebrew.nix, and configured from here.
+# Homebrew, in modules/darwin/homebrew.nix, and configured from here. So are the
+# Chrome channels, at the bottom, though none of the reasoning below applies to
+# them.
 #
 # Installing them from nix instead was the obvious move and it does not work.
 # home-manager's Firefox modules install `wrapFirefox <browser>`, and on darwin
@@ -63,6 +65,75 @@ let
           "{d634138d-c276-4fc8-924b-40a0ea21d284}"
         ];
       });
+
+  # Everything both Mozilla browsers get. Firefox and Glide are the same engine
+  # here, so the policies and the preference names are identical.
+  #
+  # SearchEngines matches a built-in engine on its display name, and the search
+  # config calls the ddg engine "DuckDuckGo". The policy was ESR-only until
+  # Firefox 139, which both browsers are past. It runs through
+  # runOncePerModification keyed on the value, so it sets the default once
+  # rather than re-asserting it at every start. Picking another engine by hand
+  # afterwards sticks, and only editing this string moves it again.
+  #
+  # The prompt is the "Close 3 windows?" dialog from BrowserGlue's quit
+  # handler. browser.warnOnQuit is the first thing that handler reads and it
+  # returns early, so that one pref is what removes the dialog. The other two
+  # sit behind the checkboxes the handler would go on to consult, and are set
+  # here so the Settings UI reads as what actually happens. tabs.warnOnClose
+  # also covers closing a window rather than quitting, which takes a different
+  # path (gBrowser.warnAboutClosingTabs) and reads that pref on its own.
+  mozillaPolicies = {
+    SearchEngines.Default = "DuckDuckGo";
+
+    Preferences = {
+      "browser.warnOnQuit" = {
+        Value = false;
+        Status = "locked";
+      };
+      "browser.warnOnQuitShortcut" = {
+        Value = false;
+        Status = "locked";
+      };
+      "browser.tabs.warnOnClose" = {
+        Value = false;
+        Status = "locked";
+      };
+    };
+  };
+
+  # Chrome reads enterprise policy out of its own preferences domain, one key
+  # per policy, and classifies anything that isn't force-managed as a
+  # *recommended* policy at user scope (policy_loader_mac.mm). That is what we
+  # want: the value applies, the UI can still override it, and the "Managed by
+  # your organization" menu item stays away, because that needs machine scope.
+  # Every key here is can_be_recommended, so a plain user-domain write lands.
+  #
+  # WarnBeforeQuittingEnabled is the "Warn Before Quitting (⌘Q)" overlay, the
+  # one that makes you hold the shortcut down. Mac-only, Chrome 102 and up,
+  # where it replaced ConfirmToQuitEnabled.
+  #
+  # Chrome has no policy for "use the built-in DuckDuckGo entry", so the
+  # default engine has to be respecified in full. The URLs are DuckDuckGo's own
+  # opensearch.xml.
+  chromePolicies = {
+    WarnBeforeQuittingEnabled = false;
+
+    DefaultSearchProviderEnabled = true;
+    DefaultSearchProviderName = "DuckDuckGo";
+    DefaultSearchProviderKeyword = "ddg";
+    DefaultSearchProviderSearchURL = "https://duckduckgo.com/?q={searchTerms}";
+    DefaultSearchProviderSuggestURL = "https://duckduckgo.com/ac/?q={searchTerms}&type=list";
+    DefaultSearchProviderIconURL = "https://duckduckgo.com/favicon.ico";
+  };
+
+  # EnterprisePoliciesEnabled on its own applies no policy. It is the switch
+  # that has to be on before a domain is read at all, and the two modules below
+  # write it into their own domains for the same reason. `about:policies` in a
+  # running browser lists what actually took.
+  mozillaChannel = mozillaPolicies // {
+    EnterprisePoliciesEnabled = true;
+  };
 in
 {
   imports = [ inputs.glide.homeModules.default ];
@@ -93,7 +164,7 @@ in
     # resolved, so the native messenger had not worked for some time.
     nativeMessagingHosts = [ pkgs.tridactyl-native ];
 
-    policies = { };
+    policies = mozillaPolicies;
   };
 
   programs.glide-browser = {
@@ -106,7 +177,7 @@ in
 
     nativeMessagingHosts = [ onePasswordMessagingHost ];
 
-    policies = { };
+    policies = mozillaPolicies;
   };
 
   # The channels that get no module of their own. All three Firefox channels
@@ -116,12 +187,17 @@ in
   # here for the same reason: it shares Glide's profile root but is a distinct
   # bundle identifier.
   #
-  # EnterprisePoliciesEnabled on its own applies no policy. It is the switch
-  # that has to be on before any of these domains is read at all, so the
-  # mechanism is in place and `about:policies` can confirm it.
+  # The Chrome channels are here rather than in a module because none of
+  # home-manager's chromium modules has a policies option. They cover
+  # extensions, dictionaries and native messaging hosts, and there is no Canary
+  # one at all.
   targets.darwin.defaults = {
-    "org.mozilla.firefoxdeveloperedition".EnterprisePoliciesEnabled = true;
-    "org.mozilla.nightly".EnterprisePoliciesEnabled = true;
-    "app.glide-browser.glide.developer".EnterprisePoliciesEnabled = true;
+    "org.mozilla.firefoxdeveloperedition" = mozillaChannel;
+    "org.mozilla.nightly" = mozillaChannel;
+    "app.glide-browser.glide.developer" = mozillaChannel;
+
+    "com.google.Chrome" = chromePolicies;
+    "com.google.Chrome.beta" = chromePolicies;
+    "com.google.Chrome.canary" = chromePolicies;
   };
 }
