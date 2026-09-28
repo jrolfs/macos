@@ -12,6 +12,7 @@ local autohide = require('modules.autohide')
 
 autohide.start({
   "1Password",
+  "ChatGPT",
   "Dash",
   "DevDocs",
   "Discord",
