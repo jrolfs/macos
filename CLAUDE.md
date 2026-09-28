@@ -89,6 +89,7 @@ links/             convenience symlink to /Library/LaunchDaemons
 | `tailscale.nix` | connect Tailscale everywhere except at home |
 | `finder-sidebar.nix` | Finder sidebar Favorites, via `mysides` |
 | `default-browser.nix` | Velja as the http(s) router |
+| `velja.nix` | Velja's own rules and settings, inside its sandbox container |
 | `icons.nix` / `fileicon.nix` | custom app icons and the tool that sets them |
 | `sidecar.nix` | Sidecar (iPad as display) via the private SidecarCore framework |
 | `glide-developer.nix` | a second Glide copy with its own bundle identifier |
