@@ -15,7 +15,7 @@ let
   # neither of which is safe to automate.
   #
   # So: install Xcode by hand, run those two commands, then add the host here.
-  hostsWithXcode = [ "ala" ];
+  hostsWithXcode = [ "ala" "adrian" ];
 
   buildsFromSource = lib.elem hostname hostsWithXcode;
 
