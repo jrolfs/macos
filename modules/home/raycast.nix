@@ -86,6 +86,8 @@ let
         export GIT_TERMINAL_PROMPT=0
 
         fork=${lib.escapeShellArg fork}
+        fork_url=${lib.escapeShellArg forkUrl}
+        upstream_url=${lib.escapeShellArg upstreamUrl}
         install_root=${lib.escapeShellArg installRoot}
         stamp_root=${lib.escapeShellArg stampRoot}
 
@@ -112,7 +114,7 @@ let
             # and every worktree scopes itself with a sparse cone. The fork costs
             # about 40M this way.
             timeout 900 git clone --quiet --filter=blob:none --no-checkout \
-              "$forkUrl" "$fork" || return 1
+              "$fork_url" "$fork" || return 1
             # An argument-less cone matches the root files and nothing else, which
             # is what the clone itself wants: the worktrees hold the extensions.
             # Set before the checkout, or git materialises all 2,800 of them.
@@ -123,7 +125,7 @@ let
           fi
 
           git -C "$fork" remote get-url upstream >/dev/null 2>&1 \
-            || git -C "$fork" remote add upstream "$upstreamUrl" || return 1
+            || git -C "$fork" remote add upstream "$upstream_url" || return 1
 
           # worktrunk's `sync` and `extension` aliases fetch upstream/main. Without
           # these two the fetch backfills blobs for every file touched across
