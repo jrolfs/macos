@@ -41,6 +41,10 @@ nix-rebuild             # build without activating
 nix-update              # nix flake update, optionally per-input
 homebrew-gate status    # whether the next switch will run `brew bundle`
 
+velja-rules diff        # has Velja drifted from modules/darwin/velja/rules.toml?
+velja-rules capture --write   # pull GUI-authored rules back into rules.toml
+velja-rules apply       # push rules.toml into Velja without a full switch
+
 icn                     # apply custom app icons (icons/apply.sh)
 mkbk / mkrs             # mackup backup / restore
 spoon                   # the Hammerspoon CLI (`hs` is homeshick)
@@ -89,7 +93,7 @@ links/             convenience symlink to /Library/LaunchDaemons
 | `tailscale.nix` | connect Tailscale everywhere except at home |
 | `finder-sidebar.nix` | Finder sidebar Favorites, via `mysides` |
 | `default-browser.nix` | Velja as the http(s) router |
-| `velja.nix` | Velja's own rules and settings, inside its sandbox container |
+| `velja/` | Velja's settings, plus `rules.toml` and the `velja-rules` CLI |
 | `icons.nix` / `fileicon.nix` | custom app icons and the tool that sets them |
 | `sidecar.nix` | Sidecar (iPad as display) via the private SidecarCore framework |
 | `glide-developer.nix` | a second Glide copy with its own bundle identifier |
