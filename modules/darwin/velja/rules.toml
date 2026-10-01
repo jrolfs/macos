@@ -1,0 +1,40 @@
+# Velja's routing rules.
+#
+# Authoring these by hand is possible but miserable, because the GUI is where
+# the matcher kinds and the fixture field make sense. The intended loop is to
+# build the rule in Velja, run `velja-rules capture --write` to bring it here,
+# and commit. `velja-rules diff` says whether the two have drifted, and
+# `velja-rules apply` pushes this file back into Velja without a full switch.
+#
+# Only the fields that distinguish a rule need to be present. default.nix fills
+# in the rest of Velja's struct, and derives `id` from the title when it is
+# absent, so a minimal rule is five lines:
+#
+#   [[rules]]
+#   title = "Example"
+#   openTarget = "browser:com.apple.Safari"
+#   [[rules.matchers]]
+#   kind = "hostSuffix"
+#   pattern = "example.com"
+#
+# `kind` is Velja's own vocabulary: hostSuffix, host, urlPrefix, regex and so
+# on. Capture a rule built in the GUI rather than guessing at the spelling.
+#
+# `capture --write` regenerates everything below this header, so this block
+# survives and comments written between the rules do not. Reasoning for a rule
+# goes here, where it will outlive the next capture:
+#
+#   Meter / Dashboard
+#     Meter runs the office network. Its dashboard is a work tool, so it opens
+#     in the developer build rather than in daily Glide.
+
+[[rules]]
+id = "AA70316F-1781-4342-96A8-D750D0BE7755"
+openTarget = "browser:app.glide-browser.glide.developer"
+title = "Meter / Dashboard"
+
+[[rules.matchers]]
+fixture = "https://dashboard.meter.website:8556/"
+id = "F9D6BE8F-95F1-4ED6-896D-52759B0B7270"
+kind = "hostSuffix"
+pattern = "dashboard.meter.website"
