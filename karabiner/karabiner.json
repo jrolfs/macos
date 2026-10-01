@@ -25,7 +25,15 @@
                                 "type": "basic"
                             },
                             {
-                                "description": "Toggle quick access kitty",
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "^net\\.kovidgoyal\\.kitty-quick-access$"
+                                        ],
+                                        "type": "frontmost_application_unless"
+                                    }
+                                ],
+                                "description": "Quick access kitty to front",
                                 "from": {
                                     "key_code": "tab",
                                     "modifiers": {
@@ -33,7 +41,27 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [{ "shell_command": "/opt/homebrew/bin/kitten quick-access-terminal >/dev/null 2>&1 &" }],
+                                "to": [{ "shell_command": "/Users/jamie/.config/kitty/quick-access show >/dev/null 2>&1 &" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "^net\\.kovidgoyal\\.kitty-quick-access$"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "description": "Quick access kitty to hidden",
+                                "from": {
+                                    "key_code": "tab",
+                                    "modifiers": {
+                                        "mandatory": ["left_option"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "shell_command": "/Users/jamie/.config/kitty/quick-access hide >/dev/null 2>&1 &" }],
                                 "type": "basic"
                             },
                             {

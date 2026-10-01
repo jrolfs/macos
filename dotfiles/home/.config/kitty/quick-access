@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Carries out the ⌥⇥ binding. Karabiner decides between show and hide from
+# whether the panel is the frontmost application, which is the same pair of
+# conditions the binding used before any of this was a panel; this script only
+# has to act, and to create the panel when there is not one yet.
+#
+# `kitten quick-access-terminal` is a toggle, which is why it is not used for
+# both: pressing ⌥⇥ with the panel visible but buried under another window
+# would hide it, when the point is to raise it.
+
+kitty=/opt/homebrew/bin/kitty
+kitten=/opt/homebrew/bin/kitten
+
+# kitty appends its pid to the listen_on path from kitty.conf and never reaps
+# the socket afterwards, so the newest is the live one and even that has to be
+# proved before it is used.
+socket=$(/bin/ls -t "$HOME"/.local/share/kitty/socket-* 2>/dev/null | /usr/bin/head -1)
+
+if [ -z "$socket" ] || ! "$kitty" @ --to "unix:$socket" ls >/dev/null 2>&1; then
+  # Nothing to talk to: the first ⌥⇥ after a login has to start the panel, and
+  # starting it already shows it.
+  exec "$kitten" quick-access-terminal
+fi
+
+case "$1" in
+show | hide)
+  exec "$kitty" @ --to "unix:$socket" resize-os-window --action "$1"
+  ;;
+*)
+  echo "usage: quick-access <show|hide>" >&2
+  exit 64
+  ;;
+esac
