@@ -38,3 +38,14 @@ fixture = "https://dashboard.meter.website:8556/"
 id = "F9D6BE8F-95F1-4ED6-896D-52759B0B7270"
 kind = "hostSuffix"
 pattern = "dashboard.meter.website"
+
+[[rules]]
+id = "73818820-1CC6-44EB-A5F5-9D78E7BFD689"
+openTarget = "browser:app.glide-browser.glide.developer"
+title = "Localhost"
+
+[[rules.matchers]]
+fixture = "https://localhost:3002"
+id = "BE098F04-F1C1-4F21-A692-C31CCABB7ACC"
+kind = "hostSuffix"
+pattern = "localhost"
