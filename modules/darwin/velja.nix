@@ -58,9 +58,8 @@ in
     # default browser that default-browser.nix sets, which is Velja itself.
     defaultBrowser = "browser:app.glide-browser.glide";
 
-    # The picker's running order, not a list of what is installed. Velja shows
-    # the ones it finds, so naming a browser that is absent from a host costs
-    # nothing and keeps both machines on one list.
+    # The browser picker list including order. Browser's that
+    # don't exist on a given host will be omitted by Velja.
     preferredBrowsers = [
       "browser:app.glide-browser.glide"
       "browser:app.glide-browser.glide.developer"
