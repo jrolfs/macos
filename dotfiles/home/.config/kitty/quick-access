@@ -12,12 +12,21 @@
 kitty=/opt/homebrew/bin/kitty
 kitten=/opt/homebrew/bin/kitten
 
-# kitty appends its pid to the listen_on path from kitty.conf and never reaps
-# the socket afterwards, so the newest is the live one and even that has to be
-# proved before it is used.
-socket=$(/bin/ls -t "$HOME"/.local/share/kitty/socket-* 2>/dev/null | /usr/bin/head -1)
+# The panel is addressed by its own pid, not by taking the newest socket in the
+# directory. kitty appends its pid to the listen_on path from kitty.conf and
+# never reaps the socket afterwards, and "newest" was only ever the panel while
+# the panel was the only kitty running. Anything that opens kitty.app directly
+# — the Dock, `open -a`, a `kitty @` that starts one — leaves a socket of its
+# own, and once that one is newer every ⌥⇥ is sent to it instead. The panel then
+# never moves, which looks exactly like the binding being dead.
+#
+# The pattern matches the panel's own process. Its `kitten __atexit__` and
+# `kitten __watch_conf__` children run from the same nested bundle but exec
+# `kitten`, so they do not collide with it.
+pid=$(/usr/bin/pgrep -f 'kitty-quick-access\.app/Contents/MacOS/kitty-quick-access' 2>/dev/null | /usr/bin/head -1)
+socket="$HOME/.local/share/kitty/socket-$pid"
 
-if [ -z "$socket" ] || ! "$kitty" @ --to "unix:$socket" ls >/dev/null 2>&1; then
+if [ -z "$pid" ] || ! "$kitty" @ --to "unix:$socket" ls >/dev/null 2>&1; then
   # Nothing to talk to: the first ⌥⇥ after a login has to start the panel, and
   # starting it already shows it.
   exec "$kitten" quick-access-terminal
