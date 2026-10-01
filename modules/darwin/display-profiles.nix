@@ -62,7 +62,7 @@ let
       slack_zoom=${toString p.slack}
       ;;'';
 
-  displayProfile = pkgs.writeShellScriptBin "display-profile" # bash
+  displayProfileScript = pkgs.writeShellScriptBin "display-profile" # bash
     ''
       set -uo pipefail
 
@@ -135,6 +135,40 @@ let
     '';
 
   arms = lib.concatStringsSep "\n" (lib.mapAttrsToList arm profiles);
+
+  # Nothing in .zshrc registers this. nix-darwin links /share/zsh out of the
+  # system profile whatever programs.zsh.enableCompletion says, and that
+  # site-functions directory is already on fpath, so compinit finds the file on
+  # its own at the next shell start.
+  #
+  # The candidates come from the same attrset as the case arms, which is the
+  # point: a profile added above cannot be missing from the completion.
+  displayProfileCompletion = pkgs.writeTextFile {
+    name = "display-profile-zsh-completion";
+    destination = "/share/zsh/site-functions/_display-profile";
+    text = # zsh
+      ''
+        #compdef display-profile
+
+        # One argument and no options, matching the usage check in the script.
+        (( CURRENT == 2 )) || return 1
+
+        local -a profiles expl
+        profiles=(
+        ${lib.concatMapStringsSep "\n" (name: "  ${lib.escapeShellArg name}") (lib.attrNames profiles)}
+        )
+
+        # -d lists the names as written and still inserts the quoted form.
+        # Without it every name shows up in the menu as 13\"\ M4\ Air, because
+        # a listed match is displayed the way it would be inserted.
+        _wanted profiles expl 'display profile' compadd -d profiles -a profiles
+      '';
+  };
+
+  displayProfile = pkgs.symlinkJoin {
+    name = "display-profile";
+    paths = [ displayProfileScript displayProfileCompletion ];
+  };
 in
 {
   environment.systemPackages = [ displayProfile ];
