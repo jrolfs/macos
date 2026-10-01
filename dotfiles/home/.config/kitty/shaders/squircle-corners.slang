@@ -9,9 +9,12 @@
 // superellipse eases into it, and that easing is what reads as a squircle.
 //
 // RADIUS_PX is in device pixels, not points, because the only size a shader is
-// handed is d.viewport_size_pixels. On a 2x display 20 is the classic 10pt macOS
-// window radius. Tahoe's own windows are a little larger, so 24-26 matches those
-// more closely at the cost of looking unlike every app that has not followed.
+// handed is d.viewport_size_pixels. So on a 2x display this is half the figure
+// you would reach for: 48 here is a 24pt corner.
+//
+// Which is a long way from the 10pt corner macOS used before Tahoe. Tahoe's own
+// windows are much rounder than that, and 20 (the old value) read as barely
+// rounded at all next to them.
 //
 // Both values are re-declared in squircle-corners.pipeline, which is the
 // documented way to retune them without editing this file.
@@ -22,7 +25,7 @@
 // underscored name.
 import kitty_custom_shader_types;
 
-static const float RADIUS_PX = 20.0;
+static const float RADIUS_PX = 48.0;
 static const float EXPONENT = 5.0;
 
 public float4

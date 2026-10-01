@@ -8,7 +8,7 @@ startgroup
     # forever, for a static mask.
     animation_step 0
 
-    var float RADIUS_PX = 20.0
+    var float RADIUS_PX = 48.0
     var float EXPONENT = 5.0
 
     shaders squircle-corners
