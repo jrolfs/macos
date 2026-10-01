@@ -16,6 +16,17 @@
 - Describe behavior concretely rather than through a metaphor. For feature gating say what UI appears or disappears, or borrow feature-flag words like exposed / enabled / hidden / disabled — don't invent a vocabulary ("on offer", "withheld", "surfaced") and make the reader learn it.
 - See above section on prose
 
+## Shell & CLI Tools
+
+### HTTP requests
+- Prefer `http` (HTTPie) over `curl` for ad-hoc requests
+- Request items are positional, so the common case needs no flags: `key=value` for a JSON string field, `key:=value` for raw JSON, `Header:value`, `param==value` for a query parameter
+  - DON'T: `curl -s -X POST -H 'Content-Type: application/json' -d '{"chat_id":123,"text":"hi"}' <url> | jq`
+  - DO: `http POST <url> chat_id:=123 text=hi`
+- A schemeless URL defaults to `http://`, so use the `https` alias or write the scheme out
+- Don't pipe to `jq` just to format output. HTTPie already formats and colorizes JSON; pipe to `jq` only to actually query it. Piped output is the body alone, so it stays valid JSON. In a terminal, `-b` prints the body only and `--print=HhBb` shows the whole exchange
+- `curl` is still correct when the request runs somewhere HTTPie isn't installed (remote shells, containers, a command written for someone else to paste) or needs something HTTPie lacks, like `--unix-socket`
+
 ## TypeScript / JavaScript Conventions
 
 ### Function Style
