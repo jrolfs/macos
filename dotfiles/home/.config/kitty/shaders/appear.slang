@@ -10,9 +10,11 @@
 
 import kitty_custom_shader_types;
 
-// Where the fade begins. Zero fades up from nothing; raising it keeps the panel
-// partly visible for the whole animation, which reads as quicker.
-static const float FADE_FROM = 0.0;
+// Where the fade begins. Not zero, because background_blur is applied by macOS
+// behind the panel regardless of the alpha written here: fading up from nothing
+// puts the frosted rectangle on screen by itself for the first frames, which
+// reads as a flash. Starting part-way up means the backdrop is never alone.
+static const float FADE_FROM = 0.35;
 
 public float4
 fragment_main(float4 color, KittyTextures t, KittyCustomShaderData d) {

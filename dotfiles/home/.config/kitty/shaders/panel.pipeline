@@ -19,14 +19,14 @@ startgroup
     # It does fire on any refocus, so Cmd-Tabbing back to a panel that was left
     # visible fades it in again rather than doing nothing.
     animation_start os-window-focus-in
-    animation_stop 90
+    animation_stop 125
     animation_curve ease-out
 
-    # 90ms at the default 50ms step would be two frames. repaint_delay in
+    # 125ms at the default 50ms step would be two frames. repaint_delay in
     # kitty.conf is 10, which is the floor this gets clamped to regardless.
     animation_step 10
 
-    var float FADE_FROM = 0.0
+    var float FADE_FROM = 0.35
 
     shaders appear
 endgroup
