@@ -1,0 +1,42 @@
+# The panel's whole shader chain, named by custom_shaders in
+# quick-access-terminal.macos.conf. Two groups rather than one shader, because
+# the fade animates and the corner does not: a group with animation_start only
+# runs while it is animating, so folding the corner into it would square the
+# corners off for everything except the first fraction of a second after the
+# panel appears.
+
+startgroup
+    # Showing the panel is what gives it keyboard focus, so this is the closest
+    # thing to a "panel shown" event, and it also fires on the first frame after
+    # the pipeline loads, which covers the cold start on the first ⌥⇥ of a login.
+    #
+    # There is no counterpart for the panel being hidden, and no exit fade is
+    # possible: ⌥⇥ orders the window out and it composites no further frames for
+    # an animation to be drawn into.
+    #
+    # It does fire on any refocus, so Cmd-Tabbing back to a panel that was left
+    # visible fades it in again rather than doing nothing.
+    animation_start os-window-focus-in
+    animation_stop 180
+    animation_curve ease-out
+
+    # 180ms at the default 50ms step would be four frames. repaint_delay in
+    # kitty.conf is 10, which is the floor this gets clamped to regardless.
+    animation_step 10
+
+    var float FADE_FROM = 0.0
+
+    shaders appear
+endgroup
+
+startgroup
+    # The shape only changes when the panel is resized, so there is nothing to
+    # redraw on a timer. Without this the group would run every frame at 20fps
+    # forever, for a static mask.
+    animation_step 0
+
+    var float RADIUS_PX = 48.0
+    var float EXPONENT = 5.0
+
+    shaders squircle-corners
+endgroup
