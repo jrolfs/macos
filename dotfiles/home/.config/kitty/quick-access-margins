@@ -17,5 +17,13 @@ case "$gap" in
 '' | *[!0-9]*) gap=0 ;;
 esac
 
+# The same number reads a pixel tight above and below the panel next to a
+# Moom-placed window, so the vertical inset gets one more. No gap at all stays
+# no gap, since the fudge only matters when there is an edge to match.
+case "$gap" in
+0) vertical_gap=0 ;;
+*) vertical_gap=$((gap + 1)) ;;
+esac
+
 printf 'margin_left %s\nmargin_right %s\nmargin_top %s\nmargin_bottom %s\n' \
-  "$gap" "$gap" "$gap" "$gap"
+  "$gap" "$gap" "$vertical_gap" "$vertical_gap"
