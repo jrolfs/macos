@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Printed as kitty configuration by the `geninclude` in
+# quick-access-terminal.macos.conf.
+#
+# Moom's own preference is the source of truth rather than a number repeated
+# here, because display-profile writes that preference per display
+# configuration. Reading it back is what keeps the panel's inset and the gap
+# around a Moom-placed window the same number on every display.
+
+gap=$(/usr/bin/defaults read com.manytricks.Moom "Grid Spacing: Gap" 2>/dev/null) || gap=0
+
+# The key is absent until something writes it, and a GUI edit can leave a
+# non-integer behind. kitty rejects the whole included file on a bad value, so
+# anything that is not a plain number becomes no inset at all.
+case "$gap" in
+'' | *[!0-9]*) gap=0 ;;
+esac
+
+printf 'margin_left %s\nmargin_right %s\nmargin_top %s\nmargin_bottom %s\n' \
+  "$gap" "$gap" "$gap" "$gap"

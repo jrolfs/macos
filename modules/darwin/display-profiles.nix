@@ -99,7 +99,26 @@ let
             rm -f -- "$stale"
           done
           socket=$(ls -t ~/.local/share/kitty/socket* 2>/dev/null | head -1)
-          [[ -n "$socket" ]] && "$kitty" @ --to "unix:$socket" set-font-size "$kitty_size" >/dev/null 2>&1
+          if [[ -n "$socket" ]]; then
+            "$kitty" @ --to "unix:$socket" set-font-size "$kitty_size" >/dev/null 2>&1
+
+            # kitty is the ⌥⇥ panel now
+            # (dotfiles/home/.config/kitty/quick-access-terminal.conf), and its
+            # insets are the same gap Moom gets below. geninclude reads that gap
+            # when the panel is created, which is the first ⌥⇥ after a login, so
+            # by the time displays change it is holding a stale number.
+            #
+            # --incremental is what keeps `edge` and `layer` as they are:
+            # without it every panel setting not named here reverts to its
+            # default. The keys are the panel kitten's flags with the dashes
+            # stripped, so hyphenated here where the same settings are
+            # underscored in the conf file. A wrong one is reported in the reply
+            # rather than the exit status, which the redirect throws away, so
+            # `margin_top` would have gone on failing silently.
+            "$kitty" @ --to "unix:$socket" resize-os-window --action os-panel --incremental \
+              margin-left="$moom_gap" margin-right="$moom_gap" \
+              margin-top="$moom_gap" margin-bottom="$moom_gap" >/dev/null 2>&1
+          fi
         fi
       fi
 

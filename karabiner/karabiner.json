@@ -25,15 +25,7 @@
                                 "type": "basic"
                             },
                             {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": [
-                                            "^net\\.kovidgoyal\\.kitty$"
-                                        ],
-                                        "type": "frontmost_application_unless"
-                                    }
-                                ],
-                                "description": "Toggle kitty to visible",
+                                "description": "Toggle quick access kitty",
                                 "from": {
                                     "key_code": "tab",
                                     "modifiers": {
@@ -41,27 +33,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [{ "shell_command": "open -a 'kitty.app'" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": [
-                                            "^net\\.kovidgoyal\\.kitty$"
-                                        ],
-                                        "type": "frontmost_application_if"
-                                    }
-                                ],
-                                "description": "Toggle kitty to hidden",
-                                "from": {
-                                    "key_code": "tab",
-                                    "modifiers": {
-                                        "mandatory": ["left_option"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [{ "shell_command": "osascript -e 'tell application \"Finder\"' -e 'set visible of process \"kitty\" to false' -e 'end tell'" }],
+                                "to": [{ "shell_command": "/opt/homebrew/bin/kitten quick-access-terminal >/dev/null 2>&1 &" }],
                                 "type": "basic"
                             },
                             {
@@ -93,7 +65,7 @@
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "description": "Toggle kitty to hidden",
+                                "description": "Toggle Obsidian to hidden",
                                 "from": {
                                     "key_code": "grave_accent_and_tilde",
                                     "modifiers": {
