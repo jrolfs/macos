@@ -30,6 +30,7 @@ in
     ./spotlight.nix
     ./tailscale.nix
     ./tap.nix
+    ./user-picture.nix
     ./velja
 
     # ./applications/codium.nix

@@ -23,6 +23,8 @@ let
   inherit (pkgs.stdenv.hostPlatform) system;
 in
 {
+  imports = [ ./user-picture.nix ];
+
   environment.systemPackages = [
     pkgs.kitty
     pkgs.zed-editor
