@@ -1,6 +1,6 @@
 { config, lib, hostname, userName, ... }:
 
-# The account picture — the Linux half of modules/darwin/user-picture.nix, and
+# The account picture, the Linux half of modules/darwin/user-picture.nix, and
 # much less work, because nothing here is trying to sync it from an account in
 # the cloud.
 #
@@ -8,26 +8,25 @@
 # settings panels read it over DBus rather than touching the home directory. It
 # keeps per-user state under /var/lib/AccountsService, where an account whose
 # keyfile carries no `Icon=` falls back to icons/<user>. So the image is the
-# whole declaration, and the keyfile — which the daemon rewrites as sessions
-# come and go — stays the daemon's.
+# whole declaration, and the keyfile stays the daemon's, which rewrites it as
+# sessions come and go.
 #
 # ~/.face is the older convention and still the one anything that reads the
 # home directory instead of DBus will look for, so it gets the same image.
 #
 # Imported from desktop.nix rather than modules/nixos/default.nix, on the same
 # reasoning that file already makes: a headless host has nothing to draw this
-# on. Which is nearly irulan today — it has no greeter yet and
-# services.accounts-daemon is off — so declaring it now is what makes the
-# picture already right the day one arrives.
+# on. Which is nearly irulan today, with no greeter yet and
+# services.accounts-daemon off, so declaring it now is what makes the picture
+# already right the day one arrives.
 
 let
   avatar = ../../avatars/${hostname}.png;
 in
 {
-  # L+ rather than C, so a picture changed in a desktop's own settings is put
-  # back on the next switch. The darwin side re-asserts itself for a reason it
-  # can't avoid; this one does it for symmetry, and because a declared picture
-  # that quietly loses to the GUI is worse than no declaration.
+  # L+ rather than C, so a picture changed in a desktop's own settings goes
+  # back to the declared one on the next switch. A declaration that quietly
+  # loses to the GUI is worse than no declaration.
   systemd.tmpfiles.rules = lib.optionals (builtins.pathExists avatar) [
     "d /var/lib/AccountsService 0755 root root -"
     "d /var/lib/AccountsService/icons 0755 root root -"
