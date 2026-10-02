@@ -32,6 +32,7 @@ autohide.start({
   "Yaak",
   "YouTube",
   "iPhone Mirroring",
+  "kitty",
 })
 
 require('modules.touchid-focus').start()

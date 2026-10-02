@@ -33,17 +33,8 @@ in
       # Every entry has to exist at activation time or the Dock renders a "?"
       # placeholder tile in its place, so anything listed here needs to be
       # installed unconditionally, not listed in excluded-apps.nix.
-      #
-      # kitty is deliberately absent. The terminal is the quick access panel
-      # that ⌥⇥ shows, and a tile cannot reach it: the panel's bundle is
-      # LSBackgroundOnly, so it has no Dock presence of its own, and clicking
-      # kitty.app launches an ordinary second instance beside it instead. That
-      # instance brings its own socket, which is what the ⌥⇥ binding resolves
-      # the panel through, and it used to win — ⌥⇥ went to the wrong kitty and
-      # the panel never moved. The binding no longer picks by socket age, but a
-      # tile whose only use is starting the instance that caused that is not
-      # worth keeping.
       persistent-apps = [
+        "/Applications/kitty.app"
         "/Applications/Zed.app"
         "/Applications/Linear.app"
         "/Applications/Obsidian.app"
