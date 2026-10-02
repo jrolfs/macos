@@ -162,11 +162,19 @@ let
           # that is what `wt dev` is for, and its build overwrites the same
           # directory. A commit is what makes a change part of the installed
           # version.
+          #
+          # 2 rather than 0 so the caller can tell "already installed" from
+          # "just built". Both are success, but only one has anything to
+          # register, and registering means deep links that bring Raycast to
+          # the front — on every switch, for an extension that had not changed.
+          #
+          # The trade is that an extension Raycast forgets while its directory
+          # survives stops being re-registered. Removing the stamp forces it.
           local head
           head=$(git -C "$worktree" rev-parse HEAD) || return 1
           if [ "$(cat "$stamp" 2>/dev/null)" = "$head" ] \
             && [ -f "$install_root/$name/package.json" ]; then
-            return 0
+            return 2
           fi
 
           # npm, never pnpm, and `ci` over `install`: Raycast CI accepts only
@@ -200,8 +208,10 @@ let
               quotedDirectory = lib.escapeShellArg "${worktreeFor branch}/extensions/${name}";
             in
             ''
-              if install_extension ${quotedName} ${lib.escapeShellArg branch} \
-                ${lib.escapeShellArg (worktreeFor branch)}; then
+              install_extension ${quotedName} ${lib.escapeShellArg branch} \
+                ${lib.escapeShellArg (worktreeFor branch)}
+              case $? in
+              0)
                 if raycast_is_running; then
                   notify start ${quotedName} ${quotedDirectory}
                   sleep 1
@@ -209,10 +219,13 @@ let
                 else
                   echo "raycast: built ${name}, but Raycast is not running to register it"
                 fi
-              else
+                ;;
+              2) ;;
+              *)
                 echo "raycast: could not install ${name} from ${branch}" >&2
                 status=1
-              fi
+                ;;
+              esac
             ''
           ) tracked
         )}
