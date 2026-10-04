@@ -61,7 +61,7 @@ alias gpgr="gpg-connect-agent reloadagent /bye"
 
 # Node
 
-alias update-node-version="node --version | tr -d v >! .node-version"
+alias n=pnpm
 
 # HTTPie
 
