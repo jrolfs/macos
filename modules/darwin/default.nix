@@ -26,7 +26,6 @@ in
     ./login-items.nix
     ./mas.nix
     ./sidecar.nix
-    ./space-bindings.nix
     ./spicetify.nix
     ./spotlight.nix
     ./tailscale.nix
