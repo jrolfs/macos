@@ -77,13 +77,23 @@ zinit light ahmetb/kubectx
 
 # Initialize completions after Turbo-loaded plugins register theirs.
 #
-# `wt`'s completion is registered here rather than beside its shell init
-# because zinit only substitutes its compdef-queueing shim while a plugin file
-# is being sourced, and restores (or unfunctions) it immediately after. An
-# `atload` therefore runs with no compdef at all, so calling it there is a
-# "command not found" and the binding is silently lost. Running it after
-# zicdreplay also lets this wrapper win over anything wt queued itself.
-zinit ice wait lucid atload'zicompinit; zicdreplay; (( $+functions[_wt_with_restore] )) && compdef _wt_with_restore wt'
+# `wt`'s and pnpm's completions are registered here rather than beside their
+# shell init because zinit only substitutes its compdef-queueing shim while a
+# plugin file is being sourced, and restores (or unfunctions) it immediately
+# after. An `atload` therefore runs with no compdef at all, so calling it there
+# is a "command not found" and the binding is silently lost. Running it after
+# zicdreplay also lets these wrappers win over anything wt queued itself, or
+# the `_pnpm` that pnpm-shell-completion installs into $fpath.
+#
+# `n` is bound explicitly because zsh resolves completions by the literal
+# command word: _normal never expands an alias, so `n` inherits nothing from
+# pnpm's binding.
+zinit ice wait lucid atload'
+  zicompinit
+  zicdreplay
+  (( $+functions[_wt_with_restore] )) && compdef _wt_with_restore wt
+  (( $+functions[_pnpm_with_scripts] )) && compdef _pnpm_with_scripts pnpm n
+'
 zinit light zdharma-continuum/null
 
 #

@@ -278,7 +278,6 @@ in
     "k9s".source = "${dotfiles}/.config/k9s";
     "tridactyl".source = "${dotfiles}/.config/tridactyl";
     "worktrunk".source = "${dotfiles}/.config/worktrunk";
-    "tabtab".source = "${dotfiles}/.config/tabtab";
     "starship".source = "${dotfiles}/.config/starship";
     "starship.toml".source = "${dotfiles}/.config/starship.toml";
 

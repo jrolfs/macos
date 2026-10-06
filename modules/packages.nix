@@ -89,6 +89,13 @@
     pkgs.httpie
     pkgs.mise
 
+    # pnpm itself comes from each project's nix/devenv shell, but a zsh
+    # completion has to be in place at compinit, long before any such shell is
+    # entered. This one reads package.json directly instead of shelling out to
+    # pnpm, so scripts and dependencies still complete outside a project shell.
+    # modules/home zsh config merges it with pnpm's own completion.
+    pkgs.pnpm-shell-completion
+
     # Language servers
     pkgs.lua-language-server
     pkgs.nixd
