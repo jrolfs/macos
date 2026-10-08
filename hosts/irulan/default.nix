@@ -45,7 +45,13 @@
     # `initial` is load-bearing. mutableUsers defaults to true, so this
     # applies only when the account is created — it seeds the install, and
     # `passwd` afterwards sticks. A reinstall falls back to this.
-    initialHashedPassword = "$y$j9T$bfhk1LFVc.iTrIl0ZAREM1$vrA6U7F2fLQgZlBhaoNWiNr330JmBHauHjoKjOJBtU6";
+    # Verify against the vault before an install, by re-hashing with this
+    # value's own salt: `op read 'op://Secrets/Irulan/password' |
+    # mkpasswd -m yescrypt -S "$(cut -d'$' -f1-4 <<< "$hash")" -s`. The two
+    # drifted once already, because regenerating the 1Password item does not
+    # touch this file, and the failure only shows up as a password that
+    # doesn't work on a machine nobody can log into.
+    initialHashedPassword = "$y$j9T$4w877UixkTowZS062uf13/$Pfc3xrJns0xQ8Sv.wdqlVbnADcXHREqDVXtN9i.14XC";
     # video + render: Plex hardware transcoding via Quick Sync.
     # docker: invoke docker without sudo (Komodo periphery + ad-hoc).
     extraGroups = [ "wheel" "video" "render" "docker" ];
