@@ -138,10 +138,15 @@ in
       '';
 
       # Dependencies as a fixed-output derivation, the one place in this build
-      # allowed to reach the network. bun.lock pins what lands here, so the hash
-      # changes when the lockfile does and at no other time. Regenerate both
-      # together: `bun install` in the source directory, then take the hash nix
-      # reports when it rebuilds.
+      # allowed to reach the network. Regenerate after changing bun.lock:
+      # `bun install` in the source directory, then take the hash nix reports
+      # when it rebuilds.
+      #
+      # One hash per system, not one hash. What bun writes into node_modules
+      # differs by host even from an identical lockfile, so a darwin-only hash
+      # failed the first NixOS build with a mismatch. A system missing from
+      # this set is better as a readable error than as a mismatch three
+      # derivations deep, which is how this one surfaced.
       modules = super.stdenvNoCC.mkDerivation {
         name = "claude-helpers-node-modules";
         src = manifest;
@@ -155,7 +160,19 @@ in
         installPhase = "cp -R node_modules $out";
         outputHashMode = "recursive";
         outputHashAlgo = "sha256";
-        outputHash = "sha256-JkS6JWjXOf9coNB61yD+JvPWOwAxooBCAYSanpIL00g=";
+        outputHash =
+          let
+            hashes = {
+              aarch64-darwin =
+                "sha256-JkS6JWjXOf9coNB61yD+JvPWOwAxooBCAYSanpIL00g=";
+              x86_64-linux =
+                "sha256-sipNQconaJ2WCSRlsAOwp4AGJLHe4AnI+gPGoZdOXLA=";
+            };
+            inherit (super.stdenv.hostPlatform) system;
+          in
+          hashes.${system} or (throw
+            ("claude-helpers has no node_modules hash for ${system}; "
+              + "build it there and record the hash nix reports"));
       };
     in
     super.runCommandLocal "claude-helpers"
