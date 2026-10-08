@@ -138,6 +138,13 @@ would otherwise have to be rediscovered.
 - Comments explain *why*, not what. Most modules here open with a paragraph on
   the failure they exist to prevent; match that rather than summarising the
   code.
+- The repo's own small tools are Rust, built by `pkgs.rustTool` (and
+  `pkgs.rustLibrary` for code they share) in `overlays/default.nix`. One
+  `rustc` for all of them, invoked bare rather than through Cargo, so a tool is
+  a single `.rs` file in `modules/darwin/pkgs/` with no manifest or lock file.
+  That overlay is also where the non-obvious flags are explained; add tools
+  through it rather than calling `rustc` or `$CC` from a module. `sidecar.swift`
+  stays Swift because it needs the macOS SDK's private frameworks.
 
 ## Gotchas
 

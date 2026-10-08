@@ -8,7 +8,7 @@
 # com.apple.macl and Full Disk Access. A folder only needs a glyph named in a
 # small extended attribute, which macOS 26 composites onto its own folder
 # artwork, so it stays correct in light and dark mode, at every icon size,
-# without this repo carrying any image assets. See pkgs/folder-icon.c for the
+# without this repo carrying any image assets. See pkgs/folder-icon.rs for the
 # format and how it was recovered.
 #
 # The problem this exists to solve is Resilio Sync. It writes a 1.2 MB Icon\r
@@ -31,13 +31,15 @@ let
   folderIcons = config.local.finder.folderIcons;
   home = "/Users/${userName}";
 
-  tool = pkgs.stdenv.mkDerivation {
+  tool = pkgs.rustTool {
     name = "folder-icon";
-    dontUnpack = true;
-    installPhase = ''
-      mkdir -p $out/bin
-      $CC -O2 -Wall -o $out/bin/folder-icon ${./pkgs/folder-icon.c}
-    '';
+    src = ./pkgs/folder-icon.rs;
+    libraries = [
+      (pkgs.rustLibrary {
+        name = "custom-icon";
+        src = ./pkgs/custom-icon.rs;
+      })
+    ];
   };
 
   # `folder-icon show` prints the stored JSON plus the two bits of state that

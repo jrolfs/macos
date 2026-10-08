@@ -18,21 +18,25 @@ let
   configDirectory = "/Users/${userName}/.config/system";
   assetsDir = "${configDirectory}/icons/assets";
 
-  # A small C tool that sets custom icons on macOS app bundles via direct
-  # POSIX file I/O — writing the Icon\r resource fork and FinderInfo xattr
-  # by hand, completely bypassing NSWorkspace / osascript.  This sidesteps
-  # TCC and com.apple.macl restrictions that block the NSWorkspace API when
-  # run from a LaunchDaemon.
+  # The xattr, FinderInfo and Icon\r plumbing that icon-setter shares with
+  # folder-icons.nix. See pkgs/custom-icon.rs for why it is shared.
+  customIcon = pkgs.rustLibrary {
+    name = "custom-icon";
+    src = ./pkgs/custom-icon.rs;
+  };
+
+  # A small tool that sets custom icons on macOS app bundles via direct POSIX
+  # file I/O, writing the Icon\r resource fork and FinderInfo xattr by hand and
+  # completely bypassing NSWorkspace / osascript. This sidesteps the TCC and
+  # com.apple.macl restrictions that block the NSWorkspace API when run from a
+  # LaunchDaemon.
   #
   # Accepts both .icns and .png input; PNGs are wrapped in an icns container
-  # on the fly (single ic10 entry — macOS downscales as needed).
-  iconSetter = pkgs.stdenv.mkDerivation {
+  # on the fly (single ic10 entry, which macOS downscales as needed).
+  iconSetter = pkgs.rustTool {
     name = "icon-setter";
-    dontUnpack = true;
-    installPhase = ''
-      mkdir -p $out/bin
-      $CC -O2 -Wall -o $out/bin/icon-setter ${./pkgs/icon-setter.c}
-    '';
+    src = ./pkgs/icon-setter.rs;
+    libraries = [ customIcon ];
   };
 
   script = pkgs.writeShellScriptBin "icon-customizer" ''
@@ -91,15 +95,12 @@ let
 
   # A stable-path compiled wrapper so the agent can be granted Full Disk
   # Access once and the grant survives nix rebuilds (which change store
-  # paths).  Must be a real Mach-O binary — TCC ignores FDA grants on
-  # shell scripts (it evaluates /bin/bash instead of the script path).
-  wrapper = pkgs.stdenv.mkDerivation {
+  # paths). Must be a real Mach-O binary, because TCC ignores FDA grants on
+  # shell scripts: it evaluates /bin/bash instead of the script path.
+  wrapper = pkgs.rustTool {
     name = "icon-customizer-wrapper";
-    dontUnpack = true;
-    installPhase = ''
-      mkdir -p $out/bin
-      $CC -O2 -Wall -o $out/bin/icon-customizer ${./pkgs/icon-customizer-wrapper.c}
-    '';
+    program = "icon-customizer";
+    src = ./pkgs/icon-customizer-wrapper.rs;
   };
   wrapperPath = "/usr/local/bin/icon-customizer";
   logPath = "${configDirectory}/icons/launchd.log";

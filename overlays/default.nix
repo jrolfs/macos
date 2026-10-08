@@ -236,6 +236,77 @@ in
     };
   };
 
+  # Build one of this repo's own single-file Rust tools.
+  #
+  # The tools it builds are a few hundred lines of POSIX calls each (xattrs,
+  # resource forks, FinderInfo), with no dependency beyond libc, so they are
+  # compiled by a bare `rustc` rather than through Cargo. That skips a
+  # Cargo.toml, a lock file and a vendored dependency tree per tool, and keeps
+  # the derivation the same shape the `$CC` one-liners had. The cost is the
+  # rustc closure, which is deliberate: every tool goes through here so they
+  # cannot drift onto different compilers.
+  #
+  # Three of the flags are load-bearing under nix and none of them are
+  # obvious, which is the other reason this is centralised:
+  #
+  #   --edition             bare rustc defaults to the 2015 edition, because
+  #                         there is no Cargo.toml for it to read one from
+  #   --crate-name          rustc otherwise derives the crate name from the
+  #                         source *file name*, which here is a store path, so
+  #                         the store hash lands in every mangled symbol
+  #   --remap-path-prefix   panic locations embed file!(), which is that same
+  #                         store path
+  #
+  # Without the last two, nix finds the hash while scanning the binary and
+  # records the .rs source as a runtime dependency of the tool. Each flag alone
+  # still leaves one copy behind (symbols vs. panic strings), so both are
+  # needed to keep the closure to a single path.
+  # A library crate for the tools above to share, built the same bare way. An
+  # rlib needs no Cargo either: `--crate-type=rlib` here, `--extern` there.
+  rustLibrary = { name, src, edition ? "2021" }:
+    let crateName = builtins.replaceStrings [ "-" ] [ "_" ] name;
+    in
+    super.stdenv.mkDerivation {
+      inherit name;
+      dontUnpack = true;
+      nativeBuildInputs = [ super.rustc ];
+      passthru = { inherit crateName; };
+      # An rlib is an ar archive carrying a .rmeta member, and the default
+      # fixup phase strips it right back out, leaving a file that only fails
+      # at the point something tries to link against it.
+      dontStrip = true;
+      installPhase = ''
+        mkdir -p $out/lib
+        rustc --edition ${edition} -O --crate-type=rlib \
+          --crate-name ${crateName} \
+          --remap-path-prefix ${src}=${name}.rs \
+          -o $out/lib/lib${crateName}.rlib ${src}
+      '';
+    };
+
+  # `program` defaults to `name` and exists for the one tool whose binary has
+  # to be called something other than its derivation: the icon-customizer
+  # wrapper installs as `icon-customizer`, which is already the name of the
+  # shell script it runs.
+  rustTool = { name, src, program ? name, edition ? "2021", flags ? [ ], libraries ? [ ] }:
+    super.stdenv.mkDerivation {
+      inherit name;
+      dontUnpack = true;
+      nativeBuildInputs = [ super.rustc ];
+      installPhase = ''
+        mkdir -p $out/bin
+        rustc --edition ${edition} -O \
+          --crate-name ${builtins.replaceStrings [ "-" ] [ "_" ] name} \
+          --remap-path-prefix ${src}=${name}.rs \
+          ${super.lib.concatMapStringsSep " "
+            (library: "--extern ${library.crateName}=${library}/lib/lib${library.crateName}.rlib")
+            libraries} \
+          ${super.lib.escapeShellArgs flags} \
+          -o $out/bin/${program} ${src}
+      '';
+      meta.mainProgram = program;
+    };
+
   darwin-zsh-completions = super.runCommandNoCC "darwin-zsh-completions-0.0.0"
     { preferLocalBuild = true; }
     ''
