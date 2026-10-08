@@ -92,6 +92,7 @@ links/             convenience symlink to /Library/LaunchDaemons
 | `daemons.nix` | launchd user agents, for headless things only |
 | `tailscale.nix` | connect Tailscale everywhere except at home |
 | `finder-sidebar.nix` | Finder sidebar Favorites, via `mysides` |
+| `folder-icons.nix` | SF Symbol / emoji icons on `$HOME` folders, over Resilio's |
 | `default-browser.nix` | Velja as the http(s) router |
 | `velja/` | Velja's settings, plus `rules.toml` and the `velja-rules` CLI |
 | `icons.nix` / `fileicon.nix` | custom app icons and the tool that sets them |
