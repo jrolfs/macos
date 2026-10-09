@@ -25,6 +25,7 @@ in
     ./icons.nix
     ./kaset.nix
     ./login-items.nix
+    ./startup.nix
     ./mas.nix
     ./sidecar.nix
     ./spicetify.nix

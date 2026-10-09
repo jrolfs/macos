@@ -114,6 +114,13 @@ let
 
         [[ -x "$hs" ]] || return 0
 
+        # Without -A the CLI answers a missing Hammerspoon with a modal "would
+        # you like to launch it" dialog, and Stay fires this at login, before
+        # the LaunchAgent has it up. -A is no better: it would launch a second
+        # copy alongside the one launchd is starting. Nothing is open to zoom
+        # at that point anyway.
+        pgrep -xq Hammerspoon || return 0
+
         # Delay between presses because Chromium debounces zoom changes; without
         # it a run of steps collapses into fewer than were asked for.
         "$hs" -c "
