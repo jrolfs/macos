@@ -73,12 +73,18 @@ let
           run=("$setter")
         fi
 
-        if "''${run[@]}" "$app" "$icon" 2>&1; then
-          echo "[$ts] ok: $name"
-          echo "$name" >> "'"$results"'"
-        else
-          echo "[$ts] FAILED: $name"
-        fi
+        "''${run[@]}" "$app" "$icon" 2>&1
+        case $? in
+          0)
+            echo "[$ts] ok: $name"
+            echo "$name" >> "'"$results"'"
+            ;;
+          # A SIP-protected bundle can never take a custom icon, so it is not a
+          # failure to chase: the apps Apple ships are symlinks into the
+          # cryptex. No apostrophes in here, the whole block is single-quoted.
+          3) echo "[$ts] skipped: $name (SIP-protected)" ;;
+          *) echo "[$ts] FAILED: $name" ;;
+        esac
       ' zsh {}
 
     count=$(wc -l < "$results" 2>/dev/null | tr -d ' ')

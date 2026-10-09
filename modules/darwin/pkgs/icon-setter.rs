@@ -20,6 +20,15 @@ use std::process::ExitCode;
 /// 'icns' resource ID -16455, as the unsigned value stored in the map.
 const RESOURCE_ID: u16 = 0xBFB9;
 
+/// SF_RESTRICTED: the bundle is SIP-protected and nothing, root included, may
+/// write into it.
+const SF_RESTRICTED: u32 = 0x0008_0000;
+
+/// Exit code for a bundle that cannot take a custom icon at all, as distinct
+/// from one whose write failed. The caller logs these separately so a target
+/// that can never succeed doesn't sit in the log as a permanent failure.
+const EXIT_SKIPPED: u8 = 3;
+
 /// `.icns` is used as-is; a PNG is wrapped in a minimal single-entry (`ic10`)
 /// icns container so macOS can render it at any size.
 fn to_icns(raw: Vec<u8>, icon: &Path) -> Result<Vec<u8>, String> {
@@ -116,6 +125,15 @@ fn create_icon_file(path: &Path) -> std::io::Result<()> {
     }
 }
 
+/// Apple's own apps are symlinks into the SIP-protected cryptex, and macOS 26
+/// moved Safari there. The bundle looks perfectly ordinary through `-d`, so
+/// without this check every run attempts it and logs a failure that can never
+/// be fixed, which is how a log stops being worth reading.
+fn is_restricted(app: &Path) -> bool {
+    use std::os::macos::fs::MetadataExt;
+    fs::metadata(app).is_ok_and(|metadata| metadata.st_flags() & SF_RESTRICTED != 0)
+}
+
 fn run(app: &Path, source: &Path) -> Result<(), String> {
     if !app.is_dir() {
         return Err(format!("not a directory: {}", app.display()));
@@ -165,6 +183,11 @@ fn main() -> ExitCode {
     let (app, source) = (Path::new(&args[1]), Path::new(&args[2]));
     println!("icon_path: {}", source.display());
     println!("app_path: {}", app.display());
+
+    if is_restricted(app) {
+        println!("skipped: {} is SIP-protected", app.display());
+        return ExitCode::from(EXIT_SKIPPED);
+    }
 
     match run(app, source) {
         Ok(()) => ExitCode::SUCCESS,
