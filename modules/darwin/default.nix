@@ -13,12 +13,14 @@ in
     ../home-backup.nix
     ../packages.nix
 
+    ./accessibility.nix
     ./daemons.nix
     ./default-browser.nix
     ./display-profiles.nix
     ./defaults.nix
     ./fileicon.nix
     ./finder-sidebar.nix
+    ./fda.nix
     ./folder-icons.nix
     ./homebrew.nix
     ./glide-developer.nix

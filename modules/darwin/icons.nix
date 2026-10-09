@@ -1,4 +1,4 @@
-{ config, lib, pkgs, userName, ... }:
+{ config, pkgs, userName, ... }:
 let
   # Hardcoded because builtins.getEnv returns "" under pure flake eval.
   #
@@ -99,34 +99,16 @@ let
     echo "[$(date -u '+%Y-%m-%d %H:%M:%S UTC')] run finished"
   '';
 
-  # A stable-path compiled wrapper so the agent can be granted Full Disk
-  # Access once and the grant survives nix rebuilds (which change store
-  # paths). Must be a real Mach-O binary, because TCC ignores FDA grants on
-  # shell scripts: it evaluates /bin/bash instead of the script path.
-  wrapper = pkgs.rustTool {
-    name = "icon-customizer-wrapper";
-    program = "icon-customizer";
-    src = ./pkgs/icon-customizer-wrapper.rs;
-  };
-  wrapperPath = "/usr/local/bin/icon-customizer";
   logPath = "${configDirectory}/icons/launchd.log";
 in
 {
   environment.systemPackages = [ script ];
 
-
-  system.activationScripts.postActivation.text = lib.mkAfter # bash
-    ''
-      # Install a stable-path compiled wrapper for icon-customizer.
-      # Must be a Mach-O binary (not a script) so TCC recognises the FDA
-      # grant on the path.  The agent's ProgramArguments points here so the
-      # user only has to grant Full Disk Access once (System Settings →
-      # Privacy & Security → Full Disk Access → add
-      # /usr/local/bin/icon-customizer).
-      mkdir -p /usr/local/bin
-      cp ${wrapper}/bin/icon-customizer ${wrapperPath}
-      chmod +x ${wrapperPath}
-    '';
+  # Writing inside a MACL'd app bundle needs Full Disk Access, which cannot be
+  # granted to this script directly: TCC would evaluate /bin/bash, and the store
+  # path moves every rebuild anyway. fda.nix owns the one binary that holds the
+  # grant, and this reaches the access through it.
+  fda.operations.icons = script;
 
   # Passwordless sudo for icon-setter so the LaunchAgent can customise icons on
   # root-owned app bundles (e.g. Kandji-managed apps).  Managed declaratively
@@ -146,7 +128,7 @@ in
   # needed — FDA alone is sufficient to write inside MACL'd bundles.
   launchd.user.agents.icon-customizer = {
     serviceConfig = {
-      ProgramArguments = [ wrapperPath ];
+      ProgramArguments = [ config.fda.runPath "icons" ];
       EnvironmentVariables.ICON_CUSTOMIZER_NOTIFY = "0";
       WatchPaths = [
         "/Applications"

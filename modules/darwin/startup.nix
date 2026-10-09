@@ -1,52 +1,18 @@
 { config, lib, pkgs, ... }:
 
-# What comes up at login besides the System Events login items in
-# login-items.nix. That module cannot reach any of this: session restore is
-# loginwindow's own list, and Spotify and Fantastical start from helpers they
-# register themselves, which System Events never sees. Each is driven through
-# the setting its owner reads instead.
+# Apps that start at login without being System Events login items, so
+# login-items.nix cannot reach them. Spotify and Fantastical start from helpers
+# they register themselves, and each is driven through the setting its owner
+# reads instead.
+#
+# Session restore is deliberately not handled here. Locking loginwindow's
+# relaunch list (TALAppsToRelaunchAtLogin in the ByHost plist) did not stop apps
+# reopening on macOS 26, so quitting everything before a restart is left to the
+# Raycast command in dotfiles/home/.local/share/raycast/scripts.
 
 let
   user = config.system.primaryUser;
   home = config.users.users.${user}.home;
-
-  # Nothing from the previous session reopens at login, whatever the shutdown
-  # dialog's checkbox says.
-  #
-  # TALLogoutSavesState only sets the checkbox's starting state, and
-  # loginwindow writes back whatever the box was left at, so it cannot be
-  # relied on alone. The list of apps to relaunch is written at logout into the
-  # ByHost loginwindow plist, keyed by hardware UUID. Emptying that list and
-  # making the file immutable means a ticked box saves nothing: loginwindow's
-  # write fails, and an atomic replace of an immutable file is refused too.
-  #
-  # The dialog itself cannot be removed. Option-clicking Restart or Shut Down
-  # in the Apple menu skips it.
-  lockRelaunchList = pkgs.writeShellScript "lock-relaunch-list" # bash
-    ''
-      set -euo pipefail
-
-      PATH=/usr/bin:/bin:/usr/sbin:/sbin
-
-      uuid=$(ioreg -rd1 -c IOPlatformExpertDevice | awk -F'"' '/IOPlatformUUID/ { print $4 }')
-      plist="${home}/Library/Preferences/ByHost/com.apple.loginwindow.$uuid.plist"
-
-      if [[ -f "$plist" && "$(stat -f %Sf "$plist")" == *uchg* ]] \
-        && [[ "$(/usr/libexec/PlistBuddy -c 'Print :TALAppsToRelaunchAtLogin' "$plist" 2>/dev/null)" == $'Array {\n}' ]]; then
-        exit 0
-      fi
-
-      echo "Locking the relaunch-at-login list..."
-
-      [[ -f "$plist" ]] && chflags nouchg "$plist"
-
-      # Written as an empty array rather than deleted, so the file exists to be
-      # locked on a host where nothing has ever been saved to it. `defaults`
-      # synchronizes before it exits, so the file is on disk by the chflags.
-      defaults -currentHost write com.apple.loginwindow TALAppsToRelaunchAtLogin -array
-
-      chflags uchg "$plist"
-    '';
 
   # Spotify starts itself at login from Contents/Library/LoginItems, and
   # registers or unregisters that helper according to app.autostart-mode in
@@ -131,14 +97,9 @@ let
     '';
 in
 {
-  system.defaults.CustomUserPreferences."com.apple.loginwindow" = {
-    TALLogoutSavesState = false;
-    LoginwindowLaunchesRelaunchApps = false;
-  };
-
   system.activationScripts.postActivation.text = lib.mkAfter # bash
     ''
-      for step in ${lockRelaunchList} ${spotifyAutostart} ${fantasticalBackground}; do
+      for step in ${spotifyAutostart} ${fantasticalBackground}; do
         launchctl asuser "$(id -u -- ${lib.escapeShellArg user})" sudo --user=${lib.escapeShellArg user} -- "$step" \
           || echo "warning: $step failed" >&2
       done

@@ -89,7 +89,7 @@ links/             convenience symlink to /Library/LaunchDaemons
 | `spotlight.nix` | keeps Spotlight indexing on, which `mas list` depends on |
 | `excluded-apps.nix` | per-host cask/App Store exclusions, read by both of the above |
 | `login-items.nix` | login items via System Events, since the BTM store is SIP-locked |
-| `startup.nix` | no session restore at login; Spotify and Fantastical autostart via their own settings |
+| `startup.nix` | Spotify and Fantastical autostart, via their own settings |
 | `daemons.nix` | launchd user agents, for headless things only |
 | `tailscale.nix` | connect Tailscale everywhere except at home |
 | `finder-sidebar.nix` | Finder sidebar Favorites, via `mysides` |
