@@ -299,6 +299,13 @@ in
     CustomUserPreferences."org.pqrs.Karabiner-Console-User-Server"."NSStatusItem VisibleCC Item-0" =
       false;
 
+    # CleanShot ignores every cleanshot:// command unless this is on, and the
+    # Raycast extension drives it through nothing else. The app asks once and
+    # records that it asked (didAskAboutURLSchemesAPI) whatever the answer, so a
+    # dismissed prompt leaves the extension silently broken with no second
+    # chance to say yes.
+    CustomUserPreferences."pl.maketheweb.cleanshotx".allowURLSchemesAPI = true;
+
     smb = {
       NetBIOSName = lib.toUpper hostname;
       ServerDescription = config.networking.computerName;
