@@ -294,6 +294,8 @@ in
       false;
     CustomUserPreferences."com.cordlessdog.Stay"."NSStatusItem VisibleCC Item-0" =
       false;
+    CustomUserPreferences."com.grammarly.ProjectLlama"."NSStatusItem VisibleCC Item-0" =
+      false;
     CustomUserPreferences."org.pqrs.Karabiner-Console-User-Server"."NSStatusItem VisibleCC Item-0" =
       false;
 
