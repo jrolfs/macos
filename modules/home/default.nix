@@ -48,7 +48,7 @@ let
     (builtins.readDir "${dotfiles}/.local/share/gh/extensions");
 in
 {
-  imports = [ ./neovim.nix ./ssh.nix ]
+  imports = [ ./eza.nix ./neovim.nix ./ssh.nix ]
     ++ lib.optional (builtins.pathExists ./hosts/${hostname}.nix) ./hosts/${hostname}.nix;
 
   home.username = userName;
@@ -104,13 +104,6 @@ in
     # ~/.local/share/zinit a real directory (and matches where newt's existing
     # plugin cache already lives).
     ".local/share/zinit/zinit.git".source = inputs.zinit;
-
-    # `ls` is aliased to this wrapper (zsh/init/aliases.zsh), which is why it
-    # can't just be a script nobody linked: without it every ls in every shell
-    # is a "no such file or directory". It came over from the dot castle, where
-    # homeshick had been linking it — nothing in the flake picked it up. Still
-    # named exa-wrapper.sh there; renamed here along with the binary it calls.
-    ".local/share/eza-wrapper.sh".source = "${dotfiles}/.local/share/eza-wrapper.sh";
 
     # ~/.claude is Claude Code's own state directory — projects/, todos/,
     # history.jsonl, a dozen caches — so the tracked entries inside it are
