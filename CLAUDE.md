@@ -97,6 +97,8 @@ links/             convenience symlink to /Library/LaunchDaemons
 | `default-browser.nix` | Velja as the http(s) router |
 | `velja/` | Velja's settings, plus `rules.toml` and the `velja-rules` CLI |
 | `icons.nix` / `fileicon.nix` | custom app icons and the tool that sets them |
+| `fda.nix` | the one Full Disk Access grant, and the shim everything needing it runs through |
+| `accessibility.nix` | Accessibility Zoom, written through that shim |
 | `sidecar.nix` | Sidecar (iPad as display) via the private SidecarCore framework |
 | `glide-developer.nix` | a second Glide copy with its own bundle identifier |
 | `kaset.nix` | source build with the native-PiP patch, or the stock cask |
@@ -166,7 +168,15 @@ would otherwise have to be rediscovered.
   `dotfiles/home/.config/zsh/env.*` files that still set it are leftovers and
   nothing reads them.
 - **Some macOS state is not declarable at all**, and the modules say so where it
-  bites: the screen saver and wallpaper (WallpaperAgent owns the store),
-  `universalaccess` (TCC blocks the activation write), and desktop widget
-  placement (an NSKeyedArchiver graph in chronod's sqlite). These are per-machine
-  manual steps by design, not missing configuration.
+  bites: the screen saver and wallpaper (WallpaperAgent owns the store), and
+  desktop widget placement (an NSKeyedArchiver graph in chronod's sqlite). These
+  are per-machine manual steps by design, not missing configuration.
+- **A domain needing Full Disk Access is declarable, just not from activation.**
+  `com.apple.universalaccess` is the worked example. nix-darwin writes user
+  defaults through `launchctl asuser ... sudo --user=...`, which holds no grant,
+  so `system.defaults.universalaccess` fails with "Could not write domain" and
+  takes the rest of activation down with it under `set -e`. Route it through
+  `fda.nix` instead: register an `fda.operations.<name>` and have a LaunchAgent
+  call `fda-run <name>`. The grant is keyed on the shim's cdhash, so a rebuild
+  that changes those bytes revokes it; the dispatcher probes for it and
+  notifies, and `77: EX_NOPERM` from one of those agents means exactly that.

@@ -134,18 +134,19 @@ declines them; this is the index.
 
 - **`system.defaults.universalaccess`** and **`system.defaults.screensaver`**:
   both argued at length in `modules/darwin/defaults.nix`. universalaccess is
-  TCC-protected and the activation write always fails; the screen saver moved
-  into the WallpaperAgent store and the legacy domain is a mirror, not the
-  source.
+  gated on Full Disk Access and the activation write always fails; the screen
+  saver moved into the WallpaperAgent store and the legacy domain is a mirror,
+  not the source.
 
-  This pass did turn up live drift behind that decision, which is worth knowing
-  precisely because nothing will close it automatically:
-  `universalaccess.closeViewScrollWheelToggle` is 1 on `newt` and unset on
-  `ala` (corroborated by `HIDScrollZoomModifierMask = 262144`, the Control key,
-  in newt's trackpad domain). That is zoom-on-scroll, and it needs the one-time
-  click in System Settings → Accessibility → Zoom that defaults.nix describes.
-  Likewise `screensaver` ByHost has `moduleName = Drift` on `newt` and nothing
-  on `ala`. Both are per-machine manual steps by design, not missing config.
+  The option stays unused, but the keys no longer do. Full Disk Access is
+  sufficient for that domain, which was verified by writing it from a granted
+  process, so `modules/darwin/accessibility.nix` sets the Zoom keys through
+  `fda.nix`'s shim and the drift this section used to track closes itself on a
+  switch. Only the five keys the option covers are affected by the decision; the
+  other eleven in the Zoom panes were never reachable through it anyway.
+
+  `screensaver` ByHost still has `moduleName = Drift` on `newt` and nothing on
+  `ala`, and that one remains a per-machine manual step by design.
 - **`system.defaults.controlcenter`**: reached through
   `CustomUserPreferences` against the ByHost path instead, because the module's
   bool options can only ever write 18 or 24, and the menu bar needs the other

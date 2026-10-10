@@ -161,16 +161,17 @@ in
     # fullscreen window doesn't blank the other monitor.
     spaces.spans-displays = true;
 
-    # universalaccess is deliberately absent. com.apple.universalaccess is
-    # TCC-protected, and activation writes it via `launchctl asuser … sudo
+    # universalaccess is deliberately absent, but the keys are not: see
+    # accessibility.nix. com.apple.universalaccess is gated on Full Disk Access,
+    # and activation writes user defaults via `launchctl asuser … sudo
     # --user=jamie -- defaults write`, which detaches the write from any process
-    # holding Full Disk Access — so it fails with "Could not write domain"
-    # regardless of what the terminal is granted. activate runs under `set -e`,
-    # so that one failure aborted every remaining step: the rest of the user
-    # defaults, the Dock restart, launchd services, the Homebrew bundle and the
-    # home-manager activation. Zoom's scroll-gesture toggle is a one-time click
-    # in System Settings → Accessibility → Zoom; it is not worth an FDA-granted
-    # wrapper binary, which is the only thing that would make the write land.
+    # holding the grant, so it fails with "Could not write domain" regardless of
+    # what the terminal is granted. activate runs under `set -e`, so that one
+    # failure aborted every remaining step: the rest of the user defaults, the
+    # Dock restart, launchd services, the Homebrew bundle and the home-manager
+    # activation. An FDA-granted shim is the only thing that makes the write
+    # land, and fda.nix now keeps exactly one of those, so the keys go through a
+    # LaunchAgent calling it rather than through this attribute set.
 
     # screensaver is deliberately absent too. The picture and the screen saver
     # are two halves of one store now — Desktop and Idle under the same scope in
