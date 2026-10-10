@@ -24,8 +24,11 @@ in
       #
       # Aliases ----------------------------------------------------------------------
 
-      alias nix-switch="sudo -E nixos-rebuild switch --flake ${flake} --show-trace"
-      alias nix-rebuild="sudo -E nixos-rebuild build --flake ${flake} --show-trace"
+      # Single quotes inside the alias, as on darwin: unquoted, zsh's
+      # extendedglob reads the `#` in `system#irulan` as a pattern operator,
+      # finds no file matching it, and refuses to run the command.
+      alias nix-switch="sudo -E nixos-rebuild switch --flake '${flake}' --show-trace"
+      alias nix-rebuild="sudo -E nixos-rebuild build --flake '${flake}' --show-trace"
       alias nix-search="nix search nixpkgs"
     '';
 
