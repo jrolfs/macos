@@ -21,8 +21,14 @@
 
     ../../modules/nixos/services/home-assistant.nix
     ../../modules/nixos/services/plex.nix
-    ../../modules/nixos/services/step-ca.nix
-    ../../modules/nixos/services/komodo.nix
+
+    # Both need state that still lives on Leia and is placed by hand before
+    # first start (the CA data and its intermediate password, and
+    # /etc/komodo/mongo.env). Imported without it they fail every switch:
+    # nixos-rebuild exits non-zero whenever a unit fails to start. Bring each
+    # back in alongside its migration.
+    # ../../modules/nixos/services/step-ca.nix
+    # ../../modules/nixos/services/komodo.nix
   ];
 
   networking.hostName = hostname;
