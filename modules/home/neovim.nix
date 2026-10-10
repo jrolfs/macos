@@ -56,6 +56,13 @@ let
     timeout 300 git clone --quiet ${cloneUrl} ${lib.escapeShellArg clone}
   '';
 
+  # nvim-treesitter compiles every parser it installs with `cc`. On macOS that
+  # is /usr/bin/cc from the Command Line Tools, which bootstrap installs before
+  # anything else. NixOS has no system compiler at all, so without this every
+  # parser fails to build (a few hundred of them, since the config installs all
+  # of them), and each failure stops an interactive nvim on "Press ENTER".
+  parserCompiler = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.gcc ];
+
   # Neovim installs its own plugins: `vim.pack.add` clones whatever is missing
   # when the config loads, so a fresh machine sits at zero plugins until the
   # first interactive launch. This boots each entry point once, headlessly, so
@@ -69,7 +76,7 @@ let
   warmUp = pkgs.writeShellScript "neovim-pack-warmup" ''
     set -uo pipefail
 
-    export PATH=${lib.makeBinPath [ pkgs.git pkgs.openssh pkgs.coreutils ]}:$PATH
+    export PATH=${lib.makeBinPath ([ pkgs.git pkgs.openssh pkgs.coreutils pkgs.tree-sitter ] ++ parserCompiler)}:$PATH
 
     # Plugin repositories are public, so clone them over plain HTTPS: the
     # user's git config rewrites github.com to SSH, and activation is the wrong
@@ -107,6 +114,10 @@ let
   '';
 in
 {
+  # For interactive nvim too, which installs a parser the first time a
+  # filetype comes up. See parserCompiler.
+  home.packages = parserCompiler;
+
   xdg.configFile = configTree // {
     # The two sessions the kitty dotfiles layout opens (the third,
     # dot--private.vim, comes from the private castle). In this repo rather
