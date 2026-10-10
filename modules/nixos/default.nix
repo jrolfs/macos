@@ -7,7 +7,12 @@ let
   overlays = import ../../overlays inputs;
 in
 {
-  imports = [ ../bootstrap.nix ../home-backup.nix ../packages.nix ];
+  imports = [
+    ../bootstrap.nix
+    ../home-backup.nix
+    ../packages.nix
+    ./onepassword-secrets.nix
+  ];
 
   # Same overlay the darwin side applies. Not darwin-specific: modules/home is
   # shared by both platforms and reaches for overlay packages unconditionally
