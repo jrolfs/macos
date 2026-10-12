@@ -28,7 +28,10 @@ export PINENTRY_USER_DATA=tty=$TTY
 #
 # Started here because on Linux the agent's SSH socket exists only while it
 # runs, and nothing else starts it before the first ssh.
-gpgconf --launch gpg-agent 2> /dev/null
+#
+# Only when its socket is missing: gpgconf costs a third of a second, which
+# every new shell paid when this ran unconditionally.
+[[ -S ${GNUPGHOME:-$HOME/.gnupg}/S.gpg-agent ]] || gpgconf --launch gpg-agent 2> /dev/null
 
 # A prompt for the SSH key has no gpg client to say which terminal it came
 # from, so the agent draws it on the terminal it last heard about. Telling it
