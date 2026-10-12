@@ -10,5 +10,6 @@
     ./kanata-layers.nix
     ./lock.nix
     ./notifications.nix
+    ./vicinae.nix
   ];
 }
