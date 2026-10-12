@@ -94,8 +94,8 @@ in
     build = "sudo -E darwin-rebuild build";
     locals = "brew=auto flag=";
     flags = [
-      { pattern = "--brew"; action = "brew=reset; flag=$argument"; }
-      { pattern = "--no-brew"; action = "brew=skip; flag=$argument"; }
+      { pattern = "--brew"; action = "brew=reset; flag=$argument"; description = "run brew bundle even if the Brewfile is unchanged"; }
+      { pattern = "--no-brew"; action = "brew=skip; flag=$argument"; description = "skip brew bundle for this switch"; }
     ];
     # $brew doubles as the homebrew-gate subcommand. The gate is absent until
     # the switch that first installs it, so a flag passed on a fresh machine

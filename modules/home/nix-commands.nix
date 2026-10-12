@@ -1,4 +1,4 @@
-{ config, lib, hostname, ... }:
+{ config, lib, hostname, inputs, ... }:
 
 # The commands for working on this configuration from a shell: nix-switch,
 # nix-rebuild, nix-update and nix-search. One definition for every machine,
@@ -40,6 +40,16 @@ let
   directory = "${config.home.homeDirectory}/.config/system";
   flake = "${directory}#${hostname}";
 
+  # Every flake input, for completing --update=<input> and nix-update's
+  # arguments. Taken from the flake that built this configuration, so it's
+  # exactly the set flake.lock knows about.
+  inputNames = lib.concatStringsSep " "
+    (builtins.attrNames (removeAttrs inputs [ "self" ]));
+
+  flagSpecs = lib.concatMapStrings
+    (flag: " \\\n          '${flag.pattern}[${flag.description}]'")
+    cfg.flags;
+
   flagCases = lib.concatMapStrings
     (flag: "      ${flag.pattern}) ${flag.action} ;;\n")
     cfg.flags;
@@ -69,6 +79,10 @@ in
         options = {
           pattern = mkOption { type = types.str; };
           action = mkOption { type = types.str; };
+          description = mkOption {
+            type = types.str;
+            description = "Shown beside the flag when completing.";
+          };
         };
       });
     };
@@ -83,6 +97,25 @@ in
   # Quoted wherever the flake reference appears: unquoted, zsh's extendedglob
   # reads the `#` in `system#<host>` as a pattern operator, finds no file
   # matching it, and refuses to run the command.
+  # On fpath through ~/.config/zsh/completions, so compinit finds it by its
+  # #compdef line. It can't be registered from nix.zsh: that is sourced before
+  # compinit runs, when compdef doesn't exist yet.
+  config.xdg.configFile."zsh/completions/_nix-switch".text = # zsh
+    ''
+      #compdef nix-switch nix-update
+
+      case $service in
+        nix-update)
+          _arguments '*:flake input:(${inputNames})'
+          ;;
+        nix-switch)
+          _arguments \
+            '--pull[fast-forward ~/.config/system first]' \
+            '*--update=-[refresh flake.lock first, all inputs or the one named]::flake input:(${inputNames})'${flagSpecs}
+          ;;
+      esac
+    '';
+
   config.xdg.configFile."zsh/init/nix.zsh".text = # zsh
     ''
       alias nix-search="nix search nixpkgs"
