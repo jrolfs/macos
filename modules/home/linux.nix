@@ -8,6 +8,9 @@
 # modules/home/default.nix and works on both OSes.
 
 {
+  # Inert unless the host sets desktop.enable.
+  imports = [ ./desktop ];
+
   # nix-switch and friends come from nix-commands.nix. nixos-rebuild-ng's
   # --sudo runs the build as the user and elevates only the activation; under
   # `sudo -E` the whole build ran as root with $HOME still /home/jamie, which

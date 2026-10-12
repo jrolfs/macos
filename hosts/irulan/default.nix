@@ -15,9 +15,7 @@
     ./disko.nix
     # ./hardware-configuration.nix              # TODO: add after install
 
-    # Attached to a TV with a keyboard, so it gets the GUI applications even
-    # though it spends most of its life headless.
-    ../../modules/nixos/desktop.nix
+    ../../modules/nixos/desktop
 
     ../../modules/nixos/services/home-assistant.nix
     ../../modules/nixos/services/plex.nix
@@ -30,6 +28,10 @@
     # ../../modules/nixos/services/step-ca.nix
     # ../../modules/nixos/services/komodo.nix
   ];
+
+  # Attached to a TV with a keyboard and trackpad, so it boots to a desktop
+  # even though most of what it runs is headless.
+  desktop.enable = true;
 
   networking.hostName = hostname;
   networking.useDHCP = lib.mkDefault true;  # static IP TBD; DHCP for now.

@@ -14,16 +14,13 @@
 # ~/.face is the older convention and still the one anything that reads the
 # home directory instead of DBus will look for, so it gets the same image.
 #
-# Imported from desktop.nix rather than modules/nixos/default.nix, on the same
-# reasoning that file already makes: a headless host has nothing to draw this
-# on. Which is nearly irulan today, with no greeter yet and
-# services.accounts-daemon off, so declaring it now is what makes the picture
-# already right the day one arrives.
+# Behind desktop.enable, on the same reasoning apps.nix makes: a headless host
+# has nothing to draw this on.
 
 let
-  avatar = ../../avatars/${hostname}.png;
+  avatar = ../../../avatars/${hostname}.png;
 in
-{
+lib.mkIf config.desktop.enable {
   # L+ rather than C, so a picture changed in a desktop's own settings goes
   # back to the declared one on the next switch. A declaration that quietly
   # loses to the GUI is worse than no declaration.

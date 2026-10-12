@@ -1,8 +1,8 @@
-{ pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 # GUI applications for a NixOS host with a display attached.
 #
-# Imported per host rather than from modules/nixos/default.nix: a headless
+# Behind desktop.enable rather than in modules/nixos/default.nix: a headless
 # machine has no use for a terminal emulator or a browser, and these are heavy
 # enough that inheriting them by default would be a tax on every future server.
 #
@@ -22,12 +22,13 @@
 let
   inherit (pkgs.stdenv.hostPlatform) system;
 in
-{
-  imports = [ ./user-picture.nix ];
-
+lib.mkIf config.desktop.enable {
   environment.systemPackages = [
     pkgs.kitty
     pkgs.zed-editor
+
+    # The notes scratchpad Hyprland opens on ⌥`.
+    pkgs.obsidian
 
     # Same browser as the Macs, from the flake that also supplies the
     # home-manager module in modules/home/browsers.nix. Glide publishes
@@ -56,5 +57,8 @@ in
     nerd-fonts.fira-code
     nerd-fonts.hack
     nerd-fonts.jetbrains-mono
+
+    # The bar's icons, drawn as text in this face.
+    (callPackage ./phosphor-icons.nix { })
   ];
 }
