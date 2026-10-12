@@ -94,9 +94,6 @@ in
     };
   };
 
-  # Quoted wherever the flake reference appears: unquoted, zsh's extendedglob
-  # reads the `#` in `system#<host>` as a pattern operator, finds no file
-  # matching it, and refuses to run the command.
   # On fpath through ~/.config/zsh/completions, so compinit finds it by its
   # #compdef line. It can't be registered from nix.zsh: that is sourced before
   # compinit runs, when compdef doesn't exist yet.
@@ -116,6 +113,9 @@ in
       esac
     '';
 
+  # Quoted wherever the flake reference appears: unquoted, zsh's extendedglob
+  # reads the `#` in `system#<host>` as a pattern operator, finds no file
+  # matching it, and refuses to run the command.
   config.xdg.configFile."zsh/init/nix.zsh".text = # zsh
     ''
       alias nix-search="nix search nixpkgs"
