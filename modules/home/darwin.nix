@@ -6,19 +6,7 @@
 let
   dotfiles = ../../dotfiles/home;
 
-  # Baked in rather than read from $NIX_CONFIG_DIR and $(hostname -s) when the
-  # shell starts. That variable is a home.sessionVariables entry, which lands in
-  # hm-session-vars.sh, which nothing here sources — nix-darwin's /etc/zshenv
-  # reads only its own set-environment, and home-manager's zsh integration is
-  # inert while .zshrc is a lifted dotfile. The aliases were expanding to
-  # `--flake #ala`.
-  #
-  # The hostname is the one this configuration was evaluated for, and it is what
-  # selected this configuration in the first place, so asking the running system
-  # was only ever a slower route to the same answer — and a wrong one if the
-  # machine is mid-rename.
   configDirectory = "${config.home.homeDirectory}/.config/system";
-  flake = "${configDirectory}#${hostname}";
 
   # gpg-agent execs pinentry-program fresh for every passphrase prompt, so
   # dispatching at that moment is what lets the `pin` toggle
@@ -92,6 +80,39 @@ in
   # nix.nixPath + registry entries in modules/darwin/default.nix).
   # nix-switch / nix-rebuild aliases now use --flake; icn points at the
   # consolidated repo's icons/ dir.
+  # nix-switch and friends come from nix-commands.nix; this is the macOS part.
+  #
+  # darwin-rebuild has no way to elevate only the activation the way
+  # nixos-rebuild --sudo does, and must run as root.
+  #
+  # --brew and --no-brew control `brew bundle`, which otherwise runs only when
+  # the Brewfile changed (the gate in modules/darwin/homebrew.nix). --brew runs
+  # it regardless, to pick up upstream cask releases or a version bump in a
+  # jrolfs/tap .rb; --no-brew skips it for one switch.
+  nixCommands = {
+    switch = "sudo -E darwin-rebuild switch";
+    build = "sudo -E darwin-rebuild build";
+    locals = "brew=auto flag=";
+    flags = [
+      { pattern = "--brew"; action = "brew=reset; flag=$argument"; }
+      { pattern = "--no-brew"; action = "brew=skip; flag=$argument"; }
+    ];
+    # $brew doubles as the homebrew-gate subcommand. The gate is absent until
+    # the switch that first installs it, so a flag passed on a fresh machine
+    # warns instead of aborting the rebuild that would create it. The absolute
+    # path is because sudo resets the environment, and this has to work from a
+    # shell whose PATH has not been through brew shellenv yet.
+    beforeSwitch = ''
+      if [[ $brew != auto ]]; then
+        if [[ -x /run/current-system/sw/bin/homebrew-gate ]]; then
+          sudo /run/current-system/sw/bin/homebrew-gate "$brew" || return
+        else
+          echo "nix-switch: homebrew-gate not installed yet, ignoring $flag" >&2
+        fi
+      fi
+    '';
+  };
+
   home.file.".zshrc.darwin".text = # zsh
     ''
       #
@@ -103,76 +124,12 @@ in
 
       alias icn="(cd ${configDirectory}/icons && sudo ./apply.sh)"
 
-      alias nix-rebuild='sudo -E darwin-rebuild build --flake "${flake}" --show-trace'
-      alias nix-search="nix search nixpkgs"
-
-      # --flake takes the directory, not "${flake}", which carries the #hostname
-      # fragment that darwin-rebuild wants and this rejects. Naming inputs after
-      # the command updates only those: `nix-update nixpkgs`.
-      alias nix-update='nix flake update --flake "${configDirectory}"'
-
       alias spoon="$(brew --prefix)/bin/hs"
 
 
       #
       #
       # Functions --------------------------------------------------------------------
-
-      # A function rather than an alias so it can take --brew / --no-brew. With
-      # neither, `brew bundle` runs only when the Brewfile changed, which is the
-      # gate in modules/darwin/homebrew.nix. --brew runs it regardless (pick up
-      # upstream cask releases, or a version bump in a jrolfs/tap .rb); --no-brew
-      # skips it for one switch. Everything else is passed through to
-      # darwin-rebuild.
-      #
-      # --update refreshes flake.lock first, all inputs by default or just the
-      # named one with --update=nixpkgs (repeat the flag for several). It has to
-      # be asked for: darwin-rebuild only ever reads the lock, and that is what
-      # makes a bare nix-switch reproducible, so moving inputs underneath it
-      # silently would cost more than the keystrokes save. The lock change is
-      # left uncommitted on purpose, to be reviewed with the switch that used it.
-      function nix-switch {
-        local brew=auto flag= update=no pull=no
-        local -a rest inputs
-
-        for argument in "''$@"; do
-          case "''$argument" in
-            --brew)     brew=reset; flag=''$argument ;;
-            --no-brew)  brew=skip;  flag=''$argument ;;
-            --pull)     pull=yes ;;
-            --update)   update=yes ;;
-            --update=*) update=yes; inputs+=("''${argument#--update=}") ;;
-            *)          rest+=("''$argument") ;;
-          esac
-        done
-
-        # Before --update: the update rewrites flake.lock, which a pull
-        # afterwards would collide with.
-        if [[ ''$pull == yes ]]; then
-          git -C "${configDirectory}" pull --ff-only || return
-        fi
-
-        if [[ ''$update == yes ]]; then
-          nix flake update --flake "${configDirectory}" "''${inputs[@]}" || return
-        fi
-
-        # Absolute path because sudo resets the environment, and this has to work
-        # from a shell whose PATH has not been through brew shellenv yet.
-        local gate=/run/current-system/sw/bin/homebrew-gate
-
-        # $brew doubles as the homebrew-gate subcommand. The binary is absent
-        # until the switch that first installs it, so a flag passed on a fresh
-        # machine warns instead of aborting the rebuild that would create it.
-        if [[ ''$brew != auto ]]; then
-          if [[ -x ''$gate ]]; then
-            sudo "''$gate" "''$brew" || return
-          else
-            echo "nix-switch: homebrew-gate not installed yet, ignoring ''$flag" >&2
-          fi
-        fi
-
-        sudo -E darwin-rebuild switch --flake "${flake}" --show-trace "''${rest[@]}"
-      }
 
       function reset-host {
         host=$(hostname -s)

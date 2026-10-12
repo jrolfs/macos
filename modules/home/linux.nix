@@ -7,14 +7,16 @@
 # environment tweaks; the bulk of the shell config is shared via
 # modules/home/default.nix and works on both OSes.
 
-let
-  # Baked in for the same reason as the darwin counterpart: $NIX_CONFIG_DIR
-  # comes from home.sessionVariables and nothing sources hm-session-vars.sh, so
-  # the alias was expanding to `--flake #irulan`.
-  configDirectory = "${config.home.homeDirectory}/.config/system";
-  flake = "${configDirectory}#${hostname}";
-in
 {
+  # nix-switch and friends come from nix-commands.nix. nixos-rebuild-ng's
+  # --sudo runs the build as the user and elevates only the activation; under
+  # `sudo -E` the whole build ran as root with $HOME still /home/jamie, which
+  # nix warns about on every invocation. Building needs no sudo at all.
+  nixCommands = {
+    switch = "nixos-rebuild switch --sudo";
+    build = "nixos-rebuild build";
+  };
+
   # ~/.zshrc.linux is sourced by ~/.zshrc when uname is Linux.
   # Mirrors the .zshrc.darwin pattern from darwin.nix; the existing
   # dotfiles/home/.zshrc has the platform-rc lookup that picks the
@@ -25,43 +27,6 @@ in
       #
       # Aliases ----------------------------------------------------------------------
 
-      # Quoted wherever the flake reference appears: unquoted, zsh's
-      # extendedglob reads the `#` in `system#irulan` as a pattern operator,
-      # finds no file matching it, and refuses to run the command.
-      #
-      # No sudo here: building needs none, and nix-switch below lets
-      # nixos-rebuild elevate only the activation. Under `sudo -E` the whole
-      # thing ran as root with $HOME still pointing at /home/jamie, which nix
-      # warns about on every invocation.
-      alias nix-rebuild="nixos-rebuild build --flake '${flake}' --show-trace"
-
-      # The darwin function's flags, minus the Homebrew ones.
-      function nix-switch {
-        local update=no pull=no
-        local -a rest inputs
-
-        for argument in "''$@"; do
-          case "''$argument" in
-            --pull)     pull=yes ;;
-            --update)   update=yes ;;
-            --update=*) update=yes; inputs+=("''${argument#--update=}") ;;
-            *)          rest+=("''$argument") ;;
-          esac
-        done
-
-        # Before --update: the update rewrites flake.lock, which a pull
-        # afterwards would collide with.
-        if [[ ''$pull == yes ]]; then
-          git -C "${configDirectory}" pull --ff-only || return
-        fi
-
-        if [[ ''$update == yes ]]; then
-          nix flake update --flake "${configDirectory}" "''${inputs[@]}" || return
-        fi
-
-        nixos-rebuild switch --sudo --flake "${flake}" --show-trace "''${rest[@]}"
-      }
-      alias nix-search="nix search nixpkgs"
     '';
 
   # Declared inline rather than lifted from the dotfiles tree because the
