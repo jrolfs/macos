@@ -83,9 +83,12 @@
     ];
   };
 
-  # Docker daemon for the bootstrap-tier Komodo containers (see
-  # modules/nixos/services/komodo.nix). Komodo manages its own
-  # containers via the docker socket.
+  # i915 loads its GuC and HuC firmware from linux-firmware, and on 12th-gen
+  # the low-power encoder Quick Sync relies on doesn't work without HuC. The
+  # generated hardware-configuration.nix doesn't turn this on by itself.
+  hardware.enableRedistributableFirmware = true;
+
+  # The Docker daemon Komodo deploys stacks to, through the periphery.
   virtualisation.docker.enable = true;
 
   # SSH for `nixos-rebuild switch --target-host jamie@irulan` from
@@ -96,22 +99,29 @@
     settings.PermitRootLogin = "no";
   };
 
-  # NFS mount of the QNAP media share. Plex / media services read from
-  # here; library DB (services.plex.dataDir) is on the local SSD.
-  # x-systemd.automount + noauto: don't block boot if NAS is down;
-  # mount on first access; remount cleanly when network comes back.
-  # TODO: confirm export path on QNAP (currently /share/Media exposed
-  # via NFS on the NAS — adjust if QNAP exports a different path).
+  # Leia's media share, read-only: the download stack on Leia is the only
+  # writer, and two Plex servers scanning one tree must not both be able to
+  # rewrite it. The library DB (services.plex.dataDir) is on the local SSD.
+  # x-systemd.automount + noauto: don't block boot if the NAS is down; mount
+  # on first access instead.
+  #
+  # The version is left to negotiation. QTS offers 4.1 at most, and a pinned
+  # nfsvers fails outright against a server without it instead of falling back.
+  #
+  # TODO: confirm the export path. QTS exports NFSv4 under a pseudo-root
+  # named after the share (/Media), and v3 at /share/Media. On Leia,
+  # `cat /etc/exports` shows both, and Control Panel → Shared Folders →
+  # Media → Edit Shared Folder Permission → NFS host access is where Irulan
+  # has to be allowed (read-only is enough).
   fileSystems."/mnt/nas/media" = {
-    device = "qnap.lan:/share/Media";
+    device = "leia.rolfs.lan:/Media";
     fsType = "nfs";
     options = [
       "x-systemd.automount"
       "noauto"
       "_netdev"
-      "nfsvers=4.2"
+      "ro"
       "soft"
-      "intr"
     ];
   };
 
