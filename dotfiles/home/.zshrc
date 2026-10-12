@@ -68,7 +68,11 @@ zinit wait lucid for \
 zinit ice wait lucid pick"completions"
 zinit light andsens/homeshick
 
-zinit ice wait lucid pick"launchctl-completion.bash"
+# macOS only: launchctl doesn't exist elsewhere, and this is a bash script.
+# Its `complete` calls only work where zsh's bash-completion emulation is on,
+# which nix-darwin enables system-wide and NixOS doesn't, so on Linux it
+# printed "command not found: complete" in every new shell.
+zinit ice wait lucid pick"launchctl-completion.bash" if'[[ $OSTYPE == darwin* ]]'
 zinit light bobthecow/launchctl-completion
 
 # Kubectx
