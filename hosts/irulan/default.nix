@@ -41,6 +41,10 @@
   keyboard.enable = true;
   arcade.enable = true;
 
+  # Boots to the text console until the desktop's first-boot crash is fixed.
+  # The `desktop` and `station` commands still start either one by hand.
+  sessions.boot = "console";
+
   networking.hostName = hostname;
   networking.useDHCP = lib.mkDefault true;  # static IP TBD; DHCP for now.
   networking.firewall.enable = true;
