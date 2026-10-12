@@ -7,6 +7,7 @@
 {
   imports = [
     ./hyprland.nix
+    ./kanata-layers.nix
     ./lock.nix
     ./notifications.nix
   ];

@@ -32,6 +32,7 @@
   # Attached to a TV with a keyboard and trackpad, so it boots to a desktop
   # even though most of what it runs is headless.
   desktop.enable = true;
+  keyboard.enable = true;
 
   networking.hostName = hostname;
   networking.useDHCP = lib.mkDefault true;  # static IP TBD; DHCP for now.

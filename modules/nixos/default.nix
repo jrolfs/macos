@@ -11,6 +11,7 @@ in
     ../bootstrap.nix
     ../home-backup.nix
     ../packages.nix
+    ./keyboard
     ./onepassword-secrets.nix
     ./sudo.nix
   ];
