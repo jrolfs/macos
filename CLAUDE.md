@@ -127,6 +127,7 @@ would otherwise have to be rediscovered.
 | `documentation/HOMEBREW.md` | how far Homebrew determinism goes, why `brew pin` and nix-homebrew don't get there |
 | `documentation/SECRETS.md` | why secrets sit outside the flake, and the bootstrap dependency chain |
 | `documentation/ZSH.md` | moving zsh plugins from zinit to Nix, and the startup-time baseline |
+| `documentation/ARCADE.md` | Irulan's emulator station: ROM and BIOS layout, switching, scraping, controllers |
 | `homebrew/README.md` | the tap itself, and bumping a cask with `cask-updater` |
 
 ## Conventions
