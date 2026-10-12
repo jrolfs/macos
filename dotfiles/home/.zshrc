@@ -24,8 +24,11 @@ zinit ice pick"init.zsh" \
   atpull"cd contrib && git pull"
 zinit light sorin-ionescu/prezto
 
-# Local configs
-for config in $XDG_CONFIG_HOME/zsh/init/(^_*).zsh; zinit snippet "$config"
+# Local configs. Sourced directly: `zinit snippet` copies a local file into its
+# cache on first load and keeps sourcing the copy, so edits here never took
+# effect, and a machine whose first shell predated the castle unlock kept
+# sourcing the encrypted keys.zsh.
+for config in $XDG_CONFIG_HOME/zsh/init/(^_*).zsh; source "$config"
 
 # Post-Prezto hooks (order-sensitive — must load after Prezto's editor module)
 zinit ice atload'

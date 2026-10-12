@@ -19,6 +19,26 @@ export GPG_TTY=$TTY
 # with it.
 export PINENTRY_USER_DATA=tty=$TTY
 
+# Taken over from prezto's gpg module, which is no longer loaded because it
+# also loads prezto's ssh module. That one repointed SSH_AUTH_SOCK at a shared
+# symlink aimed at whichever agent the most recent shell had, so one local
+# shell broke the forwarded agent under every SSH session (and with it sudo by
+# SSH key), and it ran `ssh-add` on any agent holding no keys, which is how
+# gpg-agent came to ask for a passphrase for the bootstrap's SSH key.
+#
+# Started here because on Linux the agent's SSH socket exists only while it
+# runs, and nothing else starts it before the first ssh.
+gpgconf --launch gpg-agent 2> /dev/null
+
+# A prompt for the SSH key has no gpg client to say which terminal it came
+# from, so the agent draws it on the terminal it last heard about. Telling it
+# before each command keeps that the one in use.
+autoload -Uz add-zsh-hook
+function _gpg-agent-update-tty {
+    gpg-connect-agent UPDATESTARTUPTTY /bye > /dev/null 2>&1
+}
+add-zsh-hook preexec _gpg-agent-update-tty
+
 # Toggle between the macOS GUI pinentry and the curses one.
 #
 # gpg-agent execs pinentry-program fresh for every prompt, and what it execs
