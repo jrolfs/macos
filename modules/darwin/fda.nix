@@ -19,7 +19,7 @@
 # for the grant and announces its absence instead of failing mutely. Signing the
 # shim with a stable identity would fix the revocation at the root, but that
 # needs a trusted certificate in the System keychain and so belongs with the
-# bootstrap chain in SECRETS.md.
+# bootstrap chain in documentation/SECRETS.md.
 
 let
   cfg = config.fda;

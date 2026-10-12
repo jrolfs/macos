@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The dotfile tree for the nix flake that deploys to `~/.config/system`. Files under `home/` mirror `$HOME`, and **home-manager** links them there from declarations in `modules/home/` at the repo root.
 
-This tree was the `dot` and `macos` homeshick castles before the flake migration, subtree-merged with their history. `private` is the only remaining castle: git-crypt, cloned by bootstrap, still reached through `$HOMESHICK_KINGDOM`. [MIGRATION.md](../MIGRATION.md) at the repo root is the source of truth for the migration and its gotchas.
+This tree was the `dot` and `macos` homeshick castles before the flake migration, subtree-merged with their history. `private` is the only remaining castle: git-crypt, cloned by bootstrap, still reached through `$HOMESHICK_KINGDOM`. [MIGRATION.md](../documentation/MIGRATION.md) at the repo root is the source of truth for the migration and its gotchas.
 
 ## Before editing files here
 

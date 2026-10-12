@@ -21,21 +21,22 @@ Hosts (`flake.nix`):
 `newt` is the retired work laptop that `adrian` replaces. Its attribute is
 commented out in `flake.nix`, but the machine still runs the pre-flake
 configuration (the `pre-flake` branch plus the `macos` homeshick castle), which
-makes it the reference for anything not yet migrated. See MIGRATION.md.
+makes it the reference for anything not yet migrated. See documentation/MIGRATION.md.
 
 The migration from homeshick castles and nix channels is still in progress. The
 `private` castle deliberately stays a castle (git-crypt), which is why
-`$HOMESHICK_KINGDOM` is still exported. SECRETS.md covers that half.
+`$HOMESHICK_KINGDOM` is still exported. documentation/SECRETS.md covers that half.
 
 ## Key Commands
 
 ```bash
-# Build and activate this host. Defined in modules/home/darwin.nix, not a
-# plain alias: it takes flags.
+# Build and activate this host. Generated for every machine by
+# modules/home/nix-commands.nix, with platform flags from darwin.nix/linux.nix.
 nix-switch
-nix-switch --brew       # run `brew bundle` even if the Brewfile is unchanged
-nix-switch --no-brew    # skip it for one switch
+nix-switch --pull       # fast-forward ~/.config/system first, from anywhere
 nix-switch --update     # refresh flake.lock first (--update=nixpkgs for one input)
+nix-switch --brew       # macOS: run `brew bundle` even if the Brewfile is unchanged
+nix-switch --no-brew    # macOS: skip it for one switch
 
 nix-rebuild             # build without activating
 nix-update              # nix flake update, optionally per-input
@@ -69,6 +70,7 @@ modules/
   home-backup.nix  what home-manager does with an unmanaged file in its way
 hosts/             per-host overrides: ala, adrian, irulan (+ irulan/disko.nix)
 dotfiles/home/     the dotfile tree, linked into $HOME by modules/home
+documentation/     the companion docs listed below
 homebrew/          IS the jrolfs/tap, symlinked into brew's Taps directory
 icons/             .icns assets plus apply.sh
 karabiner/         live Karabiner config, out-of-store symlinked so it can write back
@@ -118,12 +120,13 @@ would otherwise have to be rediscovered.
 
 | File | Covers |
 |---|---|
-| `NIX-DARWIN.md` | every nix-darwin module, and whether this repo uses it |
-| `MIGRATION.md` | the homeshick-to-flake migration, phases and gotchas |
-| `RECONCILIATION.md` | the castle-to-flake file sweep, and what still needs a decision |
-| `BACKPORT.md` | fixes found here that newt's pre-flake setup still needs |
-| `HOMEBREW.md` | how far Homebrew determinism goes, why `brew pin` and nix-homebrew don't get there |
-| `SECRETS.md` | why secrets sit outside the flake, and the bootstrap dependency chain |
+| `documentation/NIX-DARWIN.md` | every nix-darwin module, and whether this repo uses it |
+| `documentation/MIGRATION.md` | the homeshick-to-flake migration, phases and gotchas |
+| `documentation/RECONCILIATION.md` | the castle-to-flake file sweep, and what still needs a decision |
+| `documentation/BACKPORT.md` | fixes found here that newt's pre-flake setup still needs |
+| `documentation/HOMEBREW.md` | how far Homebrew determinism goes, why `brew pin` and nix-homebrew don't get there |
+| `documentation/SECRETS.md` | why secrets sit outside the flake, and the bootstrap dependency chain |
+| `documentation/ZSH.md` | moving zsh plugins from zinit to Nix, and the startup-time baseline |
 | `homebrew/README.md` | the tap itself, and bumping a cask with `cask-updater` |
 
 ## Conventions
@@ -162,7 +165,7 @@ would otherwise have to be rediscovered.
   `defaults read` reports set keys as absent, because the output is nested.
 - **nix-darwin's "The default is ..." documentation is not always current.** It
   describes several trackpad gestures as defaulting to off that macOS ships on.
-  NIX-DARWIN.md lists the known-stale ones.
+  documentation/NIX-DARWIN.md lists the known-stale ones.
 - **Per-host exclusions live in `excluded-apps.nix`**, keyed by short hostname.
   The old `NIX_MACOS_EXCLUDE_CASKS` environment variable is dead; the
   `dotfiles/home/.config/zsh/env.*` files that still set it are leftovers and
