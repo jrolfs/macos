@@ -63,8 +63,16 @@ in
     # greetd switches off the text log-in on tty1 (autovt@tty1) so a rebuild
     # can't restart a getty over it. Without greetd running at boot, that
     # leaves tty1 blank, so it comes back for a console boot.
+    #
+    # As a drop-in: autovt@tty1 is an instance of a template, so by default
+    # NixOS writes this out as a whole unit file with nothing to run, which
+    # replaced the real getty and left tty1 blank anyway.
     (mkIf (cfg.boot == "console" && greetd) {
-      systemd.services."autovt@tty1".enable = mkForce true;
+      systemd.services."autovt@tty1" = {
+        enable = mkForce true;
+        overrideStrategy = "asDropin";
+        wantedBy = [ "getty.target" ];
+      };
     })
   ];
 }
