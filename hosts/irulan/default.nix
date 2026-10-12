@@ -1,9 +1,10 @@
 { pkgs, lib, hostname, userName, ... }:
 
 # Beelink SEi 12 Mini PC — i5-12450H, 16 GB RAM, 500 GB SSD.
-# Home-infra host: native Home Assistant + Plex + step-ca; bootstrap-tier
-# Komodo containers; everything else lives in the compose repo and is
-# deployed via Komodo periphery.
+# Home-infra host, taking over Leia's services in the phases laid out in
+# documentation/IRULAN-MIGRATION.md. Services that suit a NixOS module run
+# natively from here; the rest are Komodo stacks in the rolfs.lan repo, which
+# this host's periphery deploys.
 #
 # hardware-configuration.nix is NOT imported here yet — it gets generated
 # by `nixos-generate-config --root /mnt` during the install on real
@@ -19,16 +20,19 @@
     ../../modules/nixos/arcade
 
     ../../modules/nixos/services/home-assistant.nix
+    ../../modules/nixos/services/komodo.nix
     ../../modules/nixos/services/plex.nix
 
-    # Both need state that still lives on Leia and is placed by hand before
-    # first start (the CA data and its intermediate password, and
-    # /etc/komodo/mongo.env). Imported without it they fail every switch:
-    # nixos-rebuild exits non-zero whenever a unit fails to start. Bring each
-    # back in alongside its migration.
+    # Needs state that still lives on Leia and is placed by hand before first
+    # start (the CA data and its intermediate password). Imported without it,
+    # it fails every switch: nixos-rebuild exits non-zero whenever a unit
+    # fails to start. Bring it back in alongside its migration.
     # ../../modules/nixos/services/step-ca.nix
-    # ../../modules/nixos/services/komodo.nix
   ];
+
+  # Core stays on Leia. Enabling it here would also need /etc/komodo/*.env
+  # placed by hand first, for the reason step-ca is commented out above.
+  komodo.periphery.enable = true;
 
   # Attached to a TV with a keyboard and trackpad, so it boots to a desktop
   # even though most of what it runs is headless, with the emulator station
