@@ -1,9 +1,10 @@
 { pkgs, lib, hostname, userName, ... }:
 
 # Beelink SEi 12 Mini PC — i5-12450H, 16 GB RAM, 500 GB SSD.
-# Home-infra host: native Home Assistant + Plex + step-ca; bootstrap-tier
-# Komodo containers; everything else lives in the compose repo and is
-# deployed via Komodo periphery.
+# Home-infra host, taking over Leia's services in the phases laid out in
+# documentation/IRULAN-MIGRATION.md. Services that suit a NixOS module run
+# natively from here; the rest are Komodo stacks in the rolfs.lan repo, which
+# this host's periphery deploys.
 #
 # hardware-configuration.nix is NOT imported here yet — it gets generated
 # by `nixos-generate-config --root /mnt` during the install on real
@@ -19,16 +20,19 @@
     ../../modules/nixos/arcade
 
     ../../modules/nixos/services/home-assistant.nix
+    ../../modules/nixos/services/komodo.nix
     ../../modules/nixos/services/plex.nix
 
-    # Both need state that still lives on Leia and is placed by hand before
-    # first start (the CA data and its intermediate password, and
-    # /etc/komodo/mongo.env). Imported without it they fail every switch:
-    # nixos-rebuild exits non-zero whenever a unit fails to start. Bring each
-    # back in alongside its migration.
+    # Needs state that still lives on Leia and is placed by hand before first
+    # start (the CA data and its intermediate password). Imported without it,
+    # it fails every switch: nixos-rebuild exits non-zero whenever a unit
+    # fails to start. Bring it back in alongside its migration.
     # ../../modules/nixos/services/step-ca.nix
-    # ../../modules/nixos/services/komodo.nix
   ];
+
+  # Core stays on Leia. Enabling it here would also need /etc/komodo/*.env
+  # placed by hand first, for the reason step-ca is commented out above.
+  komodo.periphery.enable = true;
 
   # Attached to a TV with a keyboard and trackpad, so it boots to a desktop
   # even though most of what it runs is headless, with the emulator station
@@ -79,9 +83,12 @@
     ];
   };
 
-  # Docker daemon for the bootstrap-tier Komodo containers (see
-  # modules/nixos/services/komodo.nix). Komodo manages its own
-  # containers via the docker socket.
+  # i915 loads its GuC and HuC firmware from linux-firmware, and on 12th-gen
+  # the low-power encoder Quick Sync relies on doesn't work without HuC. The
+  # generated hardware-configuration.nix doesn't turn this on by itself.
+  hardware.enableRedistributableFirmware = true;
+
+  # The Docker daemon Komodo deploys stacks to, through the periphery.
   virtualisation.docker.enable = true;
 
   # SSH for `nixos-rebuild switch --target-host jamie@irulan` from
@@ -92,22 +99,29 @@
     settings.PermitRootLogin = "no";
   };
 
-  # NFS mount of the QNAP media share. Plex / media services read from
-  # here; library DB (services.plex.dataDir) is on the local SSD.
-  # x-systemd.automount + noauto: don't block boot if NAS is down;
-  # mount on first access; remount cleanly when network comes back.
-  # TODO: confirm export path on QNAP (currently /share/Media exposed
-  # via NFS on the NAS — adjust if QNAP exports a different path).
+  # Leia's media share, read-only: the download stack on Leia is the only
+  # writer, and two Plex servers scanning one tree must not both be able to
+  # rewrite it. The library DB (services.plex.dataDir) is on the local SSD.
+  # x-systemd.automount + noauto: don't block boot if the NAS is down; mount
+  # on first access instead.
+  #
+  # The version is left to negotiation. QTS offers 4.1 at most, and a pinned
+  # nfsvers fails outright against a server without it instead of falling back.
+  #
+  # TODO: confirm the export path. QTS exports NFSv4 under a pseudo-root
+  # named after the share (/Media), and v3 at /share/Media. On Leia,
+  # `cat /etc/exports` shows both, and Control Panel → Shared Folders →
+  # Media → Edit Shared Folder Permission → NFS host access is where Irulan
+  # has to be allowed (read-only is enough).
   fileSystems."/mnt/nas/media" = {
-    device = "qnap.lan:/share/Media";
+    device = "leia.rolfs.lan:/Media";
     fsType = "nfs";
     options = [
       "x-systemd.automount"
       "noauto"
       "_netdev"
-      "nfsvers=4.2"
+      "ro"
       "soft"
-      "intr"
     ];
   };
 
