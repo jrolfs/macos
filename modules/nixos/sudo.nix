@@ -23,7 +23,10 @@ let
   #
   # The fixed origin is what lets one registration work on every host; by
   # default pam_u2f binds a key to the hostname it was registered on.
-  yubikeys = [ ];
+  yubikeys = [
+    # USB-C Nano, registered 2026-10-12
+    "Iv7NJzYfGczhtVBNcEk/yiwYY4y2Kbr8LZ8xK24I81xyVFi8mUEMoBhcs/sWE9n8X9T2Bcjgm6tmJmEeW9hv6g==,yjw4b6sC/7cVLf4UV6tVztdWuolALvEXVgmZ2OhnTJBRX/kj4uoqQEM3QkRiujlSJWmXgUCdvMoczJlDW7/jwQ==,es256,+presence"
+  ];
 
   origin = "pam://${userName}";
 in
