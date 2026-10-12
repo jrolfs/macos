@@ -132,18 +132,25 @@ in
       # silently would cost more than the keystrokes save. The lock change is
       # left uncommitted on purpose, to be reviewed with the switch that used it.
       function nix-switch {
-        local brew=auto flag= update=no
+        local brew=auto flag= update=no pull=no
         local -a rest inputs
 
         for argument in "''$@"; do
           case "''$argument" in
             --brew)     brew=reset; flag=''$argument ;;
             --no-brew)  brew=skip;  flag=''$argument ;;
+            --pull)     pull=yes ;;
             --update)   update=yes ;;
             --update=*) update=yes; inputs+=("''${argument#--update=}") ;;
             *)          rest+=("''$argument") ;;
           esac
         done
+
+        # Before --update: the update rewrites flake.lock, which a pull
+        # afterwards would collide with.
+        if [[ ''$pull == yes ]]; then
+          git -C "${configDirectory}" pull --ff-only || return
+        fi
 
         if [[ ''$update == yes ]]; then
           nix flake update --flake "${configDirectory}" "''${inputs[@]}" || return

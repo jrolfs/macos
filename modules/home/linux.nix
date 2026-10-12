@@ -11,7 +11,8 @@ let
   # Baked in for the same reason as the darwin counterpart: $NIX_CONFIG_DIR
   # comes from home.sessionVariables and nothing sources hm-session-vars.sh, so
   # the alias was expanding to `--flake #irulan`.
-  flake = "${config.home.homeDirectory}/.config/system#${hostname}";
+  configDirectory = "${config.home.homeDirectory}/.config/system";
+  flake = "${configDirectory}#${hostname}";
 in
 {
   # ~/.zshrc.linux is sourced by ~/.zshrc when uname is Linux.
@@ -24,11 +25,37 @@ in
       #
       # Aliases ----------------------------------------------------------------------
 
-      # Single quotes inside the alias, as on darwin: unquoted, zsh's
+      # Quoted wherever the flake reference appears: unquoted, zsh's
       # extendedglob reads the `#` in `system#irulan` as a pattern operator,
       # finds no file matching it, and refuses to run the command.
-      alias nix-switch="sudo -E nixos-rebuild switch --flake '${flake}' --show-trace"
       alias nix-rebuild="sudo -E nixos-rebuild build --flake '${flake}' --show-trace"
+
+      # The darwin function's flags, minus the Homebrew ones.
+      function nix-switch {
+        local update=no pull=no
+        local -a rest inputs
+
+        for argument in "''$@"; do
+          case "''$argument" in
+            --pull)     pull=yes ;;
+            --update)   update=yes ;;
+            --update=*) update=yes; inputs+=("''${argument#--update=}") ;;
+            *)          rest+=("''$argument") ;;
+          esac
+        done
+
+        # Before --update: the update rewrites flake.lock, which a pull
+        # afterwards would collide with.
+        if [[ ''$pull == yes ]]; then
+          git -C "${configDirectory}" pull --ff-only || return
+        fi
+
+        if [[ ''$update == yes ]]; then
+          nix flake update --flake "${configDirectory}" "''${inputs[@]}" || return
+        fi
+
+        sudo -E nixos-rebuild switch --flake "${flake}" --show-trace "''${rest[@]}"
+      }
       alias nix-search="nix search nixpkgs"
     '';
 
