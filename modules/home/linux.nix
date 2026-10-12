@@ -28,7 +28,12 @@ in
       # Quoted wherever the flake reference appears: unquoted, zsh's
       # extendedglob reads the `#` in `system#irulan` as a pattern operator,
       # finds no file matching it, and refuses to run the command.
-      alias nix-rebuild="sudo -E nixos-rebuild build --flake '${flake}' --show-trace"
+      #
+      # No sudo here: building needs none, and nix-switch below lets
+      # nixos-rebuild elevate only the activation. Under `sudo -E` the whole
+      # thing ran as root with $HOME still pointing at /home/jamie, which nix
+      # warns about on every invocation.
+      alias nix-rebuild="nixos-rebuild build --flake '${flake}' --show-trace"
 
       # The darwin function's flags, minus the Homebrew ones.
       function nix-switch {
@@ -54,7 +59,7 @@ in
           nix flake update --flake "${configDirectory}" "''${inputs[@]}" || return
         fi
 
-        sudo -E nixos-rebuild switch --flake "${flake}" --show-trace "''${rest[@]}"
+        nixos-rebuild switch --sudo --flake "${flake}" --show-trace "''${rest[@]}"
       }
       alias nix-search="nix search nixpkgs"
     '';
