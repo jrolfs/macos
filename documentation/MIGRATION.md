@@ -253,7 +253,7 @@ Phases, in order:
    1Password GUI's CLI integration; verified via `op whoami`).
 4. **private-cloned** (homeshick clone + `link private`) → **nix-config-cloned**
    (`nixConfigRepo`@`nixConfigBranch` → `~/.config/system`; currently
-   `jrolfs/macos`@`main` — flip the repo name after the rename) →
+   `jrolfs/system`@`main`, renamed from `jrolfs/macos`) →
    **vscode-sync-cloned**.
 5. **resilio-configured** — install Resilio, best-effort seed `sync.conf`, launch
    foreground and **guide the user** through the first-run EULA + adding the
