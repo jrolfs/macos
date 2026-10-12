@@ -12,6 +12,7 @@ in
     ../home-backup.nix
     ../packages.nix
     ./onepassword-secrets.nix
+    ./sudo.nix
   ];
 
   # Same overlay the darwin side applies. Not darwin-specific: modules/home is
