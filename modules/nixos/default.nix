@@ -76,6 +76,20 @@ in
   time.timeZone = lib.mkDefault "America/Los_Angeles";
   i18n.defaultLocale = lib.mkDefault "en_US.UTF-8";
 
+  # The text console in Gruvbox Material Dark Soft, like everything else. The
+  # Linux console draws its background in color 0 and its default text in
+  # color 7, so those take the palette's surface and foreground, unlike a
+  # terminal emulator's ANSI slots, where 0 is a gray "black" for text.
+  console.colors =
+    let
+      p = (import ../theme/palette.nix).dark.soft;
+      hex = color: builtins.substring 1 6 color;
+    in
+    map hex [
+      p.bg0 p.red p.green p.yellow p.blue p.purple p.aqua p.fg0
+      p.grey1 p.red p.green p.yellow p.blue p.purple p.aqua p.fg1
+    ];
+
   # Console / terminal defaults — Linux equivalents of the macOS keyboard
   # behavior tweaks. Override in host file if it has a different layout.
   console.keyMap = lib.mkDefault "us";
