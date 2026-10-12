@@ -18,6 +18,7 @@
     # Attached to a TV with a keyboard, so it gets the GUI applications even
     # though it spends most of its life headless.
     ../../modules/nixos/desktop.nix
+    ../../modules/nixos/arcade
 
     ../../modules/nixos/services/home-assistant.nix
     ../../modules/nixos/services/plex.nix
@@ -30,6 +31,8 @@
     # ../../modules/nixos/services/step-ca.nix
     # ../../modules/nixos/services/komodo.nix
   ];
+
+  arcade.enable = true;
 
   networking.hostName = hostname;
   networking.useDHCP = lib.mkDefault true;  # static IP TBD; DHCP for now.
