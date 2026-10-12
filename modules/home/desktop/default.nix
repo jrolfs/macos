@@ -6,6 +6,7 @@
 
 {
   imports = [
+    ./bar
     ./hyprland.nix
     ./kanata-layers.nix
     ./lock.nix
